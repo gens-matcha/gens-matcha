@@ -41,18 +41,8 @@
       border:2px dashed #efefef;
       display:flex; flex-direction:column; justify-content:space-between;
     }
-    .ribbon{position:absolute; top:10px; right:10px; background:var(--pastel-1); padding:6px 10px; border-radius:999px; font-size:12px}
-    .img{
-      width:100%;
-      aspect-ratio:3/4;
-      height:auto;
-      object-fit:cover;
-      display:block;
-      border-radius:16px;
-      margin-bottom:10px;
-      border:2px solid #f3eef1;
-      background:#fff;
-    }
+    /* .ribbon removed per request */
+    .img{ width:100%; aspect-ratio:3/4; height:auto; max-height:clamp(140px, 28vh, 220px); object-fit:cover; display:block; border-radius:16px; margin-bottom:10px; border:2px solid #f3eef1; background:#fff; } @media (max-width:900px){ .img{ max-height:170px; } }
     .title{font-size:18px; margin:6px 0 2px}
     .options{display:grid; gap:8px; margin:10px 0}
     .option{display:flex; align-items:center; gap:10px}
@@ -95,7 +85,7 @@
         <p class="small muted">Prices shown exclude delivery. Cart saves on this device.</p>
         <div class="divider"></div>
         <div class="row" style="gap:8px; flex-wrap:wrap">
-          <button id="confirmBtn" style="background:var(--pastel-1)">Confirm stock</button>
+          <button id="confirmBtn" style="background:var(--pastel-1)">Check Outtton>
           <button id="clearBtn" style="background:var(--pastel-2)">Clear cart</button>
         </div>
         <div class="qrWrap" id="qrWrap">
@@ -174,7 +164,6 @@
     card.className = 'card';
     card.innerHTML = `
       <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
-      <div class="ribbon">${money(p.basePrice)}</div>
       <div class="title">${p.title}</div>
       <p class="muted small" style="margin:0">Choose add‑ons:</p>
       <div class="options"></div>
@@ -258,9 +247,9 @@
   confirmBtn.addEventListener('click', ()=>{
     if(cart.length===0){ alert('Cart is empty.'); return; }
     qrWrap.style.display = 'block';
-    confirmBtn.textContent = 'Stock confirmed ✓';
+    confirmBtn.textContent = 'Checkout ready ✓';
   });
-  clearBtn.addEventListener('click', ()=>{ cart = []; saveCart(cart); renderCart(); qrWrap.style.display='none'; confirmBtn.textContent='Confirm stock'; });
+  clearBtn.addEventListener('click', ()=>{ cart = []; saveCart(cart); renderCart(); qrWrap.style.display='none'; confirmBtn.textContent='Check Out'; });
 
   </script>
 </body>
