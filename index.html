@@ -7,54 +7,31 @@
   <!-- Playful, casual fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* ===================== THEME ===================== */
     :root{
-      --bg:#fffaf6;           /* warm cream */
-      --card:#fff;            /* white cards */
-      --ink:#2f2a2a;          /* soft dark ink */
-      --muted:#7c6f6a;        /* muted text */
-      --pastel-1:#b7e4c7;     /* mint */
-      --pastel-2:#ffd6e7;     /* pink */
-      --pastel-3:#ffef9f;     /* lemon */
-      --pastel-4:#cde4ff;     /* sky */
-      --accent:#7cc5b3;       /* matcha-mint */
+      --bg:#fffaf6;
+      --card:#fff;
+      --ink:#2f2a2a;
+      --muted:#7c6f6a;
+      --pastel-1:#b7e4c7;
+      --pastel-2:#ffd6e7;
+      --pastel-3:#ffef9f;
+      --pastel-4:#cde4ff;
+      --accent:#7cc5b3;
       --shadow: 0 8px 24px rgb(0 0 0 / 7%);
       --radius:20px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
     body{
       margin:0; background:var(--bg); color:var(--ink);
       font:16px/1.5 "Fredoka","Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       overflow-x:hidden;
     }
-    a{color:inherit}
-
-    /* ============ Hand‑drawn doodle borders (SVG BGs) ============ */
-    .doodle-corners{
-      position:relative; isolation:isolate;
-    }
-    .doodle-corners:before, .doodle-corners:after{
-      content:""; position:absolute; inset:-20px; z-index:-1; pointer-events:none;
-      background:
-        /* top-left stars */
-        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="120" viewBox="0 0 160 120"><g fill="none" stroke="%237cc5b3" stroke-width="3" stroke-linecap="round"><path d="M20 20l6 10 12 2-10 6 2 12-10-6-10 6 2-12-10-6 12-2z"/></g></svg>') no-repeat 0 0,
-        /* bottom-right whisk */
-        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><g fill="none" stroke="%23b9a7ff" stroke-width="3" stroke-linecap="round"><path d="M40 120c20-30 40-30 60 0" /><path d="M100 120v20" /><path d="M60 120v20" /><path d="M80 120v20" /></g></svg>') no-repeat 100% 100%;
-      background-size:120px, 140px;
-      opacity:.6;
-    }
-
-    /* ===================== LAYOUT ===================== */
     .wrap{max-width:1100px; margin:auto; padding:28px}
-    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px}
-    h1{font-size:28px; margin:0; letter-spacing:.3px}
-    .badge{background:var(--pastel-3); padding:6px 10px; border-radius:999px; font-size:13px}
+    header{margin-bottom:20px; text-align:center}
+    h1{font-size:28px; margin:0}
 
     .layout{display:grid; grid-template-columns:1fr 340px; gap:24px}
     @media (max-width: 900px){ .layout{grid-template-columns:1fr} }
 
-    /* ===================== CARDS ===================== */
     .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px}
     .card{
       background:var(--card);
@@ -62,21 +39,27 @@
       box-shadow:var(--shadow);
       padding:14px; position:relative;
       border:2px dashed #efefef;
+      display:flex; flex-direction:column; justify-content:space-between;
     }
     .ribbon{position:absolute; top:10px; right:10px; background:var(--pastel-1); padding:6px 10px; border-radius:999px; font-size:12px}
     .img{
-      width:100%; height:170px; border-radius:16px; background:linear-gradient(135deg,var(--pastel-2),var(--pastel-4));
-      display:grid; place-items:center; color:#555; font-weight:600; margin-bottom:10px; border:2px solid #f3eef1;
+      width:100%;
+      aspect-ratio:3/4;
+      height:auto;
+      object-fit:cover;
+      display:block;
+      border-radius:16px;
+      margin-bottom:10px;
+      border:2px solid #f3eef1;
+      background:#fff;
     }
     .title{font-size:18px; margin:6px 0 2px}
-    .price{font-weight:700; margin:0 0 10px}
     .options{display:grid; gap:8px; margin:10px 0}
     .option{display:flex; align-items:center; gap:10px}
     .option input{accent-color: var(--accent)}
     button{appearance:none;border:0;border-radius:14px;padding:10px 14px;background:var(--accent); color:#073c33; font-weight:700; cursor:pointer}
     .muted{color:var(--muted)}
 
-    /* ===================== CART ===================== */
     .cart{position:sticky; top:14px; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
     .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
     .divider{height:1px; background:#eee; margin:12px 0}
@@ -86,20 +69,13 @@
     .qty input{width:56px; padding:6px 8px; border-radius:10px; border:1px solid #eee}
     .small{font-size:12px}
 
-    /* ===================== PAYNOW QR ===================== */
     .qrWrap{display:none; background:linear-gradient(135deg, var(--pastel-3), var(--pastel-2)); padding:12px; border-radius:16px; text-align:center}
     .qrWrap img{max-width:220px; width:100%; border-radius:12px; border:4px solid #fff; box-shadow:var(--shadow)}
 
-    /* decorative pastel blobs behind product grid */
-    .blobs{ position:absolute; inset:0; z-index:-1; filter:blur(40px); opacity:.35; pointer-events:none }
-    .blob{ position:absolute; width:240px; height:240px; border-radius:50% }
-    .b1{ background:var(--pastel-1); left:-60px; top:80px }
-    .b2{ background:var(--pastel-2); right:60px; top:10px }
-    .b3{ background:var(--pastel-4); left:30%; bottom:0 }
   </style>
 </head>
 <body>
-  <div class="wrap doodle-corners">
+  <div class="wrap">
     <header>
       <h1>Gen’s Matcha 🍵✨</h1>
     </header>
@@ -108,11 +84,6 @@
       <main>
         <p class="muted">Choose your drink, customise your matcha, and sip something super cute</p>
         <div class="grid" id="productGrid"></div>
-        <div class="blobs" aria-hidden="true">
-          <div class="blob b1"></div>
-          <div class="blob b2"></div>
-          <div class="blob b3"></div>
-        </div>
       </main>
 
       <aside class="cart" id="cart">
@@ -129,49 +100,37 @@
         </div>
         <div class="qrWrap" id="qrWrap">
           <p style="margin:6px 0 10px"><b>PayNow</b> to complete your order</p>
-          <!-- Replace this image path when needed -->
           <img id="paynowQR" src="paynow-qr.png" alt="PayNow QR placeholder">
-          
         </div>
       </aside>
     </div>
   </div>
 
   <script>
-  // ================== EASY-EDIT MENU DATA ==================
-  // You can add or change items here. Each item has base price and add-ons.
   const products = [
     {
       id: 'matcha-yuzu',
       title: 'Matcha Yuzu Tonic',
-      img: 'img/matcha-yuzu.png', // replace later
+      img: 'img/matcha-yuzu.png',
       basePrice: 6.0,
-      addons: [
-        { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 }
-      ]
+      addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 } ]
     },
     {
       id: 'matcha-rasp',
       title: 'Matcha Raspberry Tonic',
-      img: 'img/matcha-rasp.png', // replace later
+      img: 'img/matcha-rasp.png',
       basePrice: 6.0,
-      addons: [
-        { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 }
-      ]
+      addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 } ]
     },
     {
       id: 'matcha-latte',
       title: 'Matcha Latte',
-      img: 'img/matcha-latte.png', // replace later
+      img: 'img/matcha-latte.png',
       basePrice: 5.0,
-      addons: [
-        { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 },
-        { id: 'oat',     label: 'Oatmilk',       price: 0.5 }
-      ]
+      addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.0 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ]
     }
   ];
 
-  // ============== CART STATE (localStorage) ==============
   const CART_KEY = 'whisk_matcha_cart_v1';
   const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
   const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
@@ -187,7 +146,6 @@
   function addToCart({productId, qty, chosen}){
     const p = products.find(x=>x.id===productId);
     if(!p) return;
-    // Create a stable id based on chosen addon ids
     const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
     const title = p.title;
     const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
@@ -206,11 +164,10 @@
 
   function totals(){
     const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
-    const total = sub; // add taxes/fees here if needed
+    const total = sub;
     return { sub, total };
   }
 
-  // ================== RENDER PRODUCTS ==================
   const grid = document.getElementById('productGrid');
   products.forEach(p=>{
     const card = document.createElement('article');
@@ -228,7 +185,6 @@
       </div>
     `;
 
-    // Build addon checkboxes
     const $opts = card.querySelector('.options');
     p.addons.forEach(a=>{
       const line = document.createElement('label');
@@ -253,14 +209,12 @@
     btn.addEventListener('click', ()=>{
       const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,''), price: parseFloat(cb.dataset.price) }));
       addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
-      // playful micro feedback
       btn.textContent = 'Added ✓'; setTimeout(()=> btn.textContent='Add to Cart', 900);
     });
 
     grid.appendChild(card);
   });
 
-  // ================== RENDER CART ==================
   const $items = document.getElementById('cartItems');
   const $sub = document.getElementById('subtotal');
   const $tot = document.getElementById('total');
@@ -297,7 +251,6 @@
   }
   renderCart();
 
-  // ================== CONFIRM STOCK → SHOW PayNow QR ==================
   const qrWrap = document.getElementById('qrWrap');
   const confirmBtn = document.getElementById('confirmBtn');
   const clearBtn = document.getElementById('clearBtn');
@@ -309,11 +262,6 @@
   });
   clearBtn.addEventListener('click', ()=>{ cart = []; saveCart(cart); renderCart(); qrWrap.style.display='none'; confirmBtn.textContent='Confirm stock'; });
 
-  // ============== EDIT TIPS ==============
-  // 1) Replace image placeholders by creating an /img folder and updating the paths above.
-  // 2) Change colors in :root.
-  // 3) Add new menu items by pushing objects into `products` with the same shape.
-  // 4) Add taxes/fees inside totals() if you need to.
   </script>
 </body>
 </html>
