@@ -216,7 +216,7 @@
     const card = document.createElement('article');
     card.className = 'card';
     card.innerHTML = `
-      <div class="img">Image placeholder</div>
+      <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
       <div class="ribbon">${money(p.basePrice)}</div>
       <div class="title">${p.title}</div>
       <p class="muted small" style="margin:0">Choose add‑ons:</p>
