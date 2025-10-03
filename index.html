@@ -356,19 +356,26 @@
     return await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.82));
   }
 
-  async function uploadOrderWithProof(order, file){
-    const fd = new FormData();
-    fd.append('action','submit_order');
-    fd.append('order_id', order.order_id);
-    fd.append('telegram', order.telegram);
-    fd.append('subtotal', String(order.subtotal));
-    fd.append('total', String(order.total));
-    fd.append('items', JSON.stringify(order.items));
-    const blob = await toCompressedBlob(file);
-    fd.append('proof', blob, `proof_${order.order_id}.jpg`);
-    const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body:fd });
-    return await res.json();
-  }
+// AFTER — send original file, no compression
+async function uploadOrderWithProof(order, file){
+  const fd = new FormData();
+  fd.append('action','submit_order');
+  fd.append('order_id', order.order_id);
+  fd.append('telegram', order.telegram);
+  fd.append('subtotal', String(order.subtotal));
+  fd.append('total', String(order.total));
+  fd.append('items', JSON.stringify(order.items));
+
+  // IMPORTANT: pass the raw file + a filename; do NOT set Content-Type manually
+  const filename = file?.name || `proof_${order.order_id}.jpg`;
+  fd.append('proof', file, filename);
+
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: fd
+  });
+  return await res.json();
+}
 
   submitBtn.addEventListener('click', async ()=>{
     try {
