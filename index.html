@@ -384,7 +384,7 @@
       submitBtn.disabled = true; submitStatus.textContent = 'Uploading…';
       const resp = await uploadOrderWithProof(pendingOrder, f);
       if(resp.ok){
-        submitStatus.textContent = 'Submitted ✓ We will verify shortly.';
+        submitStatus.textContent = 'Submitted ✓';
         // clear local cart AFTER successful submission
         cart = []; saveCart(cart); renderCart();
       } else {
