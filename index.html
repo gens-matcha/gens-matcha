@@ -26,6 +26,11 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
+    .mobile-break{ display:none; }
+    @media (max-width:600px){ 
+      .mobile-break{ display:block; }
+      h1{ font-size:36px; }
+    }
     .tagline{
       font-size:18px; color:var(--muted); margin:0;
       font-weight:400;
@@ -51,19 +56,30 @@
       height:4px; background:linear-gradient(90deg, var(--pastel-1), var(--pastel-2), var(--pastel-3));
       opacity:0; transition:opacity 0.3s ease;
     }
-    .card:hover{
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgb(0 0 0 / 12%);
-      border-color: var(--accent);
+    
+    /* Hover effects only for devices with mouse/pointer */
+    @media (hover: hover) and (pointer: fine) {
+      .card:hover{ 
+        transform: translateY(-4px); 
+        box-shadow: 0 12px 32px rgb(0 0 0 / 12%); 
+        border-color: var(--accent); 
+      }
+      .card:hover::before{ opacity:1; }
+      .card:hover .img{ transform: scale(1.03); }
+      .option:hover{ background:#f0f0f0; }
+      button:hover:not(:disabled){
+        background:#6ab5a3; transform:translateY(-1px);
+        box-shadow: 0 4px 12px rgb(124 197 179 / 30%);
+      }
+      input[type="file"]:hover{ border-color:var(--accent); background:#fff; }
+      .copyBtn:hover{ background:#6ab5a3; }
     }
-    .card:hover::before{ opacity:1; }
     
     .img{
       width:100%; aspect-ratio:1/1; object-fit:cover; display:block;
       border-radius:16px; margin-bottom:14px; border:3px solid #f8f4f1; background:#fff;
       transition: transform 0.3s ease;
     }
-    .card:hover .img{ transform: scale(1.03); }
     
     .title{font-size:20px; margin:8px 0 4px; font-weight:600}
     .options{display:grid; gap:10px; margin:14px 0}
@@ -73,7 +89,6 @@
       transition: all 0.2s ease;
       cursor:pointer;
     }
-    .option:hover{ background:#f0f0f0; }
     .option input{accent-color: var(--accent); cursor:pointer}
     .option span{cursor:pointer; user-select:none}
     
@@ -81,10 +96,6 @@
       appearance:none;border:0;border-radius:14px;padding:12px 16px;
       background:var(--accent); color:#073c33; font-weight:700; cursor:pointer;
       transition: all 0.2s ease; font-size:15px;
-    }
-    button:hover:not(:disabled){
-      background:#6ab5a3; transform:translateY(-1px);
-      box-shadow: 0 4px 12px rgb(124 197 179 / 30%);
     }
     button:active:not(:disabled){ transform:translateY(0); }
     button:disabled{opacity:.5;cursor:not-allowed}
@@ -164,7 +175,6 @@
       font-weight:700; cursor:pointer;
       transition: all 0.2s ease;
     }
-    .copyBtn:hover{ background:#6ab5a3; }
 
     /* Telegram field */
     .teleGroup{
@@ -193,7 +203,6 @@
       border-radius:12px; cursor:pointer;
       transition: all 0.2s ease; background:#fafafa;
     }
-    input[type="file"]:hover{ border-color:var(--accent); background:#fff; }
 
     /* Total section highlight */
     .total-section{
@@ -299,10 +308,10 @@
   // ==================================
 
   const products = [
-    { id: 'matcha-yuzu',   title: 'Matcha Yuzu Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'aoarashi', label: 'Marukyu Aoarashi', price: 1.5 } ] },
-    { id: 'matcha-rasp',   title: 'Matcha Raspberry Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'aoarashi', label: 'Marukyu Aoarashi', price: 1.5 } ] },
-    { id: 'matcha-latte',  title: 'Matcha Latte',           img: 'img/matcha-latte.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'aoarashi', label: 'Marukyu Aoarashi', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] },
-    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'aoarashi', label: 'Marukyu Aoarashi', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] }
+    { id: 'matcha-yuzu',   title: 'Matcha Yuzu Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
+    { id: 'matcha-rasp',   title: 'Matcha Raspberry Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
+    { id: 'matcha-latte',  title: 'Matcha Latte',           img: 'img/matcha-latte.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5, recommended: true } ] },
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] }
   ];
 
   // local cart utils
@@ -361,7 +370,8 @@
     p.addons.forEach(a=>{
       const line = document.createElement('label');
       line.className = 'option';
-      line.innerHTML = `<input type="checkbox" data-id="${a.id}" data-price="${a.price}"> <span>${a.label} (+${money(a.price)})</span>`;
+      const badge = a.recommended ? ' <span style="background:#ffd6e7;color:#d64780;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:4px">⭐ Recommended</span>' : '';
+      line.innerHTML = `<input type="checkbox" data-id="${a.id}" data-price="${a.price}"> <span>${a.label} (+${money(a.price)})${badge}</span>`;
       $opts.appendChild(line);
     });
 
@@ -369,7 +379,7 @@
     const live = card.querySelector('.livePrice');
 
     function updateLive(){
-      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,''), price: parseFloat(cb.dataset.price) }));
+      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
       const price = itemPrice(p, chosen);
       live.textContent = money(price);
     }
@@ -378,7 +388,7 @@
 
     const btn = card.querySelector('button');
     btn.addEventListener('click', ()=>{
-      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,''), price: parseFloat(cb.dataset.price) }));
+      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
       addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
       btn.textContent = 'Added ✓'; 
       
