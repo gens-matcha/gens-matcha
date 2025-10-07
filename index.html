@@ -18,121 +18,254 @@
       overflow-x:hidden;
     }
     .wrap{max-width:1100px; margin:auto; padding:28px}
-    header{margin-bottom:20px; text-align:center}
-    h1{font-size:28px; margin:0}
+    header{margin-bottom:32px; text-align:center}
+    h1{
+      font-size:42px; margin:0 0 8px; 
+      background: linear-gradient(135deg, #7cc5b3, #5a9d8a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tagline{
+      font-size:18px; color:var(--muted); margin:0;
+      font-weight:400;
+    }
 
-    .layout{display:grid; grid-template-columns:1fr 340px; gap:24px}
+    .layout{display:grid; grid-template-columns:1fr 360px; gap:28px}
     @media (max-width:900px){ .layout{grid-template-columns:1fr} }
 
-    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:20px}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px}
     .card{
       background:var(--card);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:14px;
-      border:2px dashed #efefef;
+      padding:18px;
+      border:2px solid transparent;
       display:flex; flex-direction:column; justify-content:space-between;
+      transition: all 0.3s ease;
+      position:relative;
+      overflow:hidden;
     }
+    .card::before{
+      content:''; position:absolute; top:0; left:0; right:0;
+      height:4px; background:linear-gradient(90deg, var(--pastel-1), var(--pastel-2), var(--pastel-3));
+      opacity:0; transition:opacity 0.3s ease;
+    }
+    .card:hover{
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgb(0 0 0 / 12%);
+      border-color: var(--accent);
+    }
+    .card:hover::before{ opacity:1; }
+    
     .img{
       width:100%; aspect-ratio:1/1; object-fit:cover; display:block;
-      border-radius:16px; margin-bottom:10px; border:2px solid #f3eef1; background:#fff;
+      border-radius:16px; margin-bottom:14px; border:3px solid #f8f4f1; background:#fff;
+      transition: transform 0.3s ease;
     }
-    .title{font-size:18px; margin:6px 0 2px}
-    .options{display:grid; gap:8px; margin:10px 0}
-    .option{display:flex; align-items:center; gap:10px}
-    .option input{accent-color: var(--accent)}
-    button{appearance:none;border:0;border-radius:14px;padding:10px 14px;background:var(--accent); color:#073c33; font-weight:700; cursor:pointer}
+    .card:hover .img{ transform: scale(1.03); }
+    
+    .title{font-size:20px; margin:8px 0 4px; font-weight:600}
+    .options{display:grid; gap:10px; margin:14px 0}
+    .option{
+      display:flex; align-items:center; gap:12px;
+      padding:10px 12px; background:#fafafa; border-radius:12px;
+      transition: all 0.2s ease;
+      cursor:pointer;
+    }
+    .option:hover{ background:#f0f0f0; }
+    .option input{accent-color: var(--accent); cursor:pointer}
+    .option span{cursor:pointer; user-select:none}
+    
+    button{
+      appearance:none;border:0;border-radius:14px;padding:12px 16px;
+      background:var(--accent); color:#073c33; font-weight:700; cursor:pointer;
+      transition: all 0.2s ease; font-size:15px;
+    }
+    button:hover:not(:disabled){
+      background:#6ab5a3; transform:translateY(-1px);
+      box-shadow: 0 4px 12px rgb(124 197 179 / 30%);
+    }
+    button:active:not(:disabled){ transform:translateY(0); }
     button:disabled{opacity:.5;cursor:not-allowed}
     .muted{color:var(--muted)}
 
-    .cart{position:sticky; top:14px; background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
+    .cart{
+      position:sticky; top:14px; background:var(--card); 
+      border-radius:var(--radius); box-shadow:var(--shadow); padding:20px;
+      border:2px solid #f5f5f5;
+    }
+    .cart h3{
+      margin:0 0 16px; font-size:22px; 
+      display:flex; align-items:center; gap:8px;
+    }
+    .cart-badge{
+      background:var(--accent); color:#073c33; 
+      font-size:12px; padding:2px 8px; border-radius:999px;
+      font-weight:700;
+    }
     .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-    .divider{height:1px; background:#eee; margin:12px 0}
-    .item{display:grid; grid-template-columns:1fr auto; gap:6px; padding:8px 0}
-    .addons{font-size:13px; color:var(--muted)}
-    .qty{display:flex; align-items:center; gap:6px}
-    .qty input{width:56px; padding:6px 8px; border-radius:10px; border:1px solid #eee}
+    .divider{height:1px; background:#eee; margin:16px 0}
+    .item{
+      display:grid; grid-template-columns:1fr auto; gap:10px; 
+      padding:12px; background:#fafafa; border-radius:12px; margin-bottom:8px;
+    }
+    .addons{font-size:13px; color:var(--muted); margin-top:4px}
+    .qty{display:flex; align-items:center; gap:8px; font-size:14px}
+    .qty input{
+      width:60px; padding:8px 10px; border-radius:10px; 
+      border:2px solid #eee; text-align:center; font-weight:600;
+      transition: border-color 0.2s ease;
+    }
+    .qty input:focus{
+      outline:none; border-color:var(--accent);
+      box-shadow: 0 0 0 3px rgb(124 197 179 / 15%);
+    }
     .small{font-size:12px}
+    .livePrice{
+      color:var(--accent); font-size:20px;
+      text-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    }
+
+    /* Empty cart state */
+    .empty-cart{
+      text-align:center; padding:32px 16px;
+      color:var(--muted);
+    }
+    .empty-cart::before{
+      content:'🛒'; font-size:48px; display:block; margin-bottom:12px;
+      opacity:0.3;
+    }
 
     /* QR section */
     .qrWrap{
       display:none;
-      background:linear-gradient(135deg, var(--pastel-3), var(--pastel-2));
-      padding:14px; border-radius:16px; margin-top:16px;
-      text-align:center;
+      background:linear-gradient(135deg, #fff7f3, #fffaf6);
+      padding:20px; border-radius:16px; margin-top:20px;
+      text-align:center; border:2px solid #f5e6df;
     }
     .qrWrap img{
       max-width:260px; width:100%;
-      border-radius:18px; border:4px solid #fff; box-shadow:var(--shadow)
+      border-radius:18px; border:4px solid #fff; box-shadow:var(--shadow);
+      margin:12px 0;
     }
 
-    /* Centered header + reference pill */
-    .qrHeader{ text-align:center; margin-bottom:10px; }
-    .qrHeader .title{ font-size:18px; margin:0 0 4px; }
-    .qrHeader .hint{ font-size:12px; color:var(--muted); margin:0 0 8px; }
+    .qrHeader{ text-align:center; margin-bottom:16px; }
+    .qrHeader .title{ font-size:19px; margin:0 0 8px; color:var(--ink)}
+    .qrHeader .hint{ font-size:13px; color:var(--muted); margin:0 0 12px; }
     .orderRefBlock{
-      display:inline-flex; align-items:center; gap:8px;
-      background:#fff; border:1px solid #eee; border-radius:999px;
-      padding:6px 10px; font-size:14px;
+      display:inline-flex; align-items:center; gap:10px;
+      background:#fff; border:2px solid var(--accent); border-radius:999px;
+      padding:8px 14px; font-size:15px; font-weight:600;
     }
     .copyBtn{
       background: var(--accent); color:#073c33;
-      border:0; border-radius:8px; padding:4px 8px; font-size:12px; font-weight:700; cursor:pointer
+      border:0; border-radius:8px; padding:6px 12px; font-size:13px; 
+      font-weight:700; cursor:pointer;
+      transition: all 0.2s ease;
     }
+    .copyBtn:hover{ background:#6ab5a3; }
 
     /* Telegram field */
     .teleGroup{
-      background:#fff7f3;
-      border:2px solid #f0e6df;
-      padding:12px;
+      background:#fff;
+      border:2px solid #e8e8e8;
+      padding:16px;
       border-radius:14px;
-      margin:6px 0 12px;
+      margin:6px 0 16px;
+      transition: border-color 0.3s ease;
     }
-    .teleLabel{display:block; font-weight:700; margin-bottom:6px;}
+    .teleGroup:focus-within{ border-color:var(--accent); }
+    .teleLabel{display:block; font-weight:700; margin-bottom:8px; font-size:14px}
     #teleHandle{
-      width:100%; padding:14px 16px; font-size:18px; border-radius:12px;
-      border:2px solid var(--accent); outline:none; background:#fff;
-      box-shadow:0 0 0 4px rgb(124 197 179 / 18%);
+      width:100%; padding:14px 16px; font-size:16px; border-radius:12px;
+      border:2px solid #e8e8e8; outline:none; background:#fafafa;
+      transition: all 0.2s ease; font-family:inherit;
     }
-    #teleHandle:focus{ box-shadow:0 0 0 6px rgb(124 197 179 / 26%); }
+    #teleHandle:focus{ 
+      background:#fff; border-color:var(--accent);
+      box-shadow:0 0 0 4px rgb(124 197 179 / 15%); 
+    }
 
-    .pill{display:inline-block; padding:6px 10px; background:#fff; border-radius:999px; font-size:12px; border:1px solid #eee}
+    /* File input styling */
+    input[type="file"]{
+      width:100%; padding:12px; border:2px dashed #ddd; 
+      border-radius:12px; cursor:pointer;
+      transition: all 0.2s ease; background:#fafafa;
+    }
+    input[type="file"]:hover{ border-color:var(--accent); background:#fff; }
+
+    /* Total section highlight */
+    .total-section{
+      background:linear-gradient(135deg, #f0faf7, #f5fcf9);
+      padding:16px; border-radius:14px; margin:16px 0;
+      border:2px solid var(--pastel-1);
+    }
+    .total-section .row{ font-size:18px; }
+    .total-section strong{ color:var(--accent); font-size:24px; }
+
+    /* Button group */
+    .btn-group{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      margin-top:16px;
+    }
+    
+    /* Animations */
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .card{ animation: slideIn 0.4s ease backwards; }
+    .card:nth-child(1){ animation-delay:0.05s; }
+    .card:nth-child(2){ animation-delay:0.1s; }
+    .card:nth-child(3){ animation-delay:0.15s; }
+    .card:nth-child(4){ animation-delay:0.2s; }
+
+    /* Success states */
+    .success-text{ color:#2d8659; font-weight:600; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header><h1>Gen's Matcha 🍵✨</h1></header>
+    <header>
+      <h1>Gen's Matcha 🍵✨</h1>
+      <p class="tagline">Handcrafted matcha drinks, made with love</p>
+    </header>
 
     <div class="layout">
       <main>
-        <p class="muted">Choose your drink, customise your matcha, and sip something super cute</p>
         <div class="grid" id="productGrid"></div>
       </main>
 
       <aside class="cart" id="cart">
-        <h3 style="margin:0 0 8px">Your Cart</h3>
+        <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
         <div id="cartItems"></div>
+        
         <div class="divider"></div>
+        
         <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
-        <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
-        <p class="small muted">Prices shown exclude delivery. Cart saves on this device.</p>
+        <div class="total-section">
+          <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
+        </div>
+        <p class="small muted">Prices exclude delivery. Cart saves locally.</p>
+        
         <div class="divider"></div>
 
-        <!-- Telegram handle (required BEFORE QR) -->
+        <!-- Telegram handle -->
         <div class="teleGroup">
-          <label class="teleLabel" for="teleHandle">Telegram Handle</label>
+          <label class="teleLabel" for="teleHandle">📱 Telegram Handle (Required)</label>
           <input type="text" id="teleHandle" placeholder="@yourhandle">
         </div>
 
-        <div class="row" style="gap:8px; flex-wrap:wrap">
-          <button id="confirmBtn" style="background:var(--pastel-1)">Check Out</button>
-          <button id="clearBtn" style="background:var(--pastel-2)">Clear cart</button>
+        <div class="btn-group">
+          <button id="confirmBtn">Check Out</button>
+          <button id="clearBtn" style="background:var(--pastel-2)">Clear Cart</button>
         </div>
 
-        <!-- QR + Step 2: proof lives here -->
+        <!-- QR + Proof upload -->
         <div class="qrWrap" id="qrWrap">
           <div class="qrHeader">
-            <div class="title"><strong>PayNow to complete your order</strong></div>
+            <div class="title"><strong>💳 PayNow to Complete Order</strong></div>
             <p class="hint">Enter this reference in your banking app:</p>
             <div class="orderRefBlock">
               <span id="orderRef">—</span>
@@ -142,17 +275,17 @@
 
           <img id="paynowQR" src="paynow-qr.png" alt="PayNow QR">
 
-          <p class="small muted" style="margin:8px 0 10px">
-            Scan QR, pay the exact amount, and type the reference above in your banking app.
+          <p class="small muted" style="margin:12px 0">
+            Scan QR, pay the exact amount shown, and include the reference above.
           </p>
 
           <div class="teleGroup" style="background:#fff; border-color:#eee; text-align:left">
-            <label class="teleLabel" for="paymentProof">Step 2 – Upload proof of payment (screenshot/photo)</label>
+            <label class="teleLabel" for="paymentProof">📸 Step 2 — Upload Payment Proof</label>
             <input type="file" id="paymentProof" name="proof" accept="image/*">
-            <div id="proofPreview" class="small muted" style="margin-top:6px"></div>
-            <div class="row" style="margin-top:10px">
-              <button id="submitProofBtn" style="background:#cde4ff" disabled>Submit proof</button>
-              <span id="submitStatus" class="small muted"></span>
+            <div id="proofPreview" class="small muted" style="margin-top:8px"></div>
+            <div class="row" style="margin-top:14px; flex-wrap:wrap">
+              <button id="submitProofBtn" style="background:#cde4ff" disabled>Submit Proof</button>
+              <span id="submitStatus" class="small"></span>
             </div>
           </div>
         </div>
@@ -215,12 +348,12 @@
     card.innerHTML = `
       <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
       <div class="title">${p.title}</div>
-      <p class="muted small" style="margin:0">Choose add-ons:</p>
+      <p class="muted small" style="margin:8px 0 4px">Customize your drink:</p>
       <div class="options"></div>
-      <div class="row" style="margin-top:8px; gap:10px; align-items:center">
+      <div class="row" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">
         <div class="qty small">Qty <input type="number" min="1" value="1"></div>
         <strong class="livePrice">${money(p.basePrice)}</strong>
-        <button>Add to Cart</button>
+        <button style="flex:1; min-width:120px">Add to Cart</button>
       </div>
     `;
 
@@ -247,7 +380,18 @@
     btn.addEventListener('click', ()=>{
       const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,''), price: parseFloat(cb.dataset.price) }));
       addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
-      btn.textContent = 'Added ✓'; setTimeout(()=> btn.textContent='Add to Cart', 900);
+      btn.textContent = 'Added ✓'; 
+      
+      // Reset the card after successful add
+      setTimeout(()=> {
+        btn.textContent='Add to Cart';
+        // Uncheck all addons
+        card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
+        // Reset quantity to 1
+        qty.value = '1';
+        // Update price display
+        updateLive();
+      }, 900);
     });
 
     grid.appendChild(card);
@@ -257,10 +401,14 @@
   const $items = document.getElementById('cartItems');
   const $sub = document.getElementById('subtotal');
   const $tot = document.getElementById('total');
+  const $count = document.getElementById('cartCount');
 
   function renderCart(){
+    const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
+    $count.textContent = totalItems;
+    
     if(cart.length===0){
-      $items.innerHTML = '<p class="muted">Your cart is empty.</p>';
+      $items.innerHTML = '<div class="empty-cart"><p class="muted">Your cart is empty</p></div>';
       $sub.textContent = money(0); $tot.textContent = money(0);
       return;
     }
@@ -276,7 +424,7 @@
         </div>
         <div style="text-align:right">
           <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
-          <div style="margin-top:6px"><button title="Remove" style="background:var(--pastel-2)">Remove</button></div>
+          <div style="margin-top:8px"><button title="Remove" style="background:var(--pastel-2); padding:6px 12px; font-size:13px">Remove</button></div>
         </div>`;
       const qtyInput = row.querySelector('input');
       const rm = row.querySelector('button');
@@ -308,11 +456,10 @@
   function setCheckoutDisabled(){ confirmBtn.disabled = (teleInput.value.trim()===''); }
   teleInput.addEventListener('input', setCheckoutDisabled); setCheckoutDisabled();
 
-  let pendingOrder = null; // snapshot of order at the time QR is shown
+  let pendingOrder = null;
 
   confirmBtn.addEventListener('click', ()=>{
     if(cart.length===0){ alert('Cart is empty.'); return; }
-    // create a persistent order snapshot for step 2
     const t = totals();
     const orderId = 'ORD-' + Date.now();
     pendingOrder = {
@@ -320,13 +467,13 @@
       telegram: teleInput.value.trim(),
       subtotal: t.sub,
       total: t.total,
-      items: JSON.parse(JSON.stringify(cart)) // deep-ish copy
+      items: JSON.parse(JSON.stringify(cart))
     };
 
     orderRefEl.textContent = orderId;
     qrWrap.style.display = 'block';
-    confirmBtn.textContent = 'Step 1 done ✓';
-    confirmBtn.disabled = true; // prevent creating multiple order IDs
+    confirmBtn.textContent = 'Step 1 Done ✓';
+    confirmBtn.disabled = true;
   });
 
   copyRefBtn.addEventListener('click', async ()=>{
@@ -347,7 +494,6 @@
     submitBtn.disabled = !f;
   });
 
-  // Convert file to base64 for Google Apps Script
   async function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -358,10 +504,8 @@
   }
 
   async function uploadOrderWithProof(order, file){
-    // Convert image to base64
     const base64 = await fileToBase64(file);
     
-    // Create JSON payload instead of FormData for better compatibility
     const payload = {
       action: 'submit_order',
       order_id: order.order_id,
@@ -381,7 +525,6 @@
       body: JSON.stringify(payload)
     });
     
-    // Note: no-cors mode doesn't allow reading response, so we assume success
     return { ok: true };
   }
 
@@ -390,11 +533,10 @@
       if(!pendingOrder){ alert('Please click Check Out first.'); return; }
       const f = proofInput.files[0];
       if(!f){ alert('Please select a screenshot.'); return; }
-      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…';
+      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
       const resp = await uploadOrderWithProof(pendingOrder, f);
       if(resp.ok){
-        submitStatus.textContent = 'Submitted ✓';
-        // clear local cart AFTER successful submission
+        submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
         cart = []; saveCart(cart); renderCart();
       } else {
         submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
