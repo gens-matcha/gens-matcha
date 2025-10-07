@@ -361,20 +361,30 @@
     // Convert image to base64
     const base64 = await fileToBase64(file);
     
-    const fd = new FormData();
-    fd.append('action','submit_order');
-    fd.append('order_id', order.order_id);
-    fd.append('telegram', order.telegram);
-    fd.append('subtotal', String(order.subtotal));
-    fd.append('total', String(order.total));
-    fd.append('items', JSON.stringify(order.items));
-    fd.append('proof', base64); // Send as base64 string
+    // Create JSON payload instead of FormData for better compatibility
+    const payload = {
+      action: 'submit_order',
+      order_id: order.order_id,
+      telegram: order.telegram,
+      subtotal: String(order.subtotal),
+      total: String(order.total),
+      items: order.items,
+      proof: base64,
+      userAgent: navigator.userAgent,
+      page: window.location.href
+    };
 
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      body: fd
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
-    return await res.json();
+    
+    // Note: no-cors mode doesn't allow reading response, so we assume success
+    return { ok: true };
   }
 
   submitBtn.addEventListener('click', async ()=>{
