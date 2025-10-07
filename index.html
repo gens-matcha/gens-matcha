@@ -369,9 +369,7 @@
       subtotal: String(order.subtotal),
       total: String(order.total),
       items: order.items,
-      proof: base64,
-      userAgent: navigator.userAgent,
-      page: window.location.href
+      proof: base64
     };
 
     const res = await fetch(APPS_SCRIPT_URL, {
