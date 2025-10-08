@@ -254,7 +254,7 @@
         box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
         transition: opacity 0.3s ease, transform 0.3s ease;
       }
-      .progress-wrap.hidden{
+      .progress-wrap.fade-sticky{
         opacity:0;
         pointer-events:none;
         transform:translateY(-10px);
@@ -512,25 +512,21 @@
     if(totalCups >= needed){
       $progressHint.innerHTML = '<span class="unlocked">✓ Discount unlocked! Enjoy 10% off</span>';
       
-      // On mobile, fade out after 1.5 seconds when discount is unlocked
+      // On mobile, fade out the sticky version after 1.5 seconds when discount is unlocked
       if(window.innerWidth <= 900){
         const progressWrap = document.getElementById('progressWrap');
         setTimeout(() => {
-          progressWrap.style.opacity = '0';
-          progressWrap.style.transform = 'translateY(-10px)';
-          progressWrap.style.pointerEvents = 'none';
+          progressWrap.classList.add('fade-sticky');
         }, 1500);
       }
     } else {
       const remaining = needed - totalCups;
       $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% discount`;
       
-      // Remove hidden styles if user goes back below 3 cups
+      // Remove fade class if user goes back below 3 cups
       if(window.innerWidth <= 900){
         const progressWrap = document.getElementById('progressWrap');
-        progressWrap.style.opacity = '';
-        progressWrap.style.transform = '';
-        progressWrap.style.pointerEvents = '';
+        progressWrap.classList.remove('fade-sticky');
       }
     }
   }
@@ -702,15 +698,9 @@
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if(entry.isIntersecting){
-          // Only hide if not already hidden by discount unlock
-          if(progressWrap.style.opacity !== '0'){
-            progressWrap.classList.add('hidden');
-          }
+          progressWrap.classList.add('hidden');
         } else {
-          // Only show if discount hasn't been unlocked
-          if(progressWrap.style.opacity !== '0'){
-            progressWrap.classList.remove('hidden');
-          }
+          progressWrap.classList.remove('hidden');
         }
       });
     }, { threshold: 0.1 });
