@@ -490,17 +490,25 @@
     updateLive();
 
     const btn = card.querySelector('button');
-    btn.addEventListener('click', ()=>{
-      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
-      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
-      btn.textContent = 'Added ✓';
-      setTimeout(()=> {
-        btn.textContent='Add to Cart';
-        card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
-        qty.value = '1';
-        updateLive();
-      }, 900);
-    });
+btn.addEventListener('click', ()=>{
+  const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
+  
+  // Check if Marukyu Isuzu is selected
+  const hasMarukyu = chosen.some(addon => addon.id === 'marukyu');
+  if (!hasMarukyu) {
+    alert('Please select Marukyu Isuzu before adding to cart.');
+    return;
+  }
+  
+  addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+  btn.textContent = 'Added ✓';
+  setTimeout(()=> {
+    btn.textContent='Add to Cart';
+    card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
+    qty.value = '1';
+    updateLive();
+  }, 900);
+});
 
     grid.appendChild(card);
   });
