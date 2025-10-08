@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gen's Matcha 🍵✨ - Closed</title>
+  <title>Gen's Matcha 🍵✨</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root{
@@ -14,102 +14,727 @@
     *,*::before,*::after{box-sizing:border-box}
     body{
       margin:0; background:var(--bg); color:var(--ink);
-      font:18px/1.6 "Fredoka","Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font:16px/1.5 "Fredoka","Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       overflow-x:hidden;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:100vh;
-      padding:20px;
     }
-    
-    .container{
-      max-width:600px;
-      text-align:center;
-      background:var(--card);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:48px 32px;
-      border:2px solid #f5f5f5;
+    .wrap{max-width:1100px; margin:auto; padding:28px}
+    header{margin-bottom:32px; text-align:center}
+
+    /* Title logo image */
+    .site-logo{
+      width: 100%;
+      max-width: 420px;
+      height: auto;
+      display:block;
+      margin: 0 auto 8px;
+      image-rendering: -webkit-optimize-contrast;
     }
-    
+
     h1{
-      font-size:38px; margin:0 0 12px; 
+      font-size:42px; margin:0 0 8px;
       background: linear-gradient(135deg, #7cc5b3, #5a9d8a);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      white-space: nowrap;
     }
-    
-    @media (max-width:600px){ 
-      h1{ font-size:32px; }
-      .container{ padding:36px 24px; }
+    .mobile-break{ display:none; }
+    @media (max-width:600px){
+      .mobile-break{ display:block; }
+      h1{ font-size:36px; }
+      .site-logo{ max-width: 300px; }
     }
-    
-    .icon{
-      width:200px;
-      height:auto;
-      margin:24px auto 32px;
-      display:block;
+    .tagline{
+      font-size:18px; color:var(--muted); margin:0;
+      font-weight:400;
     }
-    
-    .message{
-      font-size:20px;
-      color:var(--ink);
-      margin:0 0 32px;
-      line-height:1.6;
+
+    .layout{display:grid; grid-template-columns:1fr 360px; gap:28px}
+    @media (max-width:900px){ .layout{grid-template-columns:1fr} }
+
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:24px}
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;
+      border:2px solid transparent;
+      display:flex; flex-direction:column; justify-content:space-between;
+      transition: all 0.3s ease;
+      position:relative;
+      overflow:hidden;
     }
-    
-    .tele-btn{
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      appearance:none;
-      border:0;
-      border-radius:14px;
-      padding:16px 32px;
-      background:var(--accent);
-      color:#073c33;
-      font-weight:700;
-      cursor:pointer;
-      transition:all 0.2s ease;
-      font-size:18px;
-      text-decoration:none;
-      font-family:inherit;
+    .card::before{
+      content:''; position:absolute; top:0; left:0; right:0;
+      height:4px; background:linear-gradient(90deg, var(--pastel-1), var(--pastel-2), var(--pastel-3));
+      opacity:0; transition:opacity 0.3s ease;
     }
-    
+
     @media (hover: hover) and (pointer: fine) {
-      .tele-btn:hover{
-        background:#6ab5a3;
-        transform:translateY(-2px);
-        box-shadow: 0 6px 20px rgb(124 197 179 / 30%);
+      .card:hover{
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgb(0 0 0 / 12%);
+        border-color: var(--accent);
+      }
+      .card:hover::before{ opacity:1; }
+      .card:hover .img{ transform: scale(1.03); }
+      .option:hover{ background:#f0f0f0; }
+      button:hover:not(:disabled){
+        background:#6ab5a3; transform:translateY(-1px);
+        box-shadow: 0 4px 12px rgb(124 197 179 / 30%);
+      }
+      input[type="file"]:hover{ border-color:var(--accent); background:#fff; }
+      .copyBtn:hover{ background:#6ab5a3; }
+    }
+
+    .img{
+      width:100%; aspect-ratio:1/1; object-fit:cover; display:block;
+      border-radius:16px; margin-bottom:14px; border:3px solid #f8f4f1; background:#fff;
+      transition: transform 0.3s ease;
+    }
+
+    .title{font-size:20px; margin:8px 0 4px; font-weight:600}
+    .options{display:grid; gap:10px; margin:14px 0}
+    .option{
+      display:flex; align-items:center; gap:12px;
+      padding:10px 12px; background:#fafafa; border-radius:12px;
+      transition: all 0.2s ease;
+      cursor:pointer;
+    }
+    .option input{accent-color: var(--accent); cursor:pointer}
+    .option span{cursor:pointer; user-select:none}
+
+    button{
+      appearance:none;border:0;border-radius:14px;padding:12px 16px;
+      background:var(--accent); color:#073c33; font-weight:700; cursor:pointer;
+      transition: all 0.2s ease; font-size:15px;
+    }
+    button:active:not(:disabled){ transform:translateY(0); }
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .muted{color:var(--muted)}
+
+    .cart{
+      position:sticky; top:14px; background:var(--card);
+      border-radius:var(--radius); box-shadow:var(--shadow); padding:20px;
+      border:2px solid #f5f5f5;
+    }
+    .cart h3{
+      margin:0 0 16px; font-size:22px;
+      display:flex; align-items:center; gap:8px;
+    }
+    .cart-badge{
+      background:var(--accent); color:#073c33;
+      font-size:12px; padding:2px 8px; border-radius:999px;
+      font-weight:700;
+    }
+    .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .divider{height:1px; background:#eee; margin:16px 0}
+    .item{
+      display:grid; grid-template-columns:1fr auto; gap:10px;
+      padding:12px; background:#fafafa; border-radius:12px; margin-bottom:8px;
+    }
+    .addons{font-size:13px; color:var(--muted); margin-top:4px}
+    .qty{display:flex; align-items:center; gap:8px; font-size:14px}
+    .qty input{
+      width:60px; padding:8px 10px; border-radius:10px;
+      border:2px solid #eee; text-align:center; font-weight:600;
+      transition: border-color 0.2s ease;
+    }
+    .qty input:focus{
+      outline:none; border-color:var(--accent);
+      box-shadow: 0 0 0 3px rgb(124 197 179 / 15%);
+    }
+    .small{font-size:12px}
+    .livePrice{
+      color:var(--accent); font-size:20px;
+      text-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+    }
+
+    /* Empty cart state — bigger icon, no shadow */
+    .empty-cart{
+      text-align:center; padding:28px 16px;
+      color:var(--muted);
+    }
+    .empty-cart::before{
+      content:'';
+      display:block;
+      width:120px;              /* bigger icon */
+      height:120px;
+      margin:0 auto 16px;       /* a touch more breathing room */
+      background-image:url('img/Icon-cart.png');
+      background-size:contain;
+      background-repeat:no-repeat;
+      background-position:center;
+      opacity:1;                /* ensure crisp */
+      /* removed drop-shadow filter */
+    }
+
+    /* QR section */
+    .qrWrap{
+      display:none;
+      background:linear-gradient(135deg, #fff7f3, #fffaf6);
+      padding:20px; border-radius:16px; margin-top:20px;
+      text-align:center; border:2px solid #f5e6df;
+    }
+    .qrWrap img{
+      max-width:260px; width:100%;
+      border-radius:18px; border:4px solid #fff; box-shadow:var(--shadow);
+      margin:12px 0;
+    }
+
+    .qrHeader{ text-align:center; margin-bottom:16px; }
+    .qrHeader .title{ font-size:19px; margin:0 0 8px; color:var(--ink)}
+    .qrHeader .hint{ font-size:13px; color:var(--muted); margin:0 0 12px; }
+    .orderRefBlock{
+      display:inline-flex; align-items:center; gap:10px;
+      background:#fff; border:2px solid var(--accent); border-radius:999px;
+      padding:8px 14px; font-size:15px; font-weight:600;
+    }
+    .copyBtn{
+      background: var(--accent); color:#073c33;
+      border:0; border-radius:8px; padding:6px 12px; font-size:13px;
+      font-weight:700; cursor:pointer;
+      transition: all 0.2s ease;
+    }
+
+    /* Telegram field */
+    .teleGroup{
+      background:#fff;
+      border:2px solid #e8e8e8;
+      padding:16px;
+      border-radius:14px;
+      margin:6px 0 16px;
+      transition: border-color 0.3s ease;
+    }
+    .teleGroup:focus-within{ border-color:var(--accent); }
+    .teleLabel{display:block; font-weight:700; margin-bottom:8px; font-size:14px}
+    #teleHandle{
+      width:100%; padding:14px 16px; font-size:16px; border-radius:12px;
+      border:2px solid #e8e8e8; outline:none; background:#fafafa;
+      transition: all 0.2s ease; font-family:inherit;
+    }
+    #teleHandle:focus{
+      background:#fff; border-color:var(--accent);
+      box-shadow:0 0 0 4px rgb(124 197 179 / 15%);
+    }
+
+    /* File input styling */
+    input[type="file"]{
+      width:100%; padding:12px; border:2px dashed #ddd;
+      border-radius:12px; cursor:pointer;
+      transition: all 0.2s ease; background:#fafafa;
+    }
+
+    /* Total section highlight */
+    .total-section{
+      background:linear-gradient(135deg, #f0faf7, #f5fcf9);
+      padding:16px; border-radius:14px; margin:16px 0;
+      border:2px solid var(--pastel-1);
+    }
+    .total-section .row{ font-size:18px; }
+    .total-section strong{ color:var(--accent); font-size:24px; }
+
+    /* Button group */
+    .btn-group{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px;
+      margin-top:16px;
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(20px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .card{ animation: slideIn 0.4s ease backwards; }
+    .card:nth-child(1){ animation-delay:0.05s; }
+    .card:nth-child(2){ animation-delay:0.1s; }
+    .card:nth-child(3){ animation-delay:0.15s; }
+    .card:nth-child(4){ animation-delay:0.2s; }
+
+    .success-text{ color:#2d8659; font-weight:600; }
+
+    /* Progress bar for discount */
+    .progress-wrap{
+      background:linear-gradient(135deg, #fff7f3, #fffaf6);
+      border:2px solid #f5e6df;
+      border-radius:16px;
+      padding:18px 20px;
+      margin-bottom:24px;
+      box-shadow:var(--shadow);
+    }
+
+    /* Sticky progress bar on mobile */
+    @media (max-width:900px){
+      .progress-wrap{
+        position:sticky;
+        top:0;
+        z-index:100;
+        margin-bottom:20px;
+        border-radius:0 0 16px 16px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      .progress-wrap.hidden{
+        opacity:0;
+        pointer-events:none;
+        transform:translateY(-10px);
       }
     }
-    
-    .tele-btn:active{
-      transform:translateY(0);
+    .progress-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+      gap:8px;
     }
-    
-    .emoji{
-      font-size:24px;
+    .progress-title{
+      font-size:15px;
+      font-weight:700;
+      color:var(--ink);
+    }
+    .progress-status{
+      font-size:14px;
+      font-weight:600;
+      color:var(--accent);
+    }
+    .progress-bar-bg{
+      background:#f0f0f0;
+      border-radius:999px;
+      height:12px;
+      overflow:hidden;
+      position:relative;
+    }
+    .progress-bar-fill{
+      background:linear-gradient(90deg, var(--accent), #5a9d8a);
+      height:100%;
+      transition:width 0.4s ease;
+      border-radius:999px;
+    }
+    .progress-hint{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+    .unlocked{
+      color:#2d8659;
+      font-weight:700;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <img src="img/Icon-Closed.png" alt="Store Closed" class="icon">
-    
-    <p class="message">
-      Sorry you couldn't get your matcha fix from us today ): Join our tele channel to stay updated! 🫶🏻
-    </p>
-    
-    <a href="https://t.me/gensmatcha" class="tele-btn" target="_blank" rel="noopener noreferrer">
-      <svg class="emoji" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z" fill="#073c33"/>
-      </svg>
-      <span>Join Now</span>
-    </a>
+  <div class="wrap">
+    <header>
+      <h1>
+        <img class="site-logo" src="img/Logo-Open.png" alt="Gen's Matcha">
+      </h1>
+      <p class="tagline">Handcrafted matcha drinks, made with love</p>
+    </header>
+
+    <!-- Progress bar for discount -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span class="progress-title">🎉 Order 3+ cups for 10% off!</span>
+        <span class="progress-status" id="progressStatus">0/3 cups</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 10% discount</p>
+    </div>
+
+    <div class="layout">
+      <main>
+        <div class="grid" id="productGrid"></div>
+      </main>
+
+      <aside class="cart" id="cart">
+        <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
+        <div id="cartItems"></div>
+
+        <div class="divider"></div>
+
+        <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+        <div class="row" id="discountRow" style="display:none; color:#2d8659"><span>10% Discount (3+ cups)</span><strong id="discountAmount">-$0.00</strong></div>
+        <div class="total-section">
+          <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
+        </div>
+        <p class="small muted">Prices exclude delivery. Cart saves locally.</p>
+
+        <div class="divider"></div>
+
+        <!-- Telegram handle -->
+        <div class="teleGroup">
+          <label class="teleLabel" for="teleHandle">📱 Telegram Handle (Required)</label>
+          <input type="text" id="teleHandle" placeholder="@yourhandle">
+        </div>
+
+        <div class="btn-group">
+          <button id="confirmBtn">Check Out</button>
+          <button id="clearBtn" style="background:var(--pastel-2)">Clear Cart</button>
+        </div>
+
+        <!-- QR + Proof upload -->
+        <div class="qrWrap" id="qrWrap">
+          <div class="qrHeader">
+            <div class="title"><strong>💳 PayNow to Complete Order</strong></div>
+            <p class="hint">Enter this reference in your banking app:</p>
+            <div class="orderRefBlock">
+              <span id="orderRef">—</span>
+              <button id="copyRef" class="copyBtn">Copy</button>
+            </div>
+          </div>
+
+          <img id="paynowQR" src="paynow-qr.png" alt="PayNow QR">
+
+          <p class="small muted" style="margin:12px 0">
+            Scan QR, pay the exact amount shown, and include the reference above.
+          </p>
+
+          <div class="teleGroup" style="background:#fff; border-color:#eee; text-align:left">
+            <label class="teleLabel" for="paymentProof">📸 Step 2 – Upload Payment Proof</label>
+            <input type="file" id="paymentProof" name="proof" accept="image/*">
+            <div id="proofPreview" class="small muted" style="margin-top:8px"></div>
+            <div class="row" style="margin-top:14px; flex-wrap:wrap">
+              <button id="submitProofBtn" style="background:#cde4ff" disabled>Submit Proof</button>
+              <span id="submitStatus" class="small"></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
+
+  <script>
+  // ============= CONFIG =============
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNv5Oqncmmpclz5NPik9ebKuL-xhSV411LH1MFxmqbWry9CWvpZse6yXDj7N6kHXLV/exec';
+  // ==================================
+
+  const products = [
+    { id: 'matcha-yuzu',   title: 'Matcha Yuzu Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
+    { id: 'matcha-rasp',   title: 'Matcha Raspberry Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
+    { id: 'matcha-latte',  title: 'Matcha Latte',           img: 'img/matcha-latte.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5, recommended: true } ] },
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] }
+  ];
+
+  const CART_KEY = 'whisk_matcha_cart_v1';
+  const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+  let cart = loadCart();
+
+  function money(n){ return '$' + (Math.round(n*100)/100).toFixed(2); }
+  function itemPrice(p, chosen){
+    const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
+    return p.basePrice + addSum;
+  }
+
+  function addToCart({productId, qty, chosen}){
+    const p = products.find(x=>x.id===productId);
+    if(!p) return;
+    const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
+    const title = p.title;
+    const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
+    const unitPrice = itemPrice(p, chosen);
+
+    const existing = cart.find(x=>x.key===key);
+    if(existing){ existing.qty += qty; }
+    else { cart.push({ key, productId, title, addons: chosen, addonsLabel, unitPrice, qty }); }
+    saveCart(cart); renderCart();
+  }
+
+  function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
+  function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
+
+  function totals(){
+    const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
+    const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
+    const discount = totalCups >= 3 ? sub * 0.1 : 0;
+    const total = sub - discount;
+    return { sub, total, discount, totalCups };
+  }
+
+  const grid = document.getElementById('productGrid');
+  products.forEach(p=>{
+    const card = document.createElement('article');
+    card.className = 'card';
+    card.innerHTML = `
+      <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+      <div class="title">${p.title}</div>
+      <p class="muted small" style="margin:8px 0 4px">Customize your drink:</p>
+      <div class="options"></div>
+      <div class="row" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">
+        <div class="qty small">Qty <input type="number" min="1" value="1"></div>
+        <strong class="livePrice">${money(p.basePrice)}</strong>
+        <button style="flex:1; min-width:120px">Add to Cart</button>
+      </div>
+    `;
+
+    const $opts = card.querySelector('.options');
+    p.addons.forEach(a=>{
+      const line = document.createElement('label');
+      line.className = 'option';
+      const badge = a.recommended ? ' <span style="background:#ffd6e7;color:#d64780;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:4px">⭐ Recommended</span>' : '';
+      line.innerHTML = `<input type="checkbox" data-id="${a.id}" data-price="${a.price}"> <span>${a.label} (+${money(a.price)})${badge}</span>`;
+      $opts.appendChild(line);
+    });
+
+    const qty = card.querySelector('input[type="number"]');
+    const live = card.querySelector('.livePrice');
+
+    function updateLive(){
+      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
+      const price = itemPrice(p, chosen);
+      live.textContent = money(price);
+    }
+    card.addEventListener('change', e=>{ if(e.target.type==='checkbox'){ updateLive(); } });
+    updateLive();
+
+    const btn = card.querySelector('button');
+    btn.addEventListener('click', ()=>{
+      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
+      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+      btn.textContent = 'Added ✓';
+      setTimeout(()=> {
+        btn.textContent='Add to Cart';
+        card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
+        qty.value = '1';
+        updateLive();
+      }, 900);
+    });
+
+    grid.appendChild(card);
+  });
+
+  const $items = document.getElementById('cartItems');
+  const $sub = document.getElementById('subtotal');
+  const $tot = document.getElementById('total');
+  const $count = document.getElementById('cartCount');
+  const $discountRow = document.getElementById('discountRow');
+  const $discountAmount = document.getElementById('discountAmount');
+  const $progressStatus = document.getElementById('progressStatus');
+  const $progressFill = document.getElementById('progressFill');
+  const $progressHint = document.getElementById('progressHint');
+  const $progressWrap = document.getElementById('progressWrap');
+
+  let stickyProgressState = {
+    isInCheckout: false,
+    hasReachedThreshold: false,
+    hideTimeout: null
+  };
+
+  function updateProgressBar(totalCups){
+    const needed = 3;
+    const progress = Math.min((totalCups / needed) * 100, 100);
+
+    $progressStatus.textContent = `${totalCups}/${needed} cups`;
+    $progressFill.style.width = progress + '%';
+
+    if(totalCups >= needed){
+      $progressHint.innerHTML = '<span class="unlocked">✓ Discount unlocked! Enjoy 10% off</span>';
+      if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
+        stickyProgressState.hasReachedThreshold = true;
+        if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
+        stickyProgressState.hideTimeout = setTimeout(() => { hideStickyProgressBar(); }, 1500);
+      }
+    } else {
+      const remaining = needed - totalCups;
+      $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% discount`;
+      stickyProgressState.hasReachedThreshold = false;
+      if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+      if(window.innerWidth <= 900 && !stickyProgressState.isInCheckout){ showStickyProgressBar(); }
+    }
+  }
+
+  function hideStickyProgressBar(){
+    if(window.innerWidth <= 900){
+      const rect = $progressWrap.getBoundingClientRect();
+      if(rect.top < 0){ $progressWrap.classList.add('hidden'); }
+    }
+  }
+  function showStickyProgressBar(){
+    if(window.innerWidth <= 900){ $progressWrap.classList.remove('hidden'); }
+  }
+
+  function renderCart(){
+    const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
+    $count.textContent = totalItems;
+
+    const t = totals();
+    updateProgressBar(t.totalCups);
+
+    if(cart.length===0){
+      $items.innerHTML = '<div class="empty-cart"><p class="muted">Your cart is empty</p></div>';
+      $sub.textContent = money(0); $tot.textContent = money(0);
+      $discountRow.style.display = 'none';
+      return;
+    }
+    $items.innerHTML = '';
+    cart.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `
+        <div>
+          <div><strong>${it.title}</strong></div>
+          <div class="addons">${it.addonsLabel}</div>
+          <div class="small muted">${money(it.unitPrice)} each</div>
+        </div>
+        <div style="text-align:right">
+          <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
+          <div style="margin-top:8px"><button title="Remove" style="background:var(--pastel-2); padding:6px 12px; font-size:13px">Remove</button></div>
+        </div>`;
+      const qtyInput = row.querySelector('input');
+      const rm = row.querySelector('button');
+      qtyInput.addEventListener('change', e=> setQty(it.key, parseInt(e.target.value||'1',10)) );
+      rm.addEventListener('click', ()=> removeItem(it.key) );
+      $items.appendChild(row);
+    });
+
+    $sub.textContent = money(t.sub);
+    if(t.discount > 0){
+      $discountRow.style.display = 'flex';
+      $discountAmount.textContent = '-' + money(t.discount);
+    } else {
+      $discountRow.style.display = 'none';
+    }
+    $tot.textContent = money(t.total);
+  }
+  renderCart();
+
+  if(window.innerWidth <= 900){
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const rect = $progressWrap.getBoundingClientRect();
+        if(rect.top >= 0 && rect.bottom <= window.innerHeight){
+          showStickyProgressBar();
+        } else if(rect.top < 0){
+          if(stickyProgressState.isInCheckout || stickyProgressState.hasReachedThreshold){
+            hideStickyProgressBar();
+          } else {
+            showStickyProgressBar();
+          }
+        }
+      }, 50);
+    });
+  }
+
+  const qrWrap     = document.getElementById('qrWrap');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const clearBtn   = document.getElementById('clearBtn');
+  const teleInput  = document.getElementById('teleHandle');
+
+  const orderRefEl = document.getElementById('orderRef');
+  const copyRefBtn = document.getElementById('copyRef');
+
+  const proofInput   = document.getElementById('paymentProof');
+  const proofPreview = document.getElementById('proofPreview');
+  const submitBtn    = document.getElementById('submitProofBtn');
+  const submitStatus = document.getElementById('submitStatus');
+
+  function setCheckoutDisabled(){ confirmBtn.disabled = (teleInput.value.trim()===''); }
+  teleInput.addEventListener('input', setCheckoutDisabled); setCheckoutDisabled();
+
+  let pendingOrder = null;
+
+  confirmBtn.addEventListener('click', ()=>{
+    if(cart.length===0){ alert('Cart is empty.'); return; }
+    const t = totals();
+    const orderId = 'ORD-' + Date.now();
+    pendingOrder = {
+      order_id: orderId,
+      telegram: teleInput.value.trim(),
+      subtotal: t.sub,
+      discount: t.discount,
+      total: t.total,
+      items: JSON.parse(JSON.stringify(cart))
+    };
+
+    orderRefEl.textContent = orderId;
+    qrWrap.style.display = 'block';
+    confirmBtn.textContent = 'Step 1 Done ✓';
+    confirmBtn.disabled = true;
+
+    stickyProgressState.isInCheckout = true;
+    if(window.innerWidth <= 900){ hideStickyProgressBar(); }
+  });
+
+  copyRefBtn.addEventListener('click', async ()=>{
+    try { await navigator.clipboard.writeText(orderRefEl.textContent); copyRefBtn.textContent = 'Copied!'; setTimeout(()=>copyRefBtn.textContent='Copy', 900); } catch(e){}
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    cart = []; saveCart(cart); renderCart(); qrWrap.style.display='none';
+    confirmBtn.textContent='Check Out'; setCheckoutDisabled();
+    pendingOrder = null;
+    submitBtn.disabled = true; proofInput.value = ''; proofPreview.textContent = ''; submitStatus.textContent='';
+
+    stickyProgressState.isInCheckout = false;
+    stickyProgressState.hasReachedThreshold = false;
+    if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+    if(window.innerWidth <= 900){ showStickyProgressBar(); }
+  });
+
+  proofInput.addEventListener('change', ()=>{
+    const f = proofInput.files[0];
+    proofPreview.textContent = f ? `Selected: ${f.name}` : '';
+    submitBtn.disabled = !f;
+  });
+
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadOrderWithProof(order, file){
+    const base64 = await fileToBase64(file);
+    const payload = {
+      action: 'submit_order',
+      order_id: order.order_id,
+      telegram: order.telegram,
+      subtotal: String(order.subtotal),
+      discount: String(order.discount || 0),
+      total: String(order.total),
+      items: order.items,
+      proof: base64
+    };
+    const res = await fetch('https://script.google.com/macros/s/AKfycbwNv5Oqncmmpclz5NPik9ebKuL-xhSV411LH1MFxmqbWry9CWvpZse6yXDj7N6kHXLV/exec', {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return { ok: true };
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    try {
+      if(!pendingOrder){ alert('Please click Check Out first.'); return; }
+      const f = proofInput.files[0];
+      if(!f){ alert('Please select a screenshot.'); return; }
+      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
+      const resp = await uploadOrderWithProof(pendingOrder, f);
+      if(resp.ok){
+        submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
+        cart = []; saveCart(cart); renderCart();
+
+        stickyProgressState.isInCheckout = false;
+        stickyProgressState.hasReachedThreshold = false;
+        if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+        if(window.innerWidth <= 900){ showStickyProgressBar(); }
+      } else {
+        submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
+        submitBtn.disabled = false;
+      }
+    } catch(e){
+      submitStatus.textContent = 'Network error: ' + e.message;
+      submitBtn.disabled = false;
+    }
+  });
+  </script>
 </body>
 </html>
