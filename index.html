@@ -232,6 +232,75 @@
 
     /* Success states */
     .success-text{ color:#2d8659; font-weight:600; }
+
+    /* Progress bar for discount */
+    .progress-wrap{
+      background:linear-gradient(135deg, #fff7f3, #fffaf6);
+      border:2px solid #f5e6df;
+      border-radius:16px;
+      padding:18px 20px;
+      margin-bottom:24px;
+      box-shadow:var(--shadow);
+    }
+    
+    /* Sticky progress bar on mobile */
+    @media (max-width:900px){
+      .progress-wrap{
+        position:sticky;
+        top:0;
+        z-index:100;
+        margin-bottom:20px;
+        border-radius:0 0 16px 16px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      .progress-wrap.fade-sticky{
+        opacity:0;
+        pointer-events:none;
+        transform:translateY(-10px);
+      }
+    }
+    .progress-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .progress-title{
+      font-size:15px;
+      font-weight:700;
+      color:var(--ink);
+    }
+    .progress-status{
+      font-size:14px;
+      font-weight:600;
+      color:var(--accent);
+    }
+    .progress-bar-bg{
+      background:#f0f0f0;
+      border-radius:999px;
+      height:12px;
+      overflow:hidden;
+      position:relative;
+    }
+    .progress-bar-fill{
+      background:linear-gradient(90deg, var(--accent), #5a9d8a);
+      height:100%;
+      transition:width 0.4s ease;
+      border-radius:999px;
+    }
+    .progress-hint{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+      text-align:center;
+    }
+    .unlocked{
+      color:#2d8659;
+      font-weight:700;
+    }
   </style>
 </head>
 <body>
@@ -240,6 +309,18 @@
       <h1>Gen's Matcha 🍵✨</h1>
       <p class="tagline">Handcrafted matcha drinks, made with love</p>
     </header>
+
+    <!-- Progress bar for discount -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span class="progress-title">🎉 Order 3+ cups for 10% off!</span>
+        <span class="progress-status" id="progressStatus">0/3 cups</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 10% discount</p>
+    </div>
 
     <div class="layout">
       <main>
@@ -253,6 +334,7 @@
         <div class="divider"></div>
         
         <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+        <div class="row" id="discountRow" style="display:none; color:#2d8659"><span>10% Discount (3+ cups)</span><strong id="discountAmount">-$0.00</strong></div>
         <div class="total-section">
           <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
         </div>
@@ -345,8 +427,10 @@
 
   function totals(){
     const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
-    const total = sub;
-    return { sub, total };
+    const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
+    const discount = totalCups >= 3 ? sub * 0.1 : 0;
+    const total = sub - discount;
+    return { sub, total, discount, totalCups };
   }
 
   // Build product cards
@@ -412,14 +496,52 @@
   const $sub = document.getElementById('subtotal');
   const $tot = document.getElementById('total');
   const $count = document.getElementById('cartCount');
+  const $discountRow = document.getElementById('discountRow');
+  const $discountAmount = document.getElementById('discountAmount');
+  const $progressStatus = document.getElementById('progressStatus');
+  const $progressFill = document.getElementById('progressFill');
+  const $progressHint = document.getElementById('progressHint');
+
+  function updateProgressBar(totalCups){
+    const needed = 3;
+    const progress = Math.min((totalCups / needed) * 100, 100);
+    
+    $progressStatus.textContent = `${totalCups}/${needed} cups`;
+    $progressFill.style.width = progress + '%';
+    
+    if(totalCups >= needed){
+      $progressHint.innerHTML = '<span class="unlocked">✓ Discount unlocked! Enjoy 10% off</span>';
+      
+      // On mobile, fade out the sticky version after 1.5 seconds when discount is unlocked
+      if(window.innerWidth <= 900){
+        const progressWrap = document.getElementById('progressWrap');
+        setTimeout(() => {
+          progressWrap.classList.add('fade-sticky');
+        }, 1500);
+      }
+    } else {
+      const remaining = needed - totalCups;
+      $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% discount`;
+      
+      // Remove fade class if user goes back below 3 cups
+      if(window.innerWidth <= 900){
+        const progressWrap = document.getElementById('progressWrap');
+        progressWrap.classList.remove('fade-sticky');
+      }
+    }
+  }
 
   function renderCart(){
     const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
     $count.textContent = totalItems;
     
+    const t = totals();
+    updateProgressBar(t.totalCups);
+    
     if(cart.length===0){
       $items.innerHTML = '<div class="empty-cart"><p class="muted">Your cart is empty</p></div>';
       $sub.textContent = money(0); $tot.textContent = money(0);
+      $discountRow.style.display = 'none';
       return;
     }
     $items.innerHTML = '';
@@ -442,8 +564,16 @@
       rm.addEventListener('click', ()=> removeItem(it.key) );
       $items.appendChild(row);
     });
-    const t = totals();
+    
     $sub.textContent = money(t.sub);
+    
+    if(t.discount > 0){
+      $discountRow.style.display = 'flex';
+      $discountAmount.textContent = '-' + money(t.discount);
+    } else {
+      $discountRow.style.display = 'none';
+    }
+    
     $tot.textContent = money(t.total);
   }
   renderCart();
@@ -476,6 +606,7 @@
       order_id: orderId,
       telegram: teleInput.value.trim(),
       subtotal: t.sub,
+      discount: t.discount,
       total: t.total,
       items: JSON.parse(JSON.stringify(cart))
     };
@@ -521,6 +652,7 @@
       order_id: order.order_id,
       telegram: order.telegram,
       subtotal: String(order.subtotal),
+      discount: String(order.discount || 0),
       total: String(order.total),
       items: order.items,
       proof: base64
@@ -557,6 +689,24 @@
       submitBtn.disabled = false;
     }
   });
+
+  // Hide progress bar when cart is in view on mobile
+  if(window.innerWidth <= 900){
+    const progressWrap = document.getElementById('progressWrap');
+    const cartElement = document.getElementById('cart');
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          progressWrap.classList.add('hidden');
+        } else {
+          progressWrap.classList.remove('hidden');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    observer.observe(cartElement);
+  }
   </script>
 </body>
 </html>
