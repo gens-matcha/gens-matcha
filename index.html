@@ -3,93 +3,119 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gen's Matcha — Closed Today</title>
-  <meta name="description" content="Sorry you couldn’t get your matcha fix from us today. Join our Telegram channel to stay updated!" />
+  <title>Gen's Matcha 🍵✨ - Closed</title>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#fffaf6; --card:#ffffff; --ink:#2f2a2a; --muted:#7c6f6a;
+      --bg:#fffaf6; --card:#fff; --ink:#2f2a2a; --muted:#7c6f6a;
       --pastel-1:#b7e4c7; --pastel-2:#ffd6e7; --pastel-3:#ffef9f; --pastel-4:#cde4ff;
-      --accent:#7cc5b3; --shadow:0 12px 36px rgb(0 0 0 / 12%); --radius:22px;
+      --accent:#7cc5b3; --shadow: 0 8px 24px rgb(0 0 0 / 7%); --radius:20px;
     }
     *,*::before,*::after{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0; background: radial-gradient(1200px 600px at 10% -10%, #e9fbf4 0%, transparent 60%),
-                                  radial-gradient(900px 500px at 110% 10%, #fff1f7 0%, transparent 55%),
-                                  var(--bg);
-      color:var(--ink);
-      font:16px/1.5 "Fredoka","Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      display:grid; place-items:center; padding:24px;
+      margin:0; background:var(--bg); color:var(--ink);
+      font:18px/1.6 "Fredoka","Comic Neue", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      overflow-x:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:20px;
     }
-    .card{
-      width:min(640px, 94vw);
+    
+    .container{
+      max-width:600px;
+      text-align:center;
       background:var(--card);
       border-radius:var(--radius);
-      padding:28px 28px 24px;
       box-shadow:var(--shadow);
-      border:2px solid #f3efe9;
-      text-align:center;
-      position:relative;
-      overflow:hidden;
+      padding:48px 32px;
+      border:2px solid #f5f5f5;
     }
-    .card::before{
-      content:""; position:absolute; inset:0; pointer-events:none;
-      background:linear-gradient(90deg, var(--pastel-1), var(--pastel-2), var(--pastel-3));
-      height:4px; top:0;
-    }
+    
     h1{
-      margin:0 0 10px; font-size:42px; letter-spacing:0.2px;
+      font-size:38px; margin:0 0 12px; 
       background: linear-gradient(135deg, #7cc5b3, #5a9d8a);
-      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      white-space: nowrap;
     }
-    .sub{margin:0 0 18px; color:var(--muted); font-size:17px}
-    .big-emoji{font-size:42px; display:block; margin:2px 0 14px}
-    .msg{font-size:22px; margin:8px 0 18px}
-    .cta{
-      display:inline-flex; align-items:center; gap:10px;
-      padding:12px 18px; border-radius:14px; border:0; cursor:pointer;
-      font-weight:800; font-size:16px; text-decoration:none;
-      background:var(--accent); color:#073c33; box-shadow: 0 6px 18px rgb(124 197 179 / 30%);
-      transition: transform .15s ease, box-shadow .15s ease;
+    
+    @media (max-width:600px){ 
+      h1{ font-size:32px; }
+      .container{ padding:36px 24px; }
     }
-    .cta:focus{outline:3px solid #cde4ff; outline-offset:2px}
-    .cta:hover{ transform:translateY(-1px); box-shadow: 0 8px 22px rgb(124 197 179 / 36%); }
-    .cta small{font-weight:700; opacity:.8}
-    .pill{
-      display:inline-block; background:#f6fff7; color:#246b56; font-weight:700;
-      border:2px solid var(--pastel-1); padding:6px 12px; border-radius:999px; font-size:12px;
-      margin:6px 0 0;
+    
+    .icon{
+      width:200px;
+      height:auto;
+      margin:24px auto 32px;
+      display:block;
+      animation: float 3s ease-in-out infinite;
     }
-    footer{ margin-top:16px; font-size:12px; color:var(--muted) }
-      .card{position:relative}
-    .card:hover{transform:translateY(-2px); box-shadow:0 16px 40px rgb(0 0 0 / 14%)}
-    .art{position:absolute; right:-6px; bottom:-8px; width:140px; opacity:.14; pointer-events:none}
-    .cta svg{width:18px; height:18px}
-</style>
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .message{
+      font-size:20px;
+      color:var(--ink);
+      margin:0 0 32px;
+      line-height:1.6;
+    }
+    
+    .tele-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      appearance:none;
+      border:0;
+      border-radius:14px;
+      padding:16px 32px;
+      background:var(--accent);
+      color:#073c33;
+      font-weight:700;
+      cursor:pointer;
+      transition:all 0.2s ease;
+      font-size:18px;
+      text-decoration:none;
+      font-family:inherit;
+    }
+    
+    @media (hover: hover) and (pointer: fine) {
+      .tele-btn:hover{
+        background:#6ab5a3;
+        transform:translateY(-2px);
+        box-shadow: 0 6px 20px rgb(124 197 179 / 30%);
+      }
+    }
+    
+    .tele-btn:active{
+      transform:translateY(0);
+    }
+    
+    .emoji{
+      font-size:24px;
+    }
+  </style>
 </head>
 <body>
-  <main class="card" role="main" aria-labelledby="title">
-    <p class="msg">sorry you couldn’t get your matcha fix from us today ):<br class="mobile-break"> join our tele channel to stay updated! 🫶🏻</p>
-
-    <a class="cta" href="https://t.me/gensmatcha" target="_blank" rel="noopener noreferrer" aria-label="Join our Telegram channel (opens in a new tab)">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9.036 15.186l-.376 5.303c.537 0 .768-.231 1.045-.507l2.507-2.403 5.195 3.806c.952.537 1.626.254 1.887-.881l3.417-16.019h.001c.304-1.415-.51-1.966-1.432-1.62L1.12 9.62C-.258 10.154-.237 10.93.88 11.277l5.25 1.639 12.207-7.695c.575-.35 1.1-.156.669.194" fill="currentColor"/></svg>
-      <span>Join our Telegram</span>
+  <div class="container">
+    <img src="img/Icon-Closed.png" alt="Store Closed" class="icon">
+    
+    <p class="message">
+      sorry you couldn't get your matcha fix from us today ): join our tele channel to stay updated! 🫶🏻
+    </p>
+    
+    <a href="https://t.me/gensmatcha" class="tele-btn" target="_blank" rel="noopener noreferrer">
+      <svg class="emoji" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z" fill="#073c33"/>
+      </svg>
+      <span>Join Now!</span>
     </a>
-
-      <svg class="art" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stop-color="#b7e4c7"/>
-          <stop offset="1" stop-color="#cde4ff"/>
-        </linearGradient>
-      </defs>
-      <path d="M120 70c0 22-26 40-58 40S4 92 4 70 30 30 62 30s58 18 58 40z" fill="url(#g)"/>
-      <rect x="52" y="68" rx="8" ry="8" width="68" height="38" fill="#fff" opacity=".6"/>
-      <path d="M60 60c10 10 30 10 40 0" stroke="#92c8b3" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <circle cx="78" cy="88" r="6" fill="#92c8b3"/>
-      <circle cx="96" cy="88" r="6" fill="#92c8b3"/>
-    </svg>
-  </main>
+  </div>
 </body>
 </html>
