@@ -252,6 +252,12 @@
         margin-bottom:20px;
         border-radius:0 0 16px 16px;
         box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+      .progress-wrap.hidden{
+        opacity:0;
+        pointer-events:none;
+        transform:translateY(-10px);
       }
     }
     .progress-header{
@@ -669,6 +675,24 @@
       submitBtn.disabled = false;
     }
   });
+
+  // Hide progress bar when cart is in view on mobile
+  if(window.innerWidth <= 900){
+    const progressWrap = document.getElementById('progressWrap');
+    const cartElement = document.getElementById('cart');
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          progressWrap.classList.add('hidden');
+        } else {
+          progressWrap.classList.remove('hidden');
+        }
+      });
+    }, { threshold: 0.1 });
+    
+    observer.observe(cartElement);
+  }
   </script>
 </body>
 </html>
