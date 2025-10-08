@@ -242,6 +242,18 @@
       margin-bottom:24px;
       box-shadow:var(--shadow);
     }
+    
+    /* Sticky progress bar on mobile */
+    @media (max-width:900px){
+      .progress-wrap{
+        position:sticky;
+        top:0;
+        z-index:100;
+        margin-bottom:20px;
+        border-radius:0 0 16px 16px;
+        box-shadow: 0 4px 12px rgb(0 0 0 / 12%);
+      }
+    }
     .progress-header{
       display:flex;
       align-items:center;
