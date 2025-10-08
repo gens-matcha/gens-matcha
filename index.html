@@ -29,7 +29,7 @@
     .mobile-break{ display:none; }
     @media (max-width:600px){ 
       .mobile-break{ display:block; }
-      h1{ font-size:36px; }
+      h1{ font-size:6px; }
     }
     .tagline{
       font-size:18px; color:var(--muted); margin:0;
@@ -517,7 +517,7 @@
         const progressWrap = document.getElementById('progressWrap');
         setTimeout(() => {
           progressWrap.classList.add('hidden');
-        }, 3000);
+        }, 1500);
       }
     } else {
       const remaining = needed - totalCups;
