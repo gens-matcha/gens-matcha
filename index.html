@@ -511,9 +511,23 @@
     
     if(totalCups >= needed){
       $progressHint.innerHTML = '<span class="unlocked">✓ Discount unlocked! Enjoy 10% off</span>';
+      
+      // On mobile, fade out after 3 seconds when discount is unlocked
+      if(window.innerWidth <= 900){
+        const progressWrap = document.getElementById('progressWrap');
+        setTimeout(() => {
+          progressWrap.classList.add('hidden');
+        }, 3000);
+      }
     } else {
       const remaining = needed - totalCups;
       $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% discount`;
+      
+      // Remove hidden class if user goes back below 3 cups
+      if(window.innerWidth <= 900){
+        const progressWrap = document.getElementById('progressWrap');
+        progressWrap.classList.remove('hidden');
+      }
     }
   }
 
