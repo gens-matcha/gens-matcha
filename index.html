@@ -84,6 +84,7 @@
       }
       input[type="file"]:hover{ border-color:var(--accent); background:#fff; }
       .copyBtn:hover{ background:#6ab5a3; }
+      .pickupOption:hover{ background:#f0f0f0; }
     }
 
     .img{
@@ -149,7 +150,7 @@
       text-shadow: 0 1px 2px rgb(0 0 0 / 5%);
     }
 
-    /* Empty cart state — bigger icon, no shadow */
+    /* Empty cart state – bigger icon, no shadow */
     .empty-cart{
       text-align:center; padding:28px 16px;
       color:var(--muted);
@@ -195,6 +196,32 @@
       font-weight:700; cursor:pointer;
       transition: all 0.2s ease;
     }
+
+    /* Pickup location selector */
+    .pickupGroup{
+      background:#fff;
+      border:2px solid #e8e8e8;
+      padding:16px;
+      border-radius:14px;
+      margin:6px 0 16px;
+      transition: border-color 0.3s ease;
+    }
+    .pickupGroup:focus-within{ border-color:var(--accent); }
+    .pickupLabel{display:block; font-weight:700; margin-bottom:12px; font-size:14px}
+    .pickupOptions{display:grid; gap:10px}
+    .pickupOption{
+      display:flex; align-items:center; gap:12px;
+      padding:12px 14px; background:#fafafa; border-radius:12px;
+      transition: all 0.2s ease;
+      cursor:pointer;
+      border:2px solid transparent;
+    }
+    .pickupOption:has(input:checked){
+      background:#f0faf7;
+      border-color:var(--accent);
+    }
+    .pickupOption input{accent-color: var(--accent); cursor:pointer}
+    .pickupOption span{cursor:pointer; user-select:none; font-size:15px}
 
     /* Telegram field */
     .teleGroup{
@@ -363,9 +390,29 @@
 
         <div class="divider"></div>
 
+        <!-- Pickup location -->
+        <div class="pickupGroup">
+          <label class="pickupLabel">📍 Pickup Location (Required)</label>
+          <div class="pickupOptions">
+            <label class="pickupOption">
+              <input type="radio" name="pickup" value="H16 Blk D Gate" required>
+              <span>H16 Blk D Gate</span>
+            </label>
+            <label class="pickupOption">
+              <input type="radio" name="pickup" value="H16 Blk D Level 5 Pantry" required>
+              <span>H16 Blk D Level 5 Pantry</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Telegram handle -->
         <div class="teleGroup">
-          <label class="teleLabel" for="teleHandle">📱 Telegram Handle (Required)</label>
+          <label class="teleLabel" for="teleHandle">
+            <svg style="width:16px; height:16px; display:inline-block; vertical-align:middle; margin-right:6px;" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z" fill="currentColor"/>
+            </svg>
+            Telegram Handle (Required)
+          </label>
           <input type="text" id="teleHandle" placeholder="@yourhandle">
         </div>
 
@@ -414,9 +461,9 @@
     { id: 'matcha-yuzu',   title: 'Matcha Yuzu Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
     { id: 'matcha-rasp',   title: 'Matcha Raspberry Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 } ] },
     { id: 'matcha-latte',  title: 'Matcha Latte',           img: 'img/matcha-latte.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5, recommended: true } ] },
-    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] }
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, addons: [ { id: 'marukyu', label: 'Marukyu Isuzu', price: 1.5 }, { id: 'oat', label: 'Oatmilk', price: 0.5 } ] },
+    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 6.0, addons: [ { id: 'oat', label: 'Oatmilk', price: 0.5 } ] }
   ];
-
   const CART_KEY = 'whisk_matcha_cart_v1';
   const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
   const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
@@ -490,25 +537,17 @@
     updateLive();
 
     const btn = card.querySelector('button');
-btn.addEventListener('click', ()=>{
-  const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
-  
-  // Check if Marukyu Isuzu is selected
-  const hasMarukyu = chosen.some(addon => addon.id === 'marukyu');
-  if (!hasMarukyu) {
-    alert('Please select Marukyu Isuzu before adding to cart.');
-    return;
-  }
-  
-  addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
-  btn.textContent = 'Added ✓';
-  setTimeout(()=> {
-    btn.textContent='Add to Cart';
-    card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
-    qty.value = '1';
-    updateLive();
-  }, 900);
-});
+    btn.addEventListener('click', ()=>{
+      const chosen = [...card.querySelectorAll('input[type="checkbox"]:checked')].map(cb=>({ id: cb.dataset.id, label: cb.nextElementSibling.textContent.replace(/ \(.+\)/,'').replace(/⭐ Recommended/,'').trim(), price: parseFloat(cb.dataset.price) }));
+      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+      btn.textContent = 'Added ✓';
+      setTimeout(()=> {
+        btn.textContent='Add to Cart';
+        card.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => cb.checked = false);
+        qty.value = '1';
+        updateLive();
+      }, 900);
+    });
 
     grid.appendChild(card);
   });
@@ -640,8 +679,15 @@ btn.addEventListener('click', ()=>{
   const submitBtn    = document.getElementById('submitProofBtn');
   const submitStatus = document.getElementById('submitStatus');
 
-  function setCheckoutDisabled(){ confirmBtn.disabled = (teleInput.value.trim()===''); }
+  function setCheckoutDisabled(){ 
+    const hasPickup = document.querySelector('input[name="pickup"]:checked') !== null;
+    const hasTelegram = teleInput.value.trim() !== '';
+    confirmBtn.disabled = !(hasPickup && hasTelegram);
+  }
   teleInput.addEventListener('input', setCheckoutDisabled); setCheckoutDisabled();
+  document.querySelectorAll('input[name="pickup"]').forEach(radio => {
+    radio.addEventListener('change', setCheckoutDisabled);
+  });
 
   let pendingOrder = null;
 
@@ -649,9 +695,11 @@ btn.addEventListener('click', ()=>{
     if(cart.length===0){ alert('Cart is empty.'); return; }
     const t = totals();
     const orderId = 'ORD-' + Date.now();
+    const pickupLocation = document.querySelector('input[name="pickup"]:checked')?.value || '';
     pendingOrder = {
       order_id: orderId,
       telegram: teleInput.value.trim(),
+      pickup_location: pickupLocation,
       subtotal: t.sub,
       discount: t.discount,
       total: t.total,
@@ -704,6 +752,8 @@ btn.addEventListener('click', ()=>{
       action: 'submit_order',
       order_id: order.order_id,
       telegram: order.telegram,
+      pickup_location: order.pickup_location,
+      pickup_time: order.pickup_time,
       subtotal: String(order.subtotal),
       discount: String(order.discount || 0),
       total: String(order.total),
@@ -725,9 +775,27 @@ btn.addEventListener('click', ()=>{
       const f = proofInput.files[0];
       if(!f){ alert('Please select a screenshot.'); return; }
       submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
+      
+      // Calculate pickup time (current time + 10 minutes)
+      const now = new Date();
+      const pickupTime = new Date(now.getTime() + 10 * 60 * 1000);
+      const hours = pickupTime.getHours();
+      const minutes = pickupTime.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = minutes.toString().padStart(2, '0');
+      const pickupTimeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+      
+      // Add pickup time to order
+      pendingOrder.pickup_time = pickupTimeStr;
+      
       const resp = await uploadOrderWithProof(pendingOrder, f);
       if(resp.ok){
         submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
+        
+        // Show success popup
+        alert(`Thank you for your order! Your matcha will be ready for pick-up at ${pickupTimeStr} at ${pendingOrder.pickup_location} 🤍`);
+        
         cart = []; saveCart(cart); renderCart();
 
         stickyProgressState.isInCheckout = false;
