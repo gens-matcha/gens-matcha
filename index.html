@@ -149,7 +149,7 @@
     .progress-title{ font-weight:700; color:var(--green-deep); font-size:15px; display:inline-flex; align-items:center; gap:6px; }
     .progress-status{ font-weight:700; color:var(--green-soft); font-size:14px; }
     .progress-bar-bg{ background:var(--line); border-radius:999px; height:10px; overflow:hidden; }
-    .progress-bar-fill{ background:var(--green-deep); height:100%; border-radius:999px; transition:width .4s ease; }
+    .progress-bar-fill{ background:var(--star); height:100%; border-radius:999px; transition:width .4s ease; }
     .progress-hint{ color:var(--green-soft); font-size:13px; margin:8px 0 0; text-align:center; }
     .unlocked{ color:var(--green-deep); font-weight:700; }
 
@@ -182,7 +182,8 @@
     .copyBtn{ background:var(--green-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
 
     /* Recommended hand-drawn star */
-    .rec-star{ width:15px; height:15px; object-fit:contain; vertical-align:middle; display:inline-block; }
+    .rec-star{ width:15px; height:15px; object-fit:contain; vertical-align:middle; display:inline-block; position:relative; top:-2px; }
+    .progress-star{ width:19px; height:19px; object-fit:contain; position:relative; top:-3px; }
 
     /* Empty cart */
     .empty-cart{ text-align:center; padding:24px 12px; color:var(--green-soft); }
@@ -220,7 +221,7 @@
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-header">
         <span class="progress-title">
-          <svg class="star-mark" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.7 5.9 6.4.6-4.8 4.3 1.4 6.3-5.7-3.3-5.7 3.3 1.4-6.3-4.8-4.3 6.4-.6z" fill="#357A52" stroke="#2c6644" stroke-width="1.1" stroke-linejoin="round"/></svg>
+          <img class="progress-star" src="img/star.png" alt="">
           Order 3+ cups for 10% off
         </span>
         <span class="progress-status" id="progressStatus">0/3 cups</span>
