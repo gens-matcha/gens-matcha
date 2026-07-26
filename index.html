@@ -256,14 +256,14 @@
       <div class="progress-header">
         <span class="progress-title">
           <img class="progress-star" src="img/star.png" alt="">
-          Order 3+ cups for 10% off
+          Order 3+ cups for 25% off
         </span>
         <span class="progress-status" id="progressStatus">0/3 cups</span>
       </div>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
       </div>
-      <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 10% off</p>
+      <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 25% off</p>
     </div>
 
     <div class="layout">
@@ -285,7 +285,7 @@
         <div class="divider"></div>
 
         <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
-        <div class="row" id="discountRow" style="display:none;"><span class="muted">10% discount (3+ cups)</span><strong id="discountAmount" class="success-text">-$0.00</strong></div>
+        <div class="row" id="discountRow" style="display:none;"><span class="muted">25% discount (3+ cups)</span><strong id="discountAmount" class="success-text">-$0.00</strong></div>
         <div class="total-section">
           <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
         </div>
@@ -385,7 +385,7 @@
   function totals(){
     const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
     const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
-    const discount = totalCups >= 3 ? sub * 0.1 : 0;
+    const discount = totalCups >= 3 ? sub * 0.25 : 0;
     const total = sub - discount;
     return { sub, total, discount, totalCups };
   }
@@ -470,7 +470,7 @@
     $progressFill.style.width = progress + '%';
 
     if(totalCups >= needed){
-      $progressHint.innerHTML = '<span class="unlocked">Discount unlocked — enjoy 10% off</span>';
+      $progressHint.innerHTML = '<span class="unlocked">Discount unlocked — enjoy 25% off</span>';
       if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
         stickyProgressState.hasReachedThreshold = true;
         if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
@@ -478,7 +478,7 @@
       }
     } else {
       const remaining = needed - totalCups;
-      $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% off`;
+      $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 25% off`;
       stickyProgressState.hasReachedThreshold = false;
       if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
       if(window.innerWidth <= 900 && !stickyProgressState.isInCheckout){ showStickyProgressBar(); }
