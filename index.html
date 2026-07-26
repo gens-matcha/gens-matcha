@@ -211,6 +211,9 @@
   </style>
 </head>
 <body>
+  <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#ffffff;opacity:1;transition:opacity .45s ease;">
+    <img src="img/Logo-Open.png" alt="Gens Matcha" style="width:60%;max-width:240px;height:auto;opacity:.9;">
+  </div>
   <div class="wrap">
     <header>
       <img class="site-logo" src="img/Logo-Open.png" alt="Gens Matcha">
@@ -666,18 +669,29 @@
       submitBtn.disabled = false;
     }
   });
-  // ---- Open/closed check: send visitors to closed.html when the shop is closed ----
-  (async function checkShopStatus(){
-    try {
-      const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
-      const status = await res.json();
-      if (status && status.open === false) {
-        window.location.replace('closed.html');
-      }
-    } catch (e) {
-      // If the status check fails, leave the menu up — the server still
-      // rejects any order placed while closed.
+  // ---- Open/closed check: keep a splash up until we know, then reveal or redirect ----
+  (function(){
+    var splash = document.getElementById('loadingSplash');
+    function reveal(){
+      if(!splash) return;
+      splash.style.opacity = '0';
+      setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
+    // Fail-open: if the status check is slow/unreachable, show the menu anyway
+    // (the server still rejects any order placed while closed).
+    var safety = setTimeout(reveal, 3500);
+    (async function(){
+      try {
+        const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
+        const status = await res.json();
+        if (status && status.open === false) {
+          window.location.replace('closed.html');
+          return; // keep splash up through the redirect (no menu flash)
+        }
+      } catch (e) { /* fall through and reveal */ }
+      clearTimeout(safety);
+      reveal();
+    })();
   })();
   </script>
 </body>
