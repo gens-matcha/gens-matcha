@@ -28,7 +28,7 @@
       font:16px/1.55 'Brandon Grotesque', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       -webkit-font-smoothing:antialiased; overflow-x:hidden;
     }
-    .wrap{max-width:1080px; margin:auto; padding:32px 28px}
+    .wrap{max-width:1080px; margin:auto; padding:32px 28px; position:relative; z-index:1}
 
     header{ text-align:center; margin-bottom:26px; }
     .site-logo{ width:100%; max-width:300px; height:auto; display:block; margin:0 auto 8px; }
@@ -211,20 +211,64 @@
   </style>
   <style id="closedOverlayStyle">
     #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
-      transition:opacity .5s ease; background:var(--cream);
-      align-items:center; justify-content:center; padding:24px; text-align:center; }
-    #closedOverlay .co-container{ max-width:560px; }
-    #closedOverlay .co-icon{ width:260px; max-width:70vw; height:auto; display:block; margin:0 auto 36px; }
-    #closedOverlay .co-message{ font-size:19px; color:var(--green-soft); line-height:1.6; margin:0 auto 30px; max-width:42ch; }
+      transition:opacity .5s ease; background:var(--cream); overflow:auto;
+      align-items:flex-start; justify-content:center; padding:56px 24px 96px; text-align:center; }
+    #closedOverlay .co-container{ max-width:600px; width:100%; position:relative; z-index:1; }
+    #closedOverlay .co-icon{ width:210px; max-width:60vw; height:auto; display:block; margin:0 auto 28px; }
+    #closedOverlay .co-message{ font-size:19px; color:var(--green-soft); line-height:1.6; margin:0 auto 12px; max-width:44ch; }
+    #closedOverlay .co-logo{ position:fixed; bottom:22px; left:26px; width:120px; height:auto; z-index:2; }
+
+    /* schedule */
+    #closedOverlay .schedule{ position:relative; margin:44px auto 0; text-align:center; }
+    #closedOverlay .sched-head{ display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:12px; margin:0 0 4px; }
+    #closedOverlay .sched-title{ font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:15px; color:var(--green-deep); margin:0; }
+    #closedOverlay .sched-hours{ font-size:13px; color:var(--green-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+    #closedOverlay .sched-hours::before{ content:"·"; margin-right:12px; color:var(--green-soft); }
+    #closedOverlay .sched-rule{ height:1px; background:var(--line); margin:0 0 10px; border:0; }
+    #closedOverlay .sched-note{ font-size:14px; color:var(--green-soft); margin:0 0 22px; }
+    #closedOverlay .day-group{ margin:0 0 22px; }
+    #closedOverlay .day-label{ font-weight:700; text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--green-soft); margin:0 0 8px; }
+    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; }
+
+    #closedOverlay .date{ display:inline-flex; align-items:center; gap:8px; appearance:none; cursor:pointer;
+      background:none; color:var(--green-deep); border:0; border-bottom:2px solid transparent; border-radius:0;
+      padding:6px 4px; font-family:inherit; font-size:15px; font-weight:700; transition:border-color .15s ease, color .15s ease; }
+    @media (hover:hover) and (pointer:fine){ #closedOverlay .date:hover{ border-bottom-color:var(--green-soft); } }
+    #closedOverlay .date .cal-ico{ width:18px; height:18px; object-fit:contain; flex:none; }
+    #closedOverlay .date[aria-expanded="true"]{ border-bottom-color:var(--green-deep); }
+    #closedOverlay .date.next{ border-bottom-color:var(--green-deep); }
+    #closedOverlay .date.past{ color:var(--green-soft); opacity:.5; cursor:default; text-decoration:line-through; }
+    #closedOverlay .date.past .cal-ico{ opacity:.6; }
+
+    #closedOverlay .cal-menu{ position:absolute; top:calc(100% + 6px); left:0; z-index:20; min-width:200px;
+      background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
+      box-shadow:0 6px 18px rgba(74,51,36,.10); padding:6px; display:none; text-align:left; }
+    #closedOverlay .cal-menu.open{ display:block; }
+    #closedOverlay .cal-menu-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--green-soft); padding:6px 8px 4px; }
+    #closedOverlay .cal-opt{ display:flex; align-items:center; gap:9px; width:100%; background:none; border:0; border-radius:2px;
+      padding:9px 8px; font-family:inherit; font-size:14px; font-weight:400; color:var(--green-deep); text-align:left; cursor:pointer; text-decoration:none; }
+    @media (hover:hover) and (pointer:fine){ #closedOverlay .cal-opt:hover{ background:#F0F4EC; } }
+    #closedOverlay .cal-opt svg{ width:15px; height:15px; color:var(--green-soft); flex:none; }
+
+    /* tele */
+    #closedOverlay .tele-wrap{ margin:40px 0 0; }
+    #closedOverlay .tele-lead{ font-size:15px; color:var(--green-soft); margin:0 0 16px; }
     #closedOverlay .co-tele{ display:inline-flex; align-items:center; gap:10px; border:1px solid var(--green-deep);
       border-radius:3px; padding:14px 28px; background:var(--green-deep); color:var(--cream);
       font-family:inherit; font-weight:700; font-size:17px; cursor:pointer; text-decoration:none; transition:background .15s ease; }
     #closedOverlay .co-tele:hover{ background:#2c6644; border-color:#2c6644; }
-    #closedOverlay .co-logo{ position:fixed; bottom:22px; left:26px; width:120px; height:auto; }
+    #closedOverlay .co-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+
+    /* star confetti (shared) */
+    .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-confetti svg, #closedOverlay .co-confetti svg{ position:absolute; opacity:.5; }
+
     @media (max-width:600px){
-      #closedOverlay .co-icon{ width:210px; margin-bottom:28px; }
+      #closedOverlay{ padding:40px 18px 88px; }
+      #closedOverlay .co-icon{ width:170px; margin-bottom:24px; }
       #closedOverlay .co-message{ font-size:17px; }
       #closedOverlay .co-logo{ width:88px; bottom:14px; left:16px; }
+      .bg-confetti svg, #closedOverlay .co-confetti svg{ opacity:.42; }
     }
   </style>
 </head>
@@ -234,17 +278,34 @@
   </div>
   <div id="closedOverlay" aria-hidden="true">
     <img src="img/Logo-Open.png" alt="Gens Matcha" class="co-logo">
+    <div class="co-confetti" aria-hidden="true"></div>
     <div class="co-container">
       <img src="img/Icon-Closed.png" alt="Store closed" class="co-icon">
-      <p class="co-message">Sorry you couldn't get your matcha fix from us today ): Join our tele channel to stay updated! 🫶🏻</p>
-      <a href="https://t.me/gensmatcha" class="co-tele" target="_blank" rel="noopener noreferrer">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z"/>
-      </svg>
-        <span>Join now</span>
-      </a>
+      <p class="co-message">Sorry you couldn't get your matcha fix from us today ):</p>
+
+      <section class="schedule" aria-label="August opening dates">
+        <div class="sched-head">
+          <h2 class="sched-title">Open in August</h2>
+          <span class="sched-hours">8&ndash;11pm</span>
+        </div>
+        <hr class="sched-rule">
+        <p class="sched-note">Whisked with care, on the dates below.</p>
+        <div id="coGroups"></div>
+      </section>
+
+      <div class="tele-wrap">
+        <p class="tele-lead">Join our tele channel to stay updated! 🫶🏻</p>
+        <a href="https://t.me/gensmatcha" class="co-tele" target="_blank" rel="noopener noreferrer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z"/>
+        </svg>
+          <span>Join now</span>
+        </a>
+      </div>
     </div>
   </div>
+
+  <div class="bg-confetti" aria-hidden="true"></div>
   <div class="wrap">
     <header>
       <img class="site-logo" src="img/Logo-Open.png" alt="Gens Matcha">
@@ -728,6 +789,201 @@
       clearTimeout(safety);
       hideSplash();
     })();
+  })();
+  </script>
+
+  <script>
+  // ============= Star confetti (open page + closed overlay) =============
+  (function(){
+    var STAR_PATH = "M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z";
+    // [position css, fill, size, rotation]
+    var CONFETTI = [
+      ["top:3%;left:41%","#6FA5C9",10,-8],["top:4%;right:39%","#E8734A",11,12],
+      ["top:6%;left:15%","#E8734A",15,-15],["top:9%;right:16%","#6FA5C9",13,12],
+      ["top:17%;left:25%","#C3D46A",12,20],["top:15%;right:26%","#E58AB0",11,-8],
+      ["top:27%;left:6%","#6FA5C9",12,6],["top:24%;right:7%","#F0A04B",15,-18],
+      ["top:38%;left:23%","#E58AB0",12,14],["top:37%;right:22%","#6FA96B",13,-10],
+      ["top:50%;left:8%","#E58AB0",14,8],["top:48%;right:10%","#E8734A",18,16],
+      ["top:62%;left:20%","#6FA96B",12,-12],["top:60%;right:18%","#C3D46A",12,10],
+      ["top:74%;left:10%","#F0A04B",13,14],["top:72%;right:24%","#E58AB0",13,-16],
+      ["top:85%;left:26%","#6FA5C9",12,-10],["top:84%;right:14%","#F0A04B",14,18],
+      ["bottom:5%;left:44%","#E58AB0",12,-12],["bottom:6%;right:40%","#C3D46A",11,14]
+    ];
+    // sparser, balanced layout for narrow screens (top + bottom bands, slim side edges)
+    var CONFETTI_MOBILE = [
+      ["top:2%;left:8%","#E8734A",12,-12],["top:3%;right:10%","#6FA5C9",12,12],
+      ["top:4%;left:31%","#C3D46A",10,18],["top:5%;right:29%","#E58AB0",10,-8],
+      ["top:40%;left:3%","#6FA96B",11,8],["top:43%;right:3%","#F0A04B",11,-14],
+      ["top:60%;left:4%","#E58AB0",11,10],["top:58%;right:4%","#6FA5C9",11,-10],
+      ["bottom:4%;left:14%","#F0A04B",12,14],["bottom:5%;right:16%","#E8734A",12,-16],
+      ["bottom:7%;left:40%","#C3D46A",10,-10],["bottom:6%;right:38%","#E58AB0",10,16]
+    ];
+    var list = (window.matchMedia && window.matchMedia("(max-width:600px)").matches) ? CONFETTI_MOBILE : CONFETTI;
+    function paint(el){
+      if(!el) return;
+      el.innerHTML = list.map(function(c){
+        return '<svg style="' + c[0] + ';width:' + c[2] + 'px;height:' + c[2]
+          + 'px;transform:rotate(' + c[3] + 'deg)" viewBox="0 0 24 24" fill="' + c[1]
+          + '"><path d="' + STAR_PATH + '"/></svg>';
+      }).join("");
+    }
+    document.querySelectorAll('.bg-confetti, #closedOverlay .co-confetti').forEach(paint);
+  })();
+
+  // ============= Closed-page August schedule + add-to-calendar =============
+  (function(){
+    var YEAR = 2026, MONTH = 8;
+    var START_HOUR = 20, END_HOUR = 23;      // 8pm - 11pm
+    var TZ = 'Asia/Singapore', UTC_OFFSET = 8;
+    var EVENT_TITLE = "Gens Matcha — Open";
+    var EVENT_LOC = "268A Punggol Fld, Singapore 821268";
+    var EVENT_DESC = "We're open 8-11pm. Come get your matcha fix ⭐";
+
+    var schedule = [
+      { label: "Fridays",   dates: [7, 14, 21] },
+      { label: "Saturdays", dates: [8, 22, 29] },
+      { label: "Sundays",   dates: [2, 9, 16, 23, 30] }
+    ];
+    var WEEKDAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    function pad(n){ return (n<10?"0":"")+n; }
+    function toUTCStamp(day, hour){
+      var d = new Date(Date.UTC(YEAR, MONTH-1, day, hour - UTC_OFFSET, 0, 0));
+      return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+"T"+pad(d.getUTCHours())+pad(d.getUTCMinutes())+"00Z";
+    }
+    function toLocalStamp(day, hour){ return YEAR+pad(MONTH)+pad(day)+"T"+pad(hour)+"0000"; }
+
+    function vevent(day){
+      return [
+        "BEGIN:VEVENT",
+        "UID:gensmatcha-"+YEAR+pad(MONTH)+pad(day)+"@gensmatcha",
+        "DTSTAMP:"+toUTCStamp(day, START_HOUR),
+        "DTSTART;TZID="+TZ+":"+toLocalStamp(day, START_HOUR),
+        "DTEND;TZID="+TZ+":"+toLocalStamp(day, END_HOUR),
+        "SUMMARY:"+EVENT_TITLE,
+        EVENT_LOC ? "LOCATION:"+EVENT_LOC : null,
+        "DESCRIPTION:"+EVENT_DESC,
+        "END:VEVENT"
+      ].filter(Boolean).join("\r\n");
+    }
+    var VTIMEZONE = ["BEGIN:VTIMEZONE","TZID:"+TZ,"BEGIN:STANDARD","DTSTART:19700101T000000",
+      "TZOFFSETFROM:+0800","TZOFFSETTO:+0800","TZNAME:+08","END:STANDARD","END:VTIMEZONE"].join("\r\n");
+    function buildICS(days){
+      return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Gens Matcha//Opening Dates//EN",
+        "CALSCALE:GREGORIAN","METHOD:PUBLISH",VTIMEZONE,days.map(vevent).join("\r\n"),"END:VCALENDAR"].join("\r\n");
+    }
+    function downloadICS(days, filename){
+      var blob = new Blob([buildICS(days)], { type:"text/calendar;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    }
+    function googleUrl(day){
+      var p = new URLSearchParams({ action:"TEMPLATE", text:EVENT_TITLE,
+        dates: toUTCStamp(day,START_HOUR)+"/"+toUTCStamp(day,END_HOUR), details:EVENT_DESC, ctz:TZ });
+      if(EVENT_LOC) p.set("location", EVENT_LOC);
+      return "https://calendar.google.com/calendar/render?"+p.toString();
+    }
+    function outlookUrl(day){
+      var s = YEAR+"-"+pad(MONTH)+"-"+pad(day)+"T"+pad(START_HOUR)+":00:00+08:00";
+      var e = YEAR+"-"+pad(MONTH)+"-"+pad(day)+"T"+pad(END_HOUR)+":00:00+08:00";
+      var p = new URLSearchParams({ path:"/calendar/action/compose", rru:"addevent",
+        subject:EVENT_TITLE, startdt:s, enddt:e, body:EVENT_DESC });
+      if(EVENT_LOC) p.set("location", EVENT_LOC);
+      return "https://outlook.live.com/calendar/0/deeplink/compose?"+p.toString();
+    }
+
+    var now = Date.now();
+    function isPast(day){ return Date.UTC(YEAR, MONTH-1, day, END_HOUR - UTC_OFFSET, 0, 0) < now; }
+    var allConfigDays = [];
+    schedule.forEach(function(g){ g.dates.forEach(function(d){ allConfigDays.push(d); }); });
+    allConfigDays.sort(function(a,b){ return a-b; });
+    var nextDay = null;
+    for(var i=0;i<allConfigDays.length;i++){ if(!isPast(allConfigDays[i])){ nextDay = allConfigDays[i]; break; } }
+
+    var iconBag = [];
+    function calIco(){
+      if(iconBag.length === 0){
+        iconBag = [1,2,3,4,5,6];
+        for(var i=iconBag.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=iconBag[i];iconBag[i]=iconBag[j];iconBag[j]=t; }
+      }
+      return '<img class="cal-ico" src="img/button-'+iconBag.pop()+'.png" alt="">';
+    }
+
+    var groupsEl = document.getElementById("coGroups");
+    if(!groupsEl) return;
+    var openMenu = null;
+    function closeMenu(){
+      if(openMenu){ openMenu.menu.classList.remove("open"); openMenu.btn.setAttribute("aria-expanded","false"); openMenu = null; }
+    }
+
+    schedule.forEach(function(group){
+      var g = document.createElement("div"); g.className = "day-group";
+      var lbl = document.createElement("p"); lbl.className = "day-label"; lbl.textContent = group.label; g.appendChild(lbl);
+      var wrap = document.createElement("div"); wrap.className = "dates";
+
+      group.dates.forEach(function(day){
+        var wd = new Date(YEAR, MONTH-1, day).getDay();
+        var past = isPast(day), isNext = (day === nextDay);
+
+        var btn = document.createElement("button");
+        btn.className = "date" + (past?" past":"") + (isNext?" next":"");
+        btn.type = "button";
+        btn.innerHTML = calIco() + '<span>' + MONTH_ABBR[MONTH-1] + ' ' + day + '</span>';
+
+        var cell = document.createElement("span");
+        cell.style.position = "relative"; cell.style.display = "inline-block";
+        cell.appendChild(btn); wrap.appendChild(cell);
+
+        if(past){
+          btn.disabled = true; btn.setAttribute("aria-disabled","true");
+          btn.setAttribute("aria-label", WEEKDAY[wd]+", "+MONTH_ABBR[MONTH-1]+" "+day+" — past");
+          return;
+        }
+        btn.setAttribute("aria-haspopup","true"); btn.setAttribute("aria-expanded","false");
+        if(isNext){ btn.setAttribute("aria-label", MONTH_ABBR[MONTH-1]+" "+day+" — next open date"); }
+
+        var menu = document.createElement("div");
+        menu.className = "cal-menu"; menu.setAttribute("role","menu");
+        menu.innerHTML = '<div class="cal-menu-title">'+WEEKDAY[wd]+', '+MONTH_ABBR[MONTH-1]+' '+day+' &middot; 8&ndash;11pm</div>';
+
+        var gLink = document.createElement("a");
+        gLink.className = "cal-opt"; gLink.setAttribute("role","menuitem");
+        gLink.href = googleUrl(day); gLink.target = "_blank"; gLink.rel = "noopener noreferrer";
+        gLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Google Calendar</span>';
+        gLink.addEventListener("click", function(){ closeMenu(); });
+
+        var oLink = document.createElement("a");
+        oLink.className = "cal-opt"; oLink.setAttribute("role","menuitem");
+        oLink.href = outlookUrl(day); oLink.target = "_blank"; oLink.rel = "noopener noreferrer";
+        oLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Outlook</span>';
+        oLink.addEventListener("click", function(){ closeMenu(); });
+
+        var icsBtn = document.createElement("button");
+        icsBtn.type = "button"; icsBtn.className = "cal-opt"; icsBtn.setAttribute("role","menuitem");
+        icsBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><span>Apple Calendar (.ics)</span>';
+        icsBtn.addEventListener("click", function(e){ e.stopPropagation(); downloadICS([day], "gens-matcha-aug-"+day+".ics"); closeMenu(); });
+
+        menu.appendChild(gLink); menu.appendChild(oLink); menu.appendChild(icsBtn);
+
+        btn.addEventListener("click", function(e){
+          e.stopPropagation();
+          var wasOpen = menu.classList.contains("open");
+          closeMenu();
+          if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded","true"); openMenu = { menu:menu, btn:btn }; }
+        });
+
+        cell.appendChild(menu);
+      });
+
+      g.appendChild(wrap); groupsEl.appendChild(g);
+    });
+
+    document.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
   })();
   </script>
 </body>
