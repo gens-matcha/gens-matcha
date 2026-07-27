@@ -969,6 +969,8 @@
 
     document.addEventListener("click", closeMenu);
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
+    // Dismiss any open menu on scroll (capture catches the closed-overlay scroll container too)
+    window.addEventListener("scroll", closeMenu, true);
   })();
   </script>
 </body>
