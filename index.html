@@ -291,13 +291,13 @@
       <img src="img/Icon-Closed.png" alt="Store closed" class="co-icon">
       <p class="co-message">Sorry you couldn't get your matcha fix from us today ):</p>
 
-      <section class="schedule" aria-label="August opening dates">
+      <section class="schedule" aria-label="Opening dates">
         <div class="sched-head">
-          <h2 class="sched-title">Open in August</h2>
+          <h2 class="sched-title">Opening dates</h2>
           <span class="sched-hours">8&ndash;11pm</span>
         </div>
         <hr class="sched-rule">
-        <p class="sched-note">Whisked with care, on the dates below.</p>
+        <p class="sched-note">Loading this month's dates&hellip;</p>
         <div id="coGroups"></div>
       </section>
 
@@ -788,19 +788,27 @@
       setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
     var safety = setTimeout(hideSplash, 3500); // fail-open on slow/failed check
+
+    // 1) Fast open/closed check — gates the splash (server does no calendar read here)
     (async function(){
       try {
         const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
         const status = await res.json();
-        if (window.__renderSchedule) {
-          window.__renderSchedule(status && status.dates);   // opening dates from your Google Calendar
-        }
         if (status && status.open === false) {
           showClosed(false);   // reveal beneath the splash; splash fade uncovers it
         }
       } catch (e) { /* fail open */ }
       clearTimeout(safety);
       hideSplash();
+    })();
+
+    // 2) Opening dates for the closed screen — background, never blocks the splash
+    (async function(){
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?part=dates', { method: 'GET' });
+        const data = await res.json();
+        if (window.__renderSchedule) window.__renderSchedule(data && data.dates);
+      } catch (e) { /* leave the placeholder in place */ }
     })();
   })();
   </script>
