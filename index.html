@@ -153,6 +153,28 @@
     .progress-hint{ color:var(--green-soft); font-size:13px; margin:8px 0 0; text-align:center; }
     .unlocked{ color:var(--green-deep); font-weight:700; }
 
+    /* Animated star riding the tip of the progress bar */
+    .progress-bar-track{ position:relative; }
+    .progress-tip-star{
+      position:absolute; top:50%; left:0%; width:34px; height:34px;
+      margin:-17px 0 0 -17px; pointer-events:none; z-index:2;
+      transform-origin:50% 65%;
+      transition:left .4s ease;               /* slides with the fill */
+      animation:tipStarSway 3.2s ease-in-out infinite;
+    }
+    .progress-tip-star.is-complete{ animation:tipStarCheer 2s ease-in-out infinite; }
+    @keyframes tipStarSway{
+      0%,100%{ transform:rotate(-1.3deg); }
+      50%    { transform:rotate(1.3deg); }
+    }
+    @keyframes tipStarCheer{
+      0%,100%{ transform:rotate(-2.2deg) scale(1); }
+      50%    { transform:rotate(2.2deg)  scale(1.06); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .progress-tip-star{ animation:none; }
+    }
+
     /* Forms */
     .teleGroup{ margin:6px 0 12px; }
     .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--green-deep); margin-bottom:8px; }
@@ -350,8 +372,11 @@
         </span>
         <span class="progress-status" id="progressStatus">0/3 cups</span>
       </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <img class="progress-tip-star" id="progressTipStar" src="img/star-ani-1.png" alt="">
       </div>
       <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 10% off</p>
     </div>
@@ -545,6 +570,9 @@
   const $progressFill = document.getElementById('progressFill');
   const $progressHint = document.getElementById('progressHint');
   const $progressWrap = document.getElementById('progressWrap');
+  const $progressTipStar = document.getElementById('progressTipStar');
+  // dull -> half-filled -> glowing. swap these filenames to taste.
+  const STAR_FRAMES = ['img/star-ani-1.png', 'img/star-ani-3.png', 'img/star-ani-6.png'];
 
   let stickyProgressState = {
     isInCheckout: false,
@@ -558,6 +586,15 @@
 
     $progressStatus.textContent = `${totalCups}/${needed} cups`;
     $progressFill.style.width = progress + '%';
+
+    // Star rides the tip of the fill and changes state: 0-1 dull, 2 half, 3+ glowing
+    if($progressTipStar){
+      const starIdx = Math.min(2, Math.max(0, totalCups - 1));
+      $progressTipStar.style.left = progress + '%';
+      const nextSrc = STAR_FRAMES[starIdx];
+      if(!$progressTipStar.src.endsWith(nextSrc)) $progressTipStar.src = nextSrc;
+      $progressTipStar.classList.toggle('is-complete', starIdx === 2);
+    }
 
     if(totalCups >= needed){
       $progressHint.innerHTML = '<span class="unlocked">Discount unlocked — enjoy 10% off</span>';
