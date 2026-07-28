@@ -212,6 +212,7 @@
   <style id="closedOverlayStyle">
     #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
       transition:opacity .5s ease; background:var(--cream); overflow:auto;
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
       align-items:flex-start; justify-content:center; padding:56px 24px 96px; text-align:center; }
     #closedOverlay .co-container{ max-width:600px; width:100%; position:relative; z-index:1; }
     #closedOverlay .co-icon{ width:210px; max-width:60vw; height:auto; display:block; margin:0 auto 28px; }
@@ -228,7 +229,8 @@
     #closedOverlay .sched-note{ font-size:14px; color:var(--green-soft); margin:0 0 22px; }
     #closedOverlay .day-group{ margin:0 0 22px; }
     #closedOverlay .day-label{ font-weight:700; text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--green-soft); margin:0 0 8px; }
-    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; }
+    #closedOverlay #coGroups{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; }   /* one week per row */
 
     #closedOverlay .date{ display:inline-flex; align-items:center; gap:8px; appearance:none; cursor:pointer;
       background:none; color:var(--green-deep); border:0; border-bottom:2px solid transparent; border-radius:0;
@@ -270,7 +272,8 @@
       #closedOverlay .co-logo{ width:88px; bottom:14px; left:16px; }
       #closedOverlay .schedule{ margin-top:34px; }
       #closedOverlay .sched-note{ margin-bottom:28px; }
-      #closedOverlay .dates{ gap:24px 16px; }
+      #closedOverlay #coGroups{ gap:20px; }
+      #closedOverlay .dates{ gap:10px 16px; }
       #closedOverlay .date{ padding:8px 6px; font-size:16px; }
       #closedOverlay .tele-wrap{ margin-top:44px; }
       .bg-confetti svg, #closedOverlay .co-confetti svg{ opacity:.42; }
@@ -770,6 +773,8 @@
     var ov = document.getElementById('closedOverlay');
     if(!ov) return;
     ov.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';  // lock the page behind the overlay
+    document.body.style.overflow = 'hidden';
     if(animate){ void ov.offsetWidth; }   // reflow so the fade runs
     ov.style.opacity = '1';
   }
@@ -914,7 +919,8 @@
 
     function makeChip(e, isNext){
       var past = isPast(e);
-      var label = WEEKDAY[e.wd] + ", " + MONTH_ABBR[e.m-1] + " " + e.d;
+      var label = WEEKDAY[e.wd] + " " + e.d;                         // chip text (month is in the header)
+      var full  = WEEKDAY[e.wd] + ", " + MONTH_ABBR[e.m-1] + " " + e.d;   // full date for menu / a11y
 
       var btn = document.createElement("button");
       btn.className = "date" + (past?" past":"") + (isNext?" next":"");
@@ -927,15 +933,15 @@
 
       if(past){
         btn.disabled = true; btn.setAttribute("aria-disabled","true");
-        btn.setAttribute("aria-label", label+" — past");
+        btn.setAttribute("aria-label", full+" — past");
         return cell;
       }
       btn.setAttribute("aria-haspopup","true"); btn.setAttribute("aria-expanded","false");
-      if(isNext){ btn.setAttribute("aria-label", label+" — next open date"); }
+      if(isNext){ btn.setAttribute("aria-label", full+" — next open date"); }
 
       var menu = document.createElement("div");
       menu.className = "cal-menu"; menu.setAttribute("role","menu");
-      menu.innerHTML = '<div class="cal-menu-title">'+label+' &middot; 8&ndash;11pm</div>';
+      menu.innerHTML = '<div class="cal-menu-title">'+full+' &middot; 8&ndash;11pm</div>';
 
       var icsBtn = document.createElement("button");
       icsBtn.type = "button"; icsBtn.className = "cal-opt"; icsBtn.setAttribute("role","menuitem");
@@ -984,12 +990,23 @@
       }
       if(noteEl) noteEl.textContent = "Whisked with care, on the dates below.";
 
-      var wrap = document.createElement("div"); wrap.className = "dates";
+      function weekKey(e){
+        var t = Date.UTC(e.y, e.m-1, e.d);
+        var dow = new Date(t).getUTCDay();       // 0 Sun .. 6 Sat
+        return t - ((dow + 6) % 7) * 86400000;   // ms of that week's Monday
+      }
+      var rows = [], cur = null;
       items.forEach(function(e){
         e.wd = new Date(e.y, e.m-1, e.d).getDay();
-        wrap.appendChild(makeChip(e, e === nextItem));
+        var wk = weekKey(e);
+        if(!cur || cur.wk !== wk){ cur = { wk:wk, list:[] }; rows.push(cur); }
+        cur.list.push(e);
       });
-      groupsEl.appendChild(wrap);
+      rows.forEach(function(row){
+        var wrap = document.createElement("div"); wrap.className = "dates";
+        row.list.forEach(function(e){ wrap.appendChild(makeChip(e, e === nextItem)); });
+        groupsEl.appendChild(wrap);
+      });
     }
     window.__renderSchedule = renderSchedule;
 
