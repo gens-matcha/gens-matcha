@@ -782,6 +782,9 @@
       try {
         const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
         const status = await res.json();
+        if (window.__renderSchedule) {
+          window.__renderSchedule(status && status.dates);   // opening dates from your Google Calendar
+        }
         if (status && status.open === false) {
           showClosed(false);   // reveal beneath the splash; splash fade uncovers it
         }
@@ -830,37 +833,33 @@
     document.querySelectorAll('.bg-confetti, #closedOverlay .co-confetti').forEach(paint);
   })();
 
-  // ============= Closed-page August schedule + add-to-calendar =============
+  // ============= Closed-page schedule (driven by Google Calendar) + add-to-calendar =============
   (function(){
-    var YEAR = 2026, MONTH = 8;
-    var START_HOUR = 20, END_HOUR = 23;      // 8pm - 11pm
+    var START_HOUR = 20, END_HOUR = 23;      // always 8pm - 11pm
     var TZ = 'Asia/Singapore', UTC_OFFSET = 8;
     var EVENT_TITLE = "Gens Matcha — Open";
     var EVENT_LOC = "268A Punggol Fld, Singapore 821268";
     var EVENT_DESC = "We're open 8-11pm. Come get your matcha fix ⭐";
 
-    var schedule = [
-      { label: "Fridays",   dates: [7, 14, 21] },
-      { label: "Saturdays", dates: [8, 22, 29] },
-      { label: "Sundays",   dates: [2, 16, 23, 30] }
-    ];
     var WEEKDAY = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
     var MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    var MONTH_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    var CAL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
 
     function pad(n){ return (n<10?"0":"")+n; }
-    function toUTCStamp(day, hour){
-      var d = new Date(Date.UTC(YEAR, MONTH-1, day, hour - UTC_OFFSET, 0, 0));
-      return d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+"T"+pad(d.getUTCHours())+pad(d.getUTCMinutes())+"00Z";
+    function stampUTC(y,m,d,hour){
+      var dt = new Date(Date.UTC(y, m-1, d, hour - UTC_OFFSET, 0, 0));
+      return dt.getUTCFullYear()+pad(dt.getUTCMonth()+1)+pad(dt.getUTCDate())+"T"+pad(dt.getUTCHours())+pad(dt.getUTCMinutes())+"00Z";
     }
-    function toLocalStamp(day, hour){ return YEAR+pad(MONTH)+pad(day)+"T"+pad(hour)+"0000"; }
+    function stampLocal(y,m,d,hour){ return y+pad(m)+pad(d)+"T"+pad(hour)+"0000"; }
 
-    function vevent(day){
+    function vevent(e){
       return [
         "BEGIN:VEVENT",
-        "UID:gensmatcha-"+YEAR+pad(MONTH)+pad(day)+"@gensmatcha",
-        "DTSTAMP:"+toUTCStamp(day, START_HOUR),
-        "DTSTART;TZID="+TZ+":"+toLocalStamp(day, START_HOUR),
-        "DTEND;TZID="+TZ+":"+toLocalStamp(day, END_HOUR),
+        "UID:gensmatcha-"+e.y+pad(e.m)+pad(e.d)+"@gensmatcha",
+        "DTSTAMP:"+stampUTC(e.y,e.m,e.d,START_HOUR),
+        "DTSTART;TZID="+TZ+":"+stampLocal(e.y,e.m,e.d,START_HOUR),
+        "DTEND;TZID="+TZ+":"+stampLocal(e.y,e.m,e.d,END_HOUR),
         "SUMMARY:"+EVENT_TITLE,
         EVENT_LOC ? "LOCATION:"+EVENT_LOC : null,
         "DESCRIPTION:"+EVENT_DESC,
@@ -869,31 +868,27 @@
     }
     var VTIMEZONE = ["BEGIN:VTIMEZONE","TZID:"+TZ,"BEGIN:STANDARD","DTSTART:19700101T000000",
       "TZOFFSETFROM:+0800","TZOFFSETTO:+0800","TZNAME:+08","END:STANDARD","END:VTIMEZONE"].join("\r\n");
-    function buildICS(days){
+    function buildICS(list){
       return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Gens Matcha//Opening Dates//EN",
-        "CALSCALE:GREGORIAN","METHOD:PUBLISH",VTIMEZONE,days.map(vevent).join("\r\n"),"END:VCALENDAR"].join("\r\n");
+        "CALSCALE:GREGORIAN","METHOD:PUBLISH",VTIMEZONE,list.map(vevent).join("\r\n"),"END:VCALENDAR"].join("\r\n");
     }
-    function downloadICS(days, filename){
-      var blob = new Blob([buildICS(days)], { type:"text/calendar;charset=utf-8" });
+    function downloadICS(list, filename){
+      var blob = new Blob([buildICS(list)], { type:"text/calendar;charset=utf-8" });
       var url = URL.createObjectURL(blob);
       var a = document.createElement("a");
       a.href = url; a.download = filename;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
     }
-    function googleUrl(day){
+    function googleUrl(e){
       var p = new URLSearchParams({ action:"TEMPLATE", text:EVENT_TITLE,
-        dates: toUTCStamp(day,START_HOUR)+"/"+toUTCStamp(day,END_HOUR), details:EVENT_DESC, ctz:TZ });
+        dates: stampUTC(e.y,e.m,e.d,START_HOUR)+"/"+stampUTC(e.y,e.m,e.d,END_HOUR), details:EVENT_DESC, ctz:TZ });
       if(EVENT_LOC) p.set("location", EVENT_LOC);
       return "https://calendar.google.com/calendar/render?"+p.toString();
     }
+
     var now = Date.now();
-    function isPast(day){ return Date.UTC(YEAR, MONTH-1, day, END_HOUR - UTC_OFFSET, 0, 0) < now; }
-    var allConfigDays = [];
-    schedule.forEach(function(g){ g.dates.forEach(function(d){ allConfigDays.push(d); }); });
-    allConfigDays.sort(function(a,b){ return a-b; });
-    var nextDay = null;
-    for(var i=0;i<allConfigDays.length;i++){ if(!isPast(allConfigDays[i])){ nextDay = allConfigDays[i]; break; } }
+    function isPast(e){ return Date.UTC(e.y, e.m-1, e.d, END_HOUR - UTC_OFFSET, 0, 0) < now; }
 
     var iconBag = [];
     function calIco(){
@@ -905,67 +900,93 @@
     }
 
     var groupsEl = document.getElementById("coGroups");
-    if(!groupsEl) return;
+    var titleEl  = document.querySelector('#closedOverlay .sched-title');
+    var noteEl   = document.querySelector('#closedOverlay .sched-note');
     var openMenu = null;
     function closeMenu(){
       if(openMenu){ openMenu.menu.classList.remove("open"); openMenu.btn.setAttribute("aria-expanded","false"); openMenu = null; }
     }
 
-    schedule.forEach(function(group){
-      var g = document.createElement("div"); g.className = "day-group";
-      var lbl = document.createElement("p"); lbl.className = "day-label"; lbl.textContent = group.label; g.appendChild(lbl);
-      var wrap = document.createElement("div"); wrap.className = "dates";
+    function makeChip(e, isNext){
+      var past = isPast(e);
+      var label = WEEKDAY[e.wd] + ", " + MONTH_ABBR[e.m-1] + " " + e.d;
 
-      group.dates.forEach(function(day){
-        var wd = new Date(YEAR, MONTH-1, day).getDay();
-        var past = isPast(day), isNext = (day === nextDay);
+      var btn = document.createElement("button");
+      btn.className = "date" + (past?" past":"") + (isNext?" next":"");
+      btn.type = "button";
+      btn.innerHTML = calIco() + '<span>' + label + '</span>';
 
-        var btn = document.createElement("button");
-        btn.className = "date" + (past?" past":"") + (isNext?" next":"");
-        btn.type = "button";
-        btn.innerHTML = calIco() + '<span>' + MONTH_ABBR[MONTH-1] + ' ' + day + '</span>';
+      var cell = document.createElement("span");
+      cell.style.position = "relative"; cell.style.display = "inline-block";
+      cell.appendChild(btn);
 
-        var cell = document.createElement("span");
-        cell.style.position = "relative"; cell.style.display = "inline-block";
-        cell.appendChild(btn); wrap.appendChild(cell);
+      if(past){
+        btn.disabled = true; btn.setAttribute("aria-disabled","true");
+        btn.setAttribute("aria-label", label+" — past");
+        return cell;
+      }
+      btn.setAttribute("aria-haspopup","true"); btn.setAttribute("aria-expanded","false");
+      if(isNext){ btn.setAttribute("aria-label", label+" — next open date"); }
 
-        if(past){
-          btn.disabled = true; btn.setAttribute("aria-disabled","true");
-          btn.setAttribute("aria-label", WEEKDAY[wd]+", "+MONTH_ABBR[MONTH-1]+" "+day+" — past");
-          return;
-        }
-        btn.setAttribute("aria-haspopup","true"); btn.setAttribute("aria-expanded","false");
-        if(isNext){ btn.setAttribute("aria-label", MONTH_ABBR[MONTH-1]+" "+day+" — next open date"); }
+      var menu = document.createElement("div");
+      menu.className = "cal-menu"; menu.setAttribute("role","menu");
+      menu.innerHTML = '<div class="cal-menu-title">'+label+' &middot; 8&ndash;11pm</div>';
 
-        var menu = document.createElement("div");
-        menu.className = "cal-menu"; menu.setAttribute("role","menu");
-        menu.innerHTML = '<div class="cal-menu-title">'+WEEKDAY[wd]+', '+MONTH_ABBR[MONTH-1]+' '+day+' &middot; 8&ndash;11pm</div>';
+      var icsBtn = document.createElement("button");
+      icsBtn.type = "button"; icsBtn.className = "cal-opt"; icsBtn.setAttribute("role","menuitem");
+      icsBtn.innerHTML = CAL_ICON + '<span>Apple Calendar</span>';
+      icsBtn.addEventListener("click", function(ev){ ev.stopPropagation(); downloadICS([e], "gens-matcha-"+e.y+pad(e.m)+pad(e.d)+".ics"); closeMenu(); });
 
-        var gLink = document.createElement("a");
-        gLink.className = "cal-opt"; gLink.setAttribute("role","menuitem");
-        gLink.href = googleUrl(day); gLink.target = "_blank"; gLink.rel = "noopener noreferrer";
-        gLink.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Google Calendar</span>';
-        gLink.addEventListener("click", function(){ closeMenu(); });
+      var gLink = document.createElement("a");
+      gLink.className = "cal-opt"; gLink.setAttribute("role","menuitem");
+      gLink.href = googleUrl(e); gLink.target = "_blank"; gLink.rel = "noopener noreferrer";
+      gLink.innerHTML = CAL_ICON + '<span>Google Calendar</span>';
+      gLink.addEventListener("click", function(){ closeMenu(); });
 
-        var icsBtn = document.createElement("button");
-        icsBtn.type = "button"; icsBtn.className = "cal-opt"; icsBtn.setAttribute("role","menuitem");
-        icsBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Apple Calendar</span>';
-        icsBtn.addEventListener("click", function(e){ e.stopPropagation(); downloadICS([day], "gens-matcha-aug-"+day+".ics"); closeMenu(); });
+      menu.appendChild(icsBtn); menu.appendChild(gLink);
 
-        menu.appendChild(icsBtn); menu.appendChild(gLink);
-
-        btn.addEventListener("click", function(e){
-          e.stopPropagation();
-          var wasOpen = menu.classList.contains("open");
-          closeMenu();
-          if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded","true"); openMenu = { menu:menu, btn:btn }; }
-        });
-
-        cell.appendChild(menu);
+      btn.addEventListener("click", function(ev){
+        ev.stopPropagation();
+        var wasOpen = menu.classList.contains("open");
+        closeMenu();
+        if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded","true"); openMenu = { menu:menu, btn:btn }; }
       });
 
-      g.appendChild(wrap); groupsEl.appendChild(g);
-    });
+      cell.appendChild(menu);
+      return cell;
+    }
+
+    // Public entry point: called with an array of "YYYY-MM-DD" strings from the Apps Script.
+    function renderSchedule(dateStrings){
+      if(!groupsEl) return;
+      var items = (Array.isArray(dateStrings) ? dateStrings : []).map(function(s){
+        var p = String(s).split("-"); return { y:+p[0], m:+p[1], d:+p[2] };
+      }).filter(function(e){ return e.y && e.m && e.d; });
+      items.sort(function(a,b){ return (a.y-b.y) || (a.m-b.m) || (a.d-b.d); });
+
+      var hy, hm;
+      if(items.length){ hy=items[0].y; hm=items[0].m; }
+      else { var nd=new Date(); hy=nd.getFullYear(); hm=nd.getMonth()+1; }
+      if(titleEl) titleEl.textContent = "Open in " + MONTH_FULL[hm-1];
+
+      var nextItem = null;
+      for(var i=0;i<items.length;i++){ if(!isPast(items[i])){ nextItem = items[i]; break; } }
+
+      groupsEl.innerHTML = "";
+      if(!items.length){
+        if(noteEl) noteEl.textContent = "New dates dropping soon — check back!";
+        return;
+      }
+      if(noteEl) noteEl.textContent = "Whisked with care, on the dates below.";
+
+      var wrap = document.createElement("div"); wrap.className = "dates";
+      items.forEach(function(e){
+        e.wd = new Date(e.y, e.m-1, e.d).getDay();
+        wrap.appendChild(makeChip(e, e === nextItem));
+      });
+      groupsEl.appendChild(wrap);
+    }
+    window.__renderSchedule = renderSchedule;
 
     document.addEventListener("click", closeMenu);
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
