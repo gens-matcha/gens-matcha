@@ -12,7 +12,7 @@
     }
     @font-face{
       font-family:'Brandon Grotesque';
-      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');
+      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');Discount unlocked! Enjoy 10% off
       font-weight:700; font-style:normal; font-display:swap;
     }
 
@@ -597,7 +597,7 @@
     }
 
     if(totalCups >= needed){
-      $progressHint.innerHTML = '<span class="unlocked">Discount unlocked — enjoy 10% off</span>';
+      $progressHint.innerHTML = '<span class="unlocked">Discount unlocked! Enjoy 10% off</span>';
       if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
         stickyProgressState.hasReachedThreshold = true;
         if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
@@ -1066,7 +1066,7 @@
       if(sectionEl) sectionEl.classList.remove("loading");   // swap loader -> content (note fades in via CSS)
       groupsEl.innerHTML = "";
       if(!items.length){
-        if(noteEl) noteEl.textContent = "New dates dropping soon — check back!";
+        if(noteEl) noteEl.textContent = "New dates dropping soon. check back!";
         return;
       }
       if(noteEl) noteEl.textContent = "Whisked with care, on the dates below.";
