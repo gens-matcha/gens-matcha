@@ -227,10 +227,27 @@
     #closedOverlay .sched-hours::before{ content:"·"; margin-right:12px; color:var(--green-soft); }
     #closedOverlay .sched-rule{ height:1px; background:var(--line); margin:0 0 10px; border:0; }
     #closedOverlay .sched-note{ font-size:14px; color:var(--green-soft); margin:0 0 22px; }
-    #closedOverlay .day-group{ margin:0 0 22px; }
-    #closedOverlay .day-label{ font-weight:700; text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--green-soft); margin:0 0 8px; }
     #closedOverlay #coGroups{ display:flex; flex-direction:column; align-items:center; gap:12px; }
-    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; }   /* one week per row */
+    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; animation:schedFade .45s ease both; }   /* one week per row */
+
+    /* loading state */
+    #closedOverlay .schedule.loading .sched-note{ display:none; }
+    #closedOverlay .schedule:not(.loading) .sched-note{ animation:schedFade .4s ease both; }
+    #closedOverlay .sched-loading{ display:flex; align-items:center; justify-content:center; gap:9px;
+      color:var(--green-soft); font-size:14px; padding:20px 0 4px; animation:schedFade .4s ease both; }
+    #closedOverlay .sched-loading .dots{ display:inline-flex; gap:5px; }
+    #closedOverlay .sched-loading .dots i{ width:10px; height:10px; display:inline-block;
+      clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      animation:schedStar 1s infinite ease-in-out both; }
+    #closedOverlay .sched-loading .dots i:nth-child(1){ background:#E58AB0; }
+    #closedOverlay .sched-loading .dots i:nth-child(2){ background:#6FA96B; animation-delay:.15s; }
+    #closedOverlay .sched-loading .dots i:nth-child(3){ background:#6FA5C9; animation-delay:.30s; }
+    @keyframes schedStar{ 0%,80%,100%{ opacity:.3; transform:translateY(0) rotate(0deg); } 40%{ opacity:1; transform:translateY(-5px) rotate(12deg); } }
+    @keyframes schedFade{ from{ opacity:0; transform:translateY(7px); } to{ opacity:1; transform:translateY(0); } }
+    @media (prefers-reduced-motion: reduce){
+      #closedOverlay .dates, #closedOverlay .sched-loading{ animation:none; }
+      #closedOverlay .sched-loading .dots i{ animation-duration:1.6s; }
+    }
 
     #closedOverlay .date{ display:inline-flex; align-items:center; gap:8px; appearance:none; cursor:pointer;
       background:none; color:var(--green-deep); border:0; border-bottom:2px solid transparent; border-radius:0;
@@ -254,7 +271,7 @@
 
     /* tele */
     #closedOverlay .tele-wrap{ margin:40px 0 0; }
-    #closedOverlay .tele-lead{ font-size:15px; color:var(--green-soft); margin:0 0 16px; }
+    #closedOverlay .tele-lead{ font-size:15px; color:var(--green-deep); margin:0 0 16px; }
     #closedOverlay .co-tele{ display:inline-flex; align-items:center; gap:10px; border:1px solid var(--green-deep);
       border-radius:3px; padding:14px 28px; background:var(--green-deep); color:var(--cream);
       font-family:inherit; font-weight:700; font-size:17px; cursor:pointer; text-decoration:none; transition:background .15s ease; }
@@ -291,14 +308,16 @@
       <img src="img/Icon-Closed.png" alt="Store closed" class="co-icon">
       <p class="co-message">Sorry you couldn't get your matcha fix from us today ):</p>
 
-      <section class="schedule" aria-label="Opening dates">
+      <section class="schedule loading" aria-label="Opening dates">
         <div class="sched-head">
           <h2 class="sched-title">Opening dates</h2>
           <span class="sched-hours">8&ndash;11pm</span>
         </div>
         <hr class="sched-rule">
-        <p class="sched-note">Loading this month's dates&hellip;</p>
-        <div id="coGroups"></div>
+        <p class="sched-note">Whisked with care, on the dates below.</p>
+        <div id="coGroups">
+          <div class="sched-loading">Loading this month's dates<span class="dots"><i></i><i></i><i></i></span></div>
+        </div>
       </section>
 
       <div class="tele-wrap">
@@ -935,6 +954,7 @@
     var groupsEl = document.getElementById("coGroups");
     var titleEl  = document.querySelector('#closedOverlay .sched-title');
     var noteEl   = document.querySelector('#closedOverlay .sched-note');
+    var sectionEl = document.querySelector('#closedOverlay .schedule');
     var openMenu = null;
     function closeMenu(){
       if(openMenu){ openMenu.menu.classList.remove("open"); openMenu.btn.setAttribute("aria-expanded","false"); openMenu = null; }
@@ -998,14 +1018,13 @@
       }).filter(function(e){ return e.y && e.m && e.d; });
       items.sort(function(a,b){ return (a.y-b.y) || (a.m-b.m) || (a.d-b.d); });
 
-      var hy, hm;
-      if(items.length){ hy=items[0].y; hm=items[0].m; }
-      else { var nd=new Date(); hy=nd.getFullYear(); hm=nd.getMonth()+1; }
+      var hm = items.length ? items[0].m : (new Date().getMonth() + 1);
       if(titleEl) titleEl.textContent = "Open in " + MONTH_FULL[hm-1];
 
       var nextItem = null;
       for(var i=0;i<items.length;i++){ if(!isPast(items[i])){ nextItem = items[i]; break; } }
 
+      if(sectionEl) sectionEl.classList.remove("loading");   // swap loader -> content (note fades in via CSS)
       groupsEl.innerHTML = "";
       if(!items.length){
         if(noteEl) noteEl.textContent = "New dates dropping soon — check back!";
@@ -1025,8 +1044,9 @@
         if(!cur || cur.wk !== wk){ cur = { wk:wk, list:[] }; rows.push(cur); }
         cur.list.push(e);
       });
-      rows.forEach(function(row){
+      rows.forEach(function(row, ri){
         var wrap = document.createElement("div"); wrap.className = "dates";
+        wrap.style.animationDelay = (ri * 0.07) + "s";   // gentle stagger, top row first
         row.list.forEach(function(e){ wrap.appendChild(makeChip(e, e === nextItem)); });
         groupsEl.appendChild(wrap);
       });
