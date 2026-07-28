@@ -12,7 +12,7 @@
     }
     @font-face{
       font-family:'Brandon Grotesque';
-      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');Discount unlocked! Enjoy 10% off
+      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');
       font-weight:700; font-style:normal; font-display:swap;
     }
 
@@ -250,7 +250,7 @@
     #closedOverlay .sched-rule{ height:1px; background:var(--line); margin:0 0 10px; border:0; }
     #closedOverlay .sched-note{ font-size:14px; color:var(--green-soft); margin:0 0 22px; }
     #closedOverlay #coGroups{ display:flex; flex-direction:column; align-items:center; gap:12px; }
-    #closedOverlay .dates{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; animation:schedFade .45s ease both; }   /* one week per row */
+    #closedOverlay .dates{ position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; animation:schedFade .45s ease both; }   /* one week per row */
 
     /* loading state */
     #closedOverlay .schedule.loading .sched-note{ display:none; }
@@ -275,6 +275,8 @@
       background:none; color:var(--green-deep); border:0; border-bottom:2px solid transparent; border-radius:0;
       padding:6px 4px; font-family:inherit; font-size:15px; font-weight:700; transition:border-color .15s ease, color .15s ease; }
     @media (hover:hover) and (pointer:fine){ #closedOverlay .date:hover{ border-bottom-color:var(--green-soft); } }
+    #closedOverlay .date:focus{ outline:none; }
+    #closedOverlay .date:focus-visible{ outline:2px solid var(--green-deep); outline-offset:3px; border-radius:4px; }
     #closedOverlay .date .cal-ico{ width:18px; height:18px; object-fit:contain; flex:none; }
     #closedOverlay .date[aria-expanded="true"]{ border-bottom-color:var(--green-deep); }
     #closedOverlay .date.next{ border-bottom-color:var(--green-deep); }
@@ -858,7 +860,7 @@
     // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
     var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
 
-    // 1) Open/closed check — fetched fresh every load (no cache), gates the splash
+    // Open/closed check + opening dates in ONE request (was two round-trips to Apps Script)
     (async function(){
       try {
         const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
@@ -867,21 +869,16 @@
         clearTimeout(safety);
         if (status && status.open === true) { hideClosed(); }   // confirmed open -> show the menu
         else { showClosed(false); }                             // closed or unknown -> closed screen
+        if (status && Array.isArray(status.dates)) {
+          if (window.__renderSchedule) window.__renderSchedule(status.dates);
+          try { localStorage.setItem('gm_dates_v1', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
+        }
       } catch (e) {
         decided = true;
         clearTimeout(safety);
         showClosed(false);   // on error, default to closed (safe)
       }
       hideSplash();
-    })();
-
-    // 2) Opening dates for the closed screen — background, never blocks the splash
-    (async function(){
-      try {
-        const res = await fetch(APPS_SCRIPT_URL + '?part=dates', { method: 'GET', cache: 'no-store' });
-        const data = await res.json();
-        if (window.__renderSchedule) window.__renderSchedule(data && data.dates);
-      } catch (e) { /* leave the placeholder in place */ }
     })();
   })();
   </script>
@@ -996,7 +993,7 @@
     var sectionEl = document.querySelector('#closedOverlay .schedule');
     var openMenu = null;
     function closeMenu(){
-      if(openMenu){ openMenu.menu.classList.remove("open"); openMenu.btn.setAttribute("aria-expanded","false"); openMenu = null; }
+      if(openMenu){ openMenu.menu.classList.remove("open"); openMenu.btn.setAttribute("aria-expanded","false"); if(openMenu.row){ openMenu.row.style.zIndex = ""; } openMenu = null; }
     }
 
     function makeChip(e, isNext){
@@ -1042,7 +1039,12 @@
         ev.stopPropagation();
         var wasOpen = menu.classList.contains("open");
         closeMenu();
-        if(!wasOpen){ menu.classList.add("open"); btn.setAttribute("aria-expanded","true"); openMenu = { menu:menu, btn:btn }; }
+        if(!wasOpen){
+          menu.classList.add("open"); btn.setAttribute("aria-expanded","true");
+          var row = cell.parentElement;   // lift this week's row above later rows so the menu isn't painted over
+          if(row){ row.style.zIndex = "30"; }
+          openMenu = { menu:menu, btn:btn, row:row };
+        }
       });
 
       cell.appendChild(menu);
@@ -1091,6 +1093,15 @@
       });
     }
     window.__renderSchedule = renderSchedule;
+
+    // Show last visit's dates instantly while the fresh ones load (fresh data re-renders on arrival)
+    try {
+      var cachedDates = JSON.parse(localStorage.getItem('gm_dates_v1') || 'null');
+      if (cachedDates && Array.isArray(cachedDates.dates) && cachedDates.dates.length
+          && Date.now() - cachedDates.at < 24*60*60*1000) {
+        renderSchedule(cachedDates.dates);
+      }
+    } catch(e){}
 
     document.addEventListener("click", closeMenu);
     document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeMenu(); });
