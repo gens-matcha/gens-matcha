@@ -778,6 +778,15 @@
     if(animate){ void ov.offsetWidth; }   // reflow so the fade runs
     ov.style.opacity = '1';
   }
+  // ---- Hide the closed overlay (used when we confirm the shop is open) ----
+  function hideClosed(){
+    var ov = document.getElementById('closedOverlay');
+    if(!ov) return;
+    ov.style.opacity = '0';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(ov.style.opacity === '0') ov.style.display = 'none'; }, 500);
+  }
 
   // ---- Open/closed check: crossfade splash -> menu (open) or closed overlay (closed) ----
   (function(){
@@ -787,25 +796,31 @@
       splash.style.opacity = '0';
       setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
-    var safety = setTimeout(hideSplash, 3500); // fail-open on slow/failed check
+    var decided = false;
+    // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
+    var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
 
-    // 1) Fast open/closed check — gates the splash (server does no calendar read here)
+    // 1) Open/closed check — fetched fresh every load (no cache), gates the splash
     (async function(){
       try {
-        const res = await fetch(APPS_SCRIPT_URL, { method: 'GET' });
+        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
         const status = await res.json();
-        if (status && status.open === false) {
-          showClosed(false);   // reveal beneath the splash; splash fade uncovers it
-        }
-      } catch (e) { /* fail open */ }
-      clearTimeout(safety);
+        decided = true;
+        clearTimeout(safety);
+        if (status && status.open === true) { hideClosed(); }   // confirmed open -> show the menu
+        else { showClosed(false); }                             // closed or unknown -> closed screen
+      } catch (e) {
+        decided = true;
+        clearTimeout(safety);
+        showClosed(false);   // on error, default to closed (safe)
+      }
       hideSplash();
     })();
 
     // 2) Opening dates for the closed screen — background, never blocks the splash
     (async function(){
       try {
-        const res = await fetch(APPS_SCRIPT_URL + '?part=dates', { method: 'GET' });
+        const res = await fetch(APPS_SCRIPT_URL + '?part=dates', { method: 'GET', cache: 'no-store' });
         const data = await res.json();
         if (window.__renderSchedule) window.__renderSchedule(data && data.dates);
       } catch (e) { /* leave the placeholder in place */ }
