@@ -305,7 +305,7 @@
 
     /* star confetti (shared) */
     .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-    .bg-confetti svg, #closedOverlay .co-confetti svg, #successOverlay .so-confetti svg{ position:absolute; opacity:.5; }
+    .bg-confetti svg, #closedOverlay .co-confetti svg{ position:absolute; opacity:.5; }
 
     @media (max-width:600px){
       #closedOverlay{ padding:40px 18px 88px; }
@@ -318,24 +318,31 @@
       #closedOverlay .dates{ gap:10px 16px; }
       #closedOverlay .date{ padding:8px 6px; font-size:16px; }
       #closedOverlay .tele-wrap{ margin-top:44px; }
-      .bg-confetti svg, #closedOverlay .co-confetti svg, #successOverlay .so-confetti svg{ opacity:.42; }
+      .bg-confetti svg, #closedOverlay .co-confetti svg{ opacity:.42; }
     }
   </style>
   <style id="successOverlayStyle">
+    /* scrim */
     #successOverlay{ position:fixed; inset:0; z-index:9997; display:none; opacity:0;
-      transition:opacity .45s ease; background:var(--cream); overflow:auto;
+      transition:opacity .3s ease; background:rgba(74,51,36,.38); overflow:auto;
       overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
-      align-items:flex-start; justify-content:center; padding:56px 24px 96px; text-align:center; }
-    #successOverlay .so-container{ max-width:420px; width:100%; position:relative; z-index:1; }
-    #successOverlay .so-logo{ position:fixed; bottom:22px; left:26px; width:120px; height:auto; z-index:2; }
-    #successOverlay .so-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+      align-items:center; justify-content:center; padding:24px; }
+    /* the window itself */
+    #successOverlay .so-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #successOverlay.is-open .so-modal{ transform:none; }
+    @media (prefers-reduced-motion:reduce){
+      #successOverlay .so-modal{ transform:none; transition:none; }
+    }
 
     /* hero star sways, satellites twinkle out of sync -- deliberately not a loading rhythm */
-    #successOverlay .so-stars{ display:inline-flex; align-items:center; justify-content:center; gap:16px; margin:6px 0 28px; }
+    #successOverlay .so-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 22px; }
     #successOverlay .so-stars img{ object-fit:contain; flex:none; }
-    #successOverlay .so-hero{ width:58px; height:58px; transform-origin:50% 65%;
+    #successOverlay .so-hero{ width:52px; height:52px; transform-origin:50% 65%;
       animation:soSway 3.4s ease-in-out infinite; }
-    #successOverlay .so-sat{ width:27px; height:27px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #successOverlay .so-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
     #successOverlay .so-sat.a{ animation-delay:.6s; }
     #successOverlay .so-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
     @keyframes soSway{
@@ -350,14 +357,14 @@
       #successOverlay .so-hero, #successOverlay .so-sat{ animation:none; opacity:1; }
     }
 
-    #successOverlay .so-head{ font-size:26px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 28px; }
-    #successOverlay .so-rule{ height:1px; background:var(--line); border:0; margin:0 0 24px; }
+    #successOverlay .so-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
     #successOverlay .so-label{ font-size:14px; color:var(--green-soft); margin:0 0 4px; }
-    #successOverlay .so-time{ font-size:44px; line-height:1.1; font-weight:700; color:var(--green-deep); letter-spacing:-.01em; margin:0 0 20px; }
+    #successOverlay .so-time{ font-size:38px; line-height:1.1; font-weight:700; color:var(--green-deep); letter-spacing:-.01em; margin:0 0 18px; }
 
     #successOverlay .so-ref{ display:inline-flex; align-items:center; gap:10px; background:#fff;
       border:1px solid var(--green-deep); border-radius:3px; padding:8px 14px;
-      font-weight:700; font-size:15px; color:var(--green-deep); margin:0 0 26px; }
+      font-weight:700; font-size:15px; color:var(--green-deep); margin:0 0 22px; }
     #successOverlay .so-ref-tag{ font-size:12px; color:var(--green-soft); letter-spacing:.08em; text-transform:uppercase; }
     #successOverlay .so-ref-div{ width:1px; height:15px; background:var(--line); display:inline-block; }
     #successOverlay .so-copy{ appearance:none; border:0; background:none; font-family:inherit;
@@ -365,24 +372,24 @@
     #successOverlay .so-copy:hover{ color:var(--green-deep); }
 
     #successOverlay .so-note{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
-      padding:16px 18px; margin:0 0 28px; }
+      padding:14px 16px; margin:0 0 24px; }
     #successOverlay .so-note-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
     #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
     #successOverlay .so-note-body b{ color:var(--green-deep); }
 
-    #successOverlay .so-done{ appearance:none; display:inline-flex; align-items:center; justify-content:center;
+    #successOverlay .so-done{ appearance:none; display:block; width:100%;
       background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
-      padding:14px 36px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
       cursor:pointer; transition:background .15s ease; }
     #successOverlay .so-done:hover{ background:#2c6644; border-color:#2c6644; }
 
     @media (max-width:600px){
-      #successOverlay{ padding:44px 18px 88px; }
-      #successOverlay .so-head{ font-size:23px; }
-      #successOverlay .so-time{ font-size:38px; }
-      #successOverlay .so-hero{ width:50px; height:50px; }
-      #successOverlay .so-sat{ width:23px; height:23px; }
-      #successOverlay .so-logo{ width:88px; bottom:14px; left:16px; }
+      #successOverlay{ padding:18px; }
+      #successOverlay .so-modal{ padding:28px 22px 24px; }
+      #successOverlay .so-head{ font-size:20px; }
+      #successOverlay .so-time{ font-size:34px; }
+      #successOverlay .so-hero{ width:46px; height:46px; }
+      #successOverlay .so-sat{ width:21px; height:21px; }
     }
   </style>
 </head>
@@ -422,13 +429,11 @@
     </div>
   </div>
 
-  <div id="successOverlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="soHead">
-    <img src="img/Logo-Open.png" alt="Gens Matcha" class="so-logo">
-    <div class="so-confetti" aria-hidden="true"></div>
-    <div class="so-container">
+  <div id="successOverlay" aria-hidden="true">
+    <div class="so-modal" role="dialog" aria-modal="true" aria-labelledby="soHead">
       <div class="so-stars" aria-hidden="true">
-        <img class="so-sat a" src="img/star-loading-1.png" alt="">
-        <img class="so-hero" src="img/star-loading-2.png" alt="">
+        <img class="so-sat a" src="img/star-loading-2.png" alt="">
+        <img class="so-hero" src="img/star-loading-1.png" alt="">
         <img class="so-sat b" src="img/star-loading-3.png" alt="">
       </div>
 
@@ -943,14 +948,16 @@
     successOverlay.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    void successOverlay.offsetWidth;              // reflow so the fade runs
+    void successOverlay.offsetWidth;              // reflow so the fade + rise run
     successOverlay.style.opacity = '1';
+    successOverlay.classList.add('is-open');
     if(soDoneBtn) soDoneBtn.focus();
   }
 
   function hideSuccess(){
     if(!successOverlay) return;
     successOverlay.style.opacity = '0';
+    successOverlay.classList.remove('is-open');
     successOverlay.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
@@ -1072,7 +1079,7 @@
           + '"><path d="' + STAR_PATH + '"/></svg>';
       }).join("");
     }
-    document.querySelectorAll('.bg-confetti, #closedOverlay .co-confetti, #successOverlay .so-confetti').forEach(paint);
+    document.querySelectorAll('.bg-confetti, #closedOverlay .co-confetti').forEach(paint);
   })();
 
   // ============= Closed-page schedule (driven by Google Calendar) + add-to-calendar =============
