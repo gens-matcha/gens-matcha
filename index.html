@@ -54,9 +54,32 @@
       padding:16px; display:flex; flex-direction:column;
       animation:fadeUp .35s ease backwards;
     }
+    .img-wrap{ position:relative; }
     .img{
       width:100%; aspect-ratio:1/1; object-fit:contain; background:var(--cream);
       border-radius:8px; margin-bottom:12px;
+    }
+
+    /* Sold out: dim the card, hairline tag over the image, controls disabled.
+       No accent colours, no badge fills — same restraint as the rest of the menu. */
+    .soldout-tag{
+      display:none; position:absolute; top:8px; left:8px;
+      background:var(--cream); border:1px solid var(--line); border-radius:8px;
+      color:var(--green-soft); font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.12em; padding:4px 9px;
+    }
+    .card.is-soldout .soldout-tag{ display:block; }
+    .card.is-soldout .img{ filter:grayscale(.9); opacity:.45; }
+    .card.is-soldout .title,
+    .card.is-soldout .desc,
+    .card.is-soldout .livePrice{ opacity:.5; }
+    .card.is-soldout .milk-label,
+    .card.is-soldout .milk-toggle,
+    .card.is-soldout .qty{ display:none; }
+    .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--green-soft); border-color:var(--line); }
+    .cart-note{
+      font-size:13px; color:var(--green-soft); line-height:1.45;
+      border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px;
     }
     .title{
       font-weight:700; text-transform:uppercase; letter-spacing:.02em;
@@ -77,6 +100,12 @@
       cursor:pointer; transition:border-color .15s ease, background .15s ease;
     }
     .milk-opt.active{ background:var(--tint); border-color:var(--green-deep); }
+    /* A milk that's run out: struck through and dimmed, never selectable. */
+    .milk-opt.is-out{
+      background:var(--cream); border-color:var(--line); color:var(--green-soft);
+      text-decoration:line-through; opacity:.55; cursor:not-allowed;
+    }
+    .milk-opt.is-out .rec-star{ display:none; }
 
     /* Qty + add row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -594,9 +623,19 @@
     return p.basePrice + addSum;
   }
 
+  // Ticked "sold out" in the Item-Status sheet: whole drinks, and milks.
+  // A milk running out hits every latte at once, so it's tracked separately.
+  const MILKS = ['Fresh milk', 'Oatmilk'];
+  let SOLD_OUT = new Set();
+  let SOLD_OUT_MILKS = new Set();
+  const cardsByTitle = new Map();   // filled in as the menu renders
+  let soldOutNotice = '';           // shown in the cart when we drop an item
+
   function addToCart({productId, qty, chosen}){
     const p = products.find(x=>x.id===productId);
     if(!p) return;
+    if(SOLD_OUT.has(p.title)) return;
+    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.label))) return;
     const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
     const title = p.title;
     const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
@@ -633,7 +672,10 @@
         <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk${p.recommendOat ? ' ' + STAR : ''}</button>
       </div>` : '';
     card.innerHTML = `
-      <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+      <div class="img-wrap">
+        <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+        <span class="soldout-tag">Sold out</span>
+      </div>
       <div class="title">${p.title}</div>
       <p class="desc">${p.desc}</p>
       ${milkBlock}
@@ -646,20 +688,31 @@
 
     // Milk selection (default: Oatmilk)
     let selectedMilk = p.milk ? 'Oatmilk' : null;
-    if(p.milk){
-      const milkBtns = card.querySelectorAll('.milk-opt');
-      milkBtns.forEach(mb=>{
-        mb.addEventListener('click', ()=>{
-          milkBtns.forEach(x=>x.classList.remove('active'));
-          mb.classList.add('active');
-          selectedMilk = mb.dataset.milk;
-        });
-      });
+    const milkBtns = p.milk ? [...card.querySelectorAll('.milk-opt')] : [];
+
+    function selectMilk(label){
+      if(!p.milk) return;
+      selectedMilk = label;
+      milkBtns.forEach(x=> x.classList.toggle('active', x.dataset.milk === label));
     }
+
+    milkBtns.forEach(mb=>{
+      mb.addEventListener('click', ()=>{
+        if(mb.disabled) return;
+        selectMilk(mb.dataset.milk);
+      });
+    });
 
     const qty = card.querySelector('input[type="number"]');
     const btn = card.querySelector('.add-btn');
+    cardsByTitle.set(p.title, {
+      card, btn, qty, milkBtns, selectMilk,
+      usesMilk: !!p.milk,
+      getMilk: ()=> selectedMilk
+    });
     btn.addEventListener('click', ()=>{
+      if(SOLD_OUT.has(p.title)) return;
+      if(selectedMilk && SOLD_OUT_MILKS.has(selectedMilk)) return;
       const chosen = selectedMilk
         ? [{ id: 'milk-' + selectedMilk.toLowerCase().replace(/\s+/g,''), label: selectedMilk, price: 0 }]
         : [];
@@ -673,6 +726,53 @@
 
     (grids[p.category] || grids.latte).appendChild(card);
   });
+
+  // ---- Apply the sold-out state from the sheet to the menu + cart ----
+  function applySoldOut(list, milkList){
+    SOLD_OUT = new Set(Array.isArray(list) ? list : []);
+    SOLD_OUT_MILKS = new Set(Array.isArray(milkList) ? milkList : []);
+
+    // No milk left at all = every milk drink is off, whatever the sheet says.
+    const allMilkGone = MILKS.every(m=> SOLD_OUT_MILKS.has(m));
+
+    const fullyOut = new Set();   // drinks off the menu entirely, milk or not
+
+    cardsByTitle.forEach((entry, title)=>{
+      const { card, btn, qty, milkBtns, selectMilk, usesMilk } = entry;
+      const out = SOLD_OUT.has(title) || (usesMilk && allMilkGone);
+      if(out) fullyOut.add(title);
+
+      card.classList.toggle('is-soldout', out);
+      btn.disabled = out;
+      btn.textContent = out ? 'Sold out' : 'Add to cart';
+      if(qty){ qty.disabled = out; }
+
+      if(!usesMilk) return;
+
+      // Grey out whichever milk ran out, and move the selection off it.
+      milkBtns.forEach(mb=>{
+        const milkOut = SOLD_OUT_MILKS.has(mb.dataset.milk);
+        mb.disabled = milkOut;
+        mb.classList.toggle('is-out', milkOut);
+      });
+      const left = milkBtns.filter(mb=> !mb.disabled);
+      if(left.length === 1) selectMilk(left[0].dataset.milk);
+    });
+
+    // Drop anything in the cart that's no longer available, and say so.
+    const gone = x => fullyOut.has(x.title) || SOLD_OUT_MILKS.has(x.addonsLabel);
+    const dropped = [...new Set(cart.filter(gone).map(x=>
+      fullyOut.has(x.title) ? x.title : x.title + ' with ' + x.addonsLabel
+    ))];
+    if(dropped.length){
+      cart = cart.filter(x=> !gone(x));
+      saveCart(cart);
+      const many = dropped.length > 1;
+      soldOutNotice = dropped.join(' and ') + (many ? ' have' : ' has')
+        + ' sold out, so we removed ' + (many ? 'them' : 'it') + ' from your cart.';
+    }
+    renderCart();
+  }
 
   const $items = document.getElementById('cartItems');
   const $sub = document.getElementById('subtotal');
@@ -743,13 +843,15 @@
     const t = totals();
     updateProgressBar(t.totalCups);
 
+    const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
+
     if(cart.length===0){
-      $items.innerHTML = '<div class="empty-cart"><img class="empty-cart-img" src="img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
+      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
       $sub.textContent = money(0); $tot.textContent = money(0);
       $discountRow.style.display = 'none';
       return;
     }
-    $items.innerHTML = '';
+    $items.innerHTML = note;
     cart.forEach(it=>{
       const row = document.createElement('div');
       row.className = 'item';
@@ -930,6 +1032,12 @@
         submitStatus.textContent = "Sorry, we've just closed.";
         submitStatus.className = 'small muted';
         showClosed(true);   // fade the closed overlay in over the menu
+      } else if ((resp.soldOut && resp.soldOut.length) || (resp.soldOutMilks && resp.soldOutMilks.length)) {
+        // Something sold out between loading the page and paying — sync and tell them.
+        applySoldOut(resp.soldOut || [], resp.soldOutMilks || []);
+        submitStatus.textContent = resp.error || 'An item just sold out.';
+        submitStatus.className = 'small muted';
+        submitBtn.disabled = false;
       } else {
         submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
         submitBtn.disabled = false;
@@ -1040,6 +1148,8 @@
         clearTimeout(safety);
         if (status && status.open === true) { hideClosed(); }   // confirmed open -> show the menu
         else { showClosed(false); }                             // closed or unknown -> closed screen
+        // grey out anything ticked in Item-Status (drinks and milks)
+        applySoldOut((status && status.soldOut) || [], (status && status.soldOutMilks) || []);
         if (status && Array.isArray(status.dates)) {
           if (window.__renderSchedule) window.__renderSchedule(status.dates);
           try { localStorage.setItem('gm_dates_v2', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
