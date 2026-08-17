@@ -4,10 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gens Matcha</title>
-
-  <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="icon" type="image/png" href="/img/star.png" />
-  <meta name="theme-color" content="#FFFDF7" />
   <style>
     @font-face{
       font-family:'Brandon Grotesque';
@@ -60,9 +56,40 @@
     }
     .img-wrap{ position:relative; }
     .img{
+      display:block; /* kills the inline baseline gap under the picture */
       width:100%; aspect-ratio:1/1; object-fit:contain; background:var(--cream);
       border-radius:8px; margin-bottom:12px;
     }
+
+    /* Swipeable photos. touch-action:pan-y hands vertical scrolling back to the
+       browser so the page still scrolls normally through the picture; only the
+       sideways gesture is ours. */
+    .gal{
+      position:relative; overflow:hidden; border-radius:8px; margin-bottom:12px;
+      touch-action:pan-y; -webkit-user-select:none; user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .gal-track{ display:flex; will-change:transform; transition:transform .34s cubic-bezier(.22,.61,.36,1); }
+    .gal-track.dragging{ transition:none; }
+    .gal .img{
+      flex:0 0 100%; width:100%; margin-bottom:0; border-radius:0;
+      pointer-events:none; -webkit-user-drag:none;
+    }
+    /* Sat on the picture rather than under it, so this card stays exactly the
+       same height as the other four. */
+    .gal-dots{
+      position:absolute; left:0; right:0; bottom:20px;
+      display:flex; justify-content:center; gap:7px;
+    }
+    .gal-dots button{
+      width:6px; height:6px; padding:0; border-radius:50%; cursor:pointer;
+      background:transparent; border:1px solid var(--green-soft);
+      box-shadow:0 0 0 1.5px rgba(255,253,247,.85);
+      transition:background .2s ease, border-color .2s ease;
+    }
+    .gal-dots button.on{ background:var(--green-deep); border-color:var(--green-deep); }
+    .card.is-soldout .gal-dots{ opacity:.45; }
+    @media (prefers-reduced-motion:reduce){ .gal-track{ transition:none; } }
 
     /* Sold out: dim the card, hairline tag over the image, controls disabled.
        No accent colours, no badge fills — same restraint as the rest of the menu. */
@@ -610,7 +637,7 @@
   const STAR = '<img class="rec-star" src="img/star.png" alt="recommended">';
 
   const products = [
-    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, recommendOat: true, category: 'latte' },
+    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, recommendOat: true, category: 'latte' },
     { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 4.8, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
     { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
     { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.5, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
@@ -662,6 +689,72 @@
     return { sub, total, discount, totalCups };
   }
 
+  /* Swipe between a drink's photos. Mobile first: the gesture only takes over
+     once it is clearly sideways, so a vertical flick still scrolls the page. */
+  function initGallery(card){
+    const gal = card.querySelector('.gal');
+    if(!gal) return;
+    const track = gal.querySelector('.gal-track');
+    const dots  = [...card.querySelectorAll('.gal-dots button')];
+    const n     = track.children.length;
+    let idx = 0, x0 = 0, y0 = 0, dx = 0, axis = null, live = false, w = 0;
+
+    function place(px){
+      track.style.transform = px == null
+        ? `translate3d(${-idx*100}%,0,0)`
+        : `translate3d(calc(${-idx*100}% + ${px}px),0,0)`;
+    }
+    function go(i, animate){
+      idx = Math.max(0, Math.min(n-1, i));
+      if(animate === false) track.classList.add('dragging');
+      else track.classList.remove('dragging');
+      place(null);
+      dots.forEach((d,k)=> d.classList.toggle('on', k === idx));
+    }
+    function start(x,y){
+      x0 = x; y0 = y; dx = 0; axis = null; live = true; w = gal.clientWidth || 1;
+      track.classList.add('dragging');
+    }
+    function move(x,y){
+      if(!live) return false;
+      const ddx = x - x0, ddy = y - y0;
+      if(axis === null){
+        if(Math.abs(ddx) < 5 && Math.abs(ddy) < 5) return false;
+        axis = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y';
+        if(axis === 'y'){ live = false; go(idx); return false; }   // let the page scroll
+      }
+      dx = ddx;
+      // resist at the two ends instead of pulling into empty space
+      let d = dx;
+      if((idx === 0 && d > 0) || (idx === n-1 && d < 0)) d *= 0.32;
+      place(d);
+      return true;
+    }
+    function end(){
+      if(!live) return;
+      live = false;
+      const threshold = Math.max(34, w * 0.18);
+      if(dx <= -threshold) go(idx+1);
+      else if(dx >= threshold) go(idx-1);
+      else go(idx);
+    }
+
+    gal.addEventListener('touchstart', e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); }, {passive:true});
+    gal.addEventListener('touchmove',  e=>{ const t=e.touches[0];
+      if(move(t.clientX,t.clientY)) e.preventDefault();
+    }, {passive:false});
+    gal.addEventListener('touchend', end);
+    gal.addEventListener('touchcancel', end);
+
+    gal.addEventListener('mousedown', e=>{ e.preventDefault(); start(e.clientX,e.clientY); });
+    window.addEventListener('mousemove', e=>{ if(live) move(e.clientX,e.clientY); });
+    window.addEventListener('mouseup', end);
+
+    dots.forEach((d,k)=> d.addEventListener('click', ()=> go(k)));
+    go(0, false);
+    requestAnimationFrame(()=> track.classList.remove('dragging'));
+  }
+
   const grids = {
     latte: document.getElementById('latteGrid'),
     tonic: document.getElementById('tonicGrid')
@@ -675,9 +768,23 @@
         <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
         <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk${p.recommendOat ? ' ' + STAR : ''}</button>
       </div>` : '';
+    /* One photo stays a plain img. A second one turns it into a swipe track,
+       so nothing changes for the other four drinks. */
+    const photos = p.img2 ? `
+        <div class="gal">
+          <div class="gal-track">
+            <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+            <img class="img" src="${p.img2}" alt="${p.title}, made up in the shop" loading="lazy" decoding="async"/>
+          </div>
+        </div>
+        <div class="gal-dots">
+          <button type="button" class="on" aria-label="Photo 1 of 2"></button>
+          <button type="button" aria-label="Photo 2 of 2"></button>
+        </div>`
+      : `<img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>`;
     card.innerHTML = `
       <div class="img-wrap">
-        <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+        ${photos}
         <span class="soldout-tag">Sold out</span>
       </div>
       <div class="title">${p.title}</div>
@@ -689,6 +796,8 @@
         <button class="add-btn">Add to cart</button>
       </div>
     `;
+
+    initGallery(card);
 
     // Milk selection (default: Oatmilk)
     let selectedMilk = p.milk ? 'Oatmilk' : null;
