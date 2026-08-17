@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gens Matcha</title>
+
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="/img/star.png" />
+  <meta name="theme-color" content="#FFFDF7" />
   <style>
     @font-face{
       font-family:'Brandon Grotesque';
@@ -123,7 +127,14 @@
 
     /* Milk toggle */
     .milk-label{ color:var(--green-soft); font-size:12px; margin:2px 0 6px; }
-    .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; }
+    .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
+    /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
+       button's corner, and never in the way of the tap. */
+    .sticker{
+      position:absolute; z-index:3; pointer-events:none;
+      width:15%; height:auto; right:-9px; top:-14px;
+      transform:rotate(14deg); transform-origin:center;
+    }
     .milk-opt{
       flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
       background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
@@ -136,7 +147,6 @@
       background:var(--cream); border-color:var(--line); color:var(--green-soft);
       text-decoration:line-through; opacity:.55; cursor:not-allowed;
     }
-    .milk-opt.is-out .rec-star{ display:none; }
 
     /* Qty + add row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
@@ -264,7 +274,6 @@
     .copyBtn{ background:var(--green-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
 
     /* Recommended hand-drawn star */
-    .rec-star{ width:15px; height:15px; object-fit:contain; vertical-align:middle; display:inline-block; position:relative; top:-2px; }
     .progress-star{ width:19px; height:19px; object-fit:contain; position:relative; top:-3px; }
 
     /* Empty cart */
@@ -634,10 +643,9 @@
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzubORsSWS-WbPJfi9Gc3CeMDipr-JpOg63lT45zmBImWmEw7S2UHyg2En-afHhuzkR/exec';
   // ==================================
 
-  const STAR = '<img class="rec-star" src="img/star.png" alt="recommended">';
 
   const products = [
-    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, recommendOat: true, category: 'latte' },
+    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', sticker: 'img/bestseller-card.png', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
     { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 4.8, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
     { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
     { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.5, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
@@ -762,11 +770,13 @@
   products.forEach(p=>{
     const card = document.createElement('article');
     card.className = 'card';
+    const stickerEl = p.sticker
+      ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
     const milkBlock = p.milk ? `
       <p class="milk-label">Choose your milk</p>
-      <div class="milk-toggle">
+      <div class="milk-toggle">${stickerEl}
         <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
-        <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk${p.recommendOat ? ' ' + STAR : ''}</button>
+        <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
       </div>` : '';
     /* One photo stays a plain img. A second one turns it into a swipe track,
        so nothing changes for the other four drinks. */
