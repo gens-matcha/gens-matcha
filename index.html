@@ -444,6 +444,11 @@
       padding:32px 28px 28px; text-align:center; position:relative;
       transform:translateY(12px) scale(.98); transition:transform .3s ease; }
     #handleOverlay.is-open .ho-modal{ transform:none; }
+    /* Used for one frame when the prompt opens with the page rather than after
+       it: kills both transitions so the blur and the window are simply there,
+       already settled, when the splash lifts. Removed straight after, so
+       closing still fades out the way it always did. */
+    #handleOverlay.no-anim, #handleOverlay.no-anim .ho-modal{ transition:none; }
     @media (prefers-reduced-motion:reduce){
       #handleOverlay .ho-modal{ transform:none; transition:none; }
     }
@@ -1414,15 +1419,30 @@
     }
   }
 
-  function showHandlePrompt(){
+  // instant === true: no fade, no rise. The overlay is painted fully open
+  // behind the splash, so the first thing anyone sees is the blurred menu with
+  // the question already sitting on it. Closing is untouched.
+  function showHandlePrompt(instant){
     handleOverlay.setAttribute('aria-hidden','false');
     handleOverlay.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    void handleOverlay.offsetWidth;
-    handleOverlay.style.opacity = '1';
-    handleOverlay.classList.add('is-open');
-    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, 320);
+    if(instant){
+      handleOverlay.classList.add('no-anim');
+      handleOverlay.style.opacity = '1';
+      handleOverlay.classList.add('is-open');
+      // Flush the open state while transitions are still off, then hand them
+      // back. Nothing animates on the way in; hideHandlePrompt still fades.
+      void handleOverlay.offsetWidth;
+      handleOverlay.classList.remove('no-anim');
+    } else {
+      void handleOverlay.offsetWidth;
+      handleOverlay.style.opacity = '1';
+      handleOverlay.classList.add('is-open');
+    }
+    // Held until the splash has finished lifting, so the keyboard doesn't
+    // shove its way in over a screen that's still fading.
+    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, instant ? 520 : 320);
   }
   function hideHandlePrompt(){
     handleOverlay.style.opacity = '0';
@@ -1758,11 +1778,13 @@
         clearTimeout(safety);
         showClosed(false);   // on error, default to closed (safe)
       }
-      hideSplash();
+      // Ask who they are, every visit, but only when there's a menu behind the
+      // question. Opened *before* the splash lifts and with no entrance
+      // animation, so the blur is already in place as the splash clears —
+      // there's no moment where the menu is readable and then taken away.
+      if (isOpen) showHandlePrompt(true);
 
-      // The one addition: ask who they are, every visit, but only when there's
-      // a menu behind the question.
-      if (isOpen) setTimeout(showHandlePrompt, 420);
+      hideSplash();
     })();
   })();
   </script>
