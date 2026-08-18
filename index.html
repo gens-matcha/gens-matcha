@@ -1354,18 +1354,30 @@
   const submitBtn    = document.getElementById('submitProofBtn');
   const submitStatus = document.getElementById('submitStatus');
 
-  // ---- Adopt a handle: light up their card and fill the cart field ----
+  /* ---- Adopt a handle: light up their card and fill the cart field ----
+     Nothing about who they are is written to the device. A handle remembered
+     across visits sounds friendly right up until someone fumbles it: the wrong
+     name then sticks forever, a refresh brings back the same wrong name, and
+     there is no obvious way out. Asking every visit costs one line of typing
+     and is always correctable. */
   function applyHandle(h, count, fillInput){
     rewards.handle = h;
     rewards.pastOrders = Number(count) || 0;
     rewards.known = true;
-    try { localStorage.setItem(HANDLE_KEY, h); } catch(e){}
     if(fillInput !== false) teleInput.value = '@' + h;
     setCheckoutDisabled();
     renderCart();
   }
 
+  /* Every lookup takes a ticket. Typing in the cart field fires one lookup per
+     pause, and replies do not necessarily come back in the order they were
+     asked for: type "qiju" then "qijun__" and the slower first answer can land
+     last and paint a stranger's card over theirs. Only the newest ticket is
+     allowed to write anything. */
+  let lookupSeq = 0;
+
   function forgetHandle(){
+    lookupSeq++;                 // cancels anything still in the air
     rewards.known = false; rewards.handle = ''; rewards.pastOrders = 0;
     renderCart();
   }
@@ -1373,7 +1385,10 @@
   async function adoptHandle(raw, opts){
     const h = normHandle(raw);
     if(!validHandle(h)){ forgetHandle(); return false; }
-    applyHandle(h, await fetchOrderCount(h), !opts || opts.fillInput !== false);
+    const ticket = ++lookupSeq;
+    const count = await fetchOrderCount(h);
+    if(ticket !== lookupSeq) return false;      // a newer lookup won; drop this
+    applyHandle(h, count, !opts || opts.fillInput !== false);
     return true;
   }
 
@@ -1712,44 +1727,68 @@
       setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
     var decided = false;
-    // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
-    var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
+    /* Last resort only. The splash stays up while we are still genuinely
+       trying, because a CLOSED sign is not a loading state: flashing one at a
+       customer standing in front of an open shop is worse than making them
+       look at the logo for another second. */
+    var safety = setTimeout(function(){ if(!decided){ showClosed(false); hideSplash(); } }, 15000);
+
+    /* Apps Script is slow to wake. A /exec URL answers with a redirect to
+       googleusercontent.com, so every call is two round trips, and a cold
+       project can sit there for several seconds before the first one. One
+       timed-out attempt is not evidence that the shop is shut, so we ask
+       twice before believing it. */
+    async function fetchStatus(url, ms){
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+      try {
+        const res = await fetch(url, {
+          method: 'GET', cache: 'no-store',
+          signal: ctrl ? ctrl.signal : undefined
+        });
+        return await res.json();
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    }
 
     (async function(){
-      // A returning customer's handle rides along on this request, so opening
-      // the site costs one round trip whether or not they have a card.
-      var saved = '';
-      try { saved = localStorage.getItem(HANDLE_KEY) || ''; } catch(e){}
-      var known = validHandle(saved);
-      var isOpen = false;
+      // Clears any handle left on devices from before this was dropped, so
+      // nobody is stuck carrying a typo they can no longer see or reach.
+      try { localStorage.removeItem(HANDLE_KEY); } catch(e){}
 
-      try {
-        var url = APPS_SCRIPT_URL + '?t=' + Date.now()
-                + (known ? '&telegram=' + encodeURIComponent(saved) : '');
-        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
-        const status = await res.json();
-        decided = true;
-        clearTimeout(safety);
-        isOpen = !!(status && status.open === true);
-        if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
-        else { showClosed(false); }     // closed or unknown -> closed screen
+      var isOpen = false;
+      var status = null;
+
+      for (var attempt = 0; attempt < 2 && !status; attempt++){
+        if (attempt) await new Promise(function(r){ setTimeout(r, 600); });
+        try {
+          status = await fetchStatus(APPS_SCRIPT_URL + '?t=' + Date.now(), 6000);
+        } catch (e) { status = null; }
+      }
+
+      decided = true;
+      clearTimeout(safety);
+
+      isOpen = !!(status && status.open === true);
+      if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
+      else { showClosed(false); }     // closed, or we never got an answer
+
+      if (status) {
         // grey out anything ticked in Item-Status (drinks and milks)
-        applySoldOut((status && status.soldOut) || [], (status && status.soldOutMilks) || []);
-        if (status && Array.isArray(status.dates)) {
+        applySoldOut(status.soldOut || [], status.soldOutMilks || []);
+        if (Array.isArray(status.dates)) {
           if (window.__renderSchedule) window.__renderSchedule(status.dates);
           try { localStorage.setItem('gm_dates_v2', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
         }
-        if (known) applyHandle(saved, status && status.orders);
-      } catch (e) {
-        decided = true;
-        clearTimeout(safety);
-        showClosed(false);   // on error, default to closed (safe)
       }
       hideSplash();
 
-      // Only ask for a handle if there is a menu behind the question. Asking
-      // over the closed screen would be a dialog about a shop they can't buy from.
-      if (isOpen && !known) setTimeout(showHandlePrompt, 420);
+      // Asked on every visit now, so a mistyped handle is never more than a
+      // refresh away from being fixed. Only when there is a menu behind the
+      // question though: over the closed screen it would be a dialog about a
+      // shop they can't buy from.
+      if (isOpen) setTimeout(showHandlePrompt, 420);
     })();
   })();
   </script>
