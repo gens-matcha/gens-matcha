@@ -190,6 +190,14 @@
       padding:12px 0; border-bottom:1px solid var(--line);
     }
     .addons{ font-size:13px; color:var(--green-soft); margin-top:2px; }
+    /* The one cup the reward is being spent on */
+    .free-tag{
+      display:inline-flex; align-items:center; gap:5px; margin-top:5px;
+      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
+      padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--green-deep);
+    }
+    .free-tag img{ width:12px; height:12px; object-fit:contain; }
     .total-section{
       background:var(--tint); border:1px solid var(--line); border-radius:8px;
       padding:12px 14px; margin:14px 0;
@@ -223,8 +231,31 @@
     .progress-status{ font-weight:700; color:var(--green-soft); font-size:14px; }
     .progress-bar-bg{ background:var(--line); border-radius:999px; height:10px; overflow:hidden; }
     .progress-bar-fill{ background:var(--star); height:100%; border-radius:999px; transition:width .4s ease; }
-    .progress-hint{ color:var(--green-soft); font-size:13px; margin:8px 0 0; text-align:center; }
+    .progress-hint{ color:var(--green-soft); font-size:13px; margin:14px 0 0; text-align:center; }
+
+    /* One checkpoint per slot on the card, cut straight out of the bar — no
+       ring, no gap, so the fill runs through them uninterrupted. */
+    .progress-dot{
+      position:absolute; top:50%; width:16px; height:16px; margin-top:-8px;
+      transform:translateX(-50%); z-index:1;
+      background:#BCCBBB;
+      clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transition:background .3s ease, opacity .25s ease;
+    }
+    /* Each slot has its own colour off the confetti palette and its own fixed
+       tilt, so a filled card looks stuck on by hand rather than printed. The
+       tilt never moves; only the colour changes as slots are earned. */
+    .progress-dot.on{ background:var(--dot-color, var(--green-deep)); }
+    /* The hand-drawn star rides this exact spot, and its early frames are
+       outlines you can see straight through. Two stars in one place looked
+       like a printing error, so the checkpoint underneath steps aside. */
+    .progress-dot.under-star{ opacity:0; }
+    /* the last star is the free one, so it gets to be a little bigger */
+    .progress-dot.last{ width:21px; height:21px; margin-top:-10.5px; }
     .unlocked{ color:var(--green-deep); font-weight:700; }
+    /* whose card this is — quiet, but visible enough to catch a typo'd handle */
+    .progress-who{ font-size:12px; color:var(--green-soft); margin:6px 0 0; text-align:center; }
+    .progress-who b{ color:var(--green-deep); font-weight:700; }
 
     /* Animated star riding the tip of the progress bar */
     .progress-bar-track{ position:relative; }
@@ -303,7 +334,8 @@
       .cart{ position:static; }
     }
   </style>
-  <style id="closedOverlayStyle">
+
+<style id="closedOverlayStyle">
     #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
       transition:opacity .5s ease; background:var(--cream); overflow:auto;
       overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
@@ -391,12 +423,110 @@
       .bg-confetti svg, #closedOverlay .co-confetti svg{ opacity:.42; }
     }
   </style>
+  <style id="handleOverlayStyle">
+    /* The handle prompt. Deliberately the same window as the order
+       confirmation, so the two read as one family — the only difference is
+       that this one can be dismissed. */
+    /* Frosted, not tinted. A brown scrim over a cream page turns pink, which
+       is nobody's idea of cute — so this just blurs the menu behind it. */
+    #handleOverlay{ position:fixed; inset:0; z-index:9996; display:none; opacity:0;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:center; justify-content:center; padding:24px; }
+    /* Anything too old for backdrop-filter gets a plain cream veil instead. */
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #handleOverlay{ background:rgba(255,253,247,.86); }
+    }
+    #handleOverlay .ho-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #handleOverlay.is-open .ho-modal{ transform:none; }
+    @media (prefers-reduced-motion:reduce){
+      #handleOverlay .ho-modal{ transform:none; transition:none; }
+    }
+
+    /* Close. Uses img/button-7.png; if that file isn't there yet it falls back
+       to a drawn cross so the dialog is never a trap. */
+    #handleOverlay .ho-close{ position:absolute; top:10px; right:10px; z-index:2;
+      appearance:none; border:0; background:none; padding:6px; line-height:0;
+      border-radius:999px; cursor:pointer; transition:opacity .15s ease, transform .15s ease; }
+    #handleOverlay .ho-close img{ width:26px; height:26px; object-fit:contain; display:block; }
+    #handleOverlay .ho-close:hover{ opacity:.72; transform:scale(1.06); }
+    #handleOverlay .ho-close:focus{ outline:none; }
+    #handleOverlay .ho-close:focus-visible{ outline:2px solid var(--green-deep); outline-offset:2px; }
+    #handleOverlay .ho-close.no-img::after{
+      content:'\00d7'; display:block; width:26px; height:26px; line-height:24px;
+      font-size:20px; font-weight:700; color:var(--green-soft);
+      border:1px solid var(--line); border-radius:999px; background:#fff;
+    }
+
+    #handleOverlay .ho-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 22px; }
+    #handleOverlay .ho-stars img{ object-fit:contain; flex:none; }
+    #handleOverlay .ho-hero{ width:52px; height:52px; transform-origin:50% 65%;
+      animation:soSway 3.4s ease-in-out infinite; }
+    #handleOverlay .ho-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #handleOverlay .ho-sat.a{ animation-delay:.6s; }
+    #handleOverlay .ho-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
+    @media (prefers-reduced-motion:reduce){
+      #handleOverlay .ho-hero, #handleOverlay .ho-sat{ animation:none; opacity:1; }
+    }
+
+    #handleOverlay .ho-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 10px; }
+    #handleOverlay .ho-sub{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0 0 20px; }
+    #handleOverlay .ho-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
+
+    /* @ sits inside the field so nobody types a second one */
+    #handleOverlay .ho-field{ display:flex; align-items:center; gap:0; background:#fff;
+      border:1px solid var(--line); border-radius:3px; overflow:hidden; margin:0 0 8px;
+      transition:border-color .15s ease; }
+    #handleOverlay .ho-field:focus-within{ border-color:var(--green-deep); }
+    #handleOverlay .ho-field.is-bad{ border-color:#C98A6B; }
+    #handleOverlay .ho-at{ padding:0 2px 0 14px; font-weight:700; font-size:16px; color:var(--green-soft); }
+    #handleOverlay .ho-input{ flex:1; min-width:0; appearance:none; border:0; background:none;
+      padding:14px 14px 14px 4px; font-family:inherit; font-size:16px; font-weight:700;
+      color:var(--green-deep); }
+    #handleOverlay .ho-input:focus{ outline:none; }
+    #handleOverlay .ho-input::placeholder{ font-weight:400; color:var(--green-soft); }
+
+    #handleOverlay .ho-err{ font-size:13px; color:#C98A6B; margin:0 0 14px; min-height:19px; text-align:left; }
+
+    #handleOverlay .ho-go{ appearance:none; display:block; width:100%;
+      background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      cursor:pointer; transition:background .15s ease; }
+    #handleOverlay .ho-go:hover:not(:disabled){ background:#2c6644; border-color:#2c6644; }
+    #handleOverlay .ho-go:focus{ outline:none; }
+    #handleOverlay .ho-go:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
+
+    #handleOverlay .ho-foot{ font-size:12px; color:var(--green-soft); margin:14px 0 0; line-height:1.5; }
+
+    /* star confetti (shared) */
+    .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-confetti svg{ position:absolute; opacity:.5; }
+    @media (max-width:600px){
+      .bg-confetti svg{ opacity:.42; }
+      #handleOverlay{ padding:18px; }
+      #handleOverlay .ho-modal{ padding:28px 22px 24px; }
+      #handleOverlay .ho-head{ font-size:20px; }
+      #handleOverlay .ho-hero{ width:46px; height:46px; }
+      #handleOverlay .ho-sat{ width:21px; height:21px; }
+    }
+  </style>
+
   <style id="successOverlayStyle">
     /* scrim */
     #successOverlay{ position:fixed; inset:0; z-index:9997; display:none; opacity:0;
-      transition:opacity .3s ease; background:rgba(74,51,36,.38); overflow:auto;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
       overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
       align-items:center; justify-content:center; padding:24px; }
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #successOverlay{ background:rgba(255,253,247,.86); }
+    }
     /* the window itself */
     #successOverlay .so-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
       box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
@@ -451,6 +581,11 @@
     #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
     #successOverlay .so-note-body b{ color:var(--green-deep); }
 
+    /* Stamp-card line on the receipt: where they are after this order */
+    #successOverlay .so-stamp{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0 0 22px; }
+    #successOverlay .so-stamp b{ color:var(--green-deep); }
+    #successOverlay .so-stamp[hidden]{ display:none; }
+
     #successOverlay .so-done{ appearance:none; display:block; width:100%;
       background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
       padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
@@ -469,11 +604,43 @@
       #successOverlay .so-sat{ width:21px; height:21px; }
     }
   </style>
+
 </head>
 <body>
   <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
     <img src="img/Logo-Open.png" alt="Gens Matcha" style="width:60%;max-width:240px;height:auto;opacity:.9;">
   </div>
+
+  <!-- ============ Telegram handle prompt (rewards identity) ============ -->
+  <div id="handleOverlay" aria-hidden="true">
+    <div class="ho-modal" role="dialog" aria-modal="true" aria-labelledby="hoHead">
+      <button type="button" class="ho-close" id="hoClose" aria-label="Skip for now">
+        <img src="img/button-7.png" alt="">
+      </button>
+
+      <div class="ho-stars" aria-hidden="true">
+        <img class="ho-sat a" src="img/star-loading-1.png" alt="">
+        <img class="ho-hero" src="img/star-loading-2.png" alt="">
+        <img class="ho-sat b" src="img/star-loading-3.png" alt="">
+      </div>
+
+      <p class="ho-head" id="hoHead">Enter tele handle to claim rewards</p>
+      <p class="ho-sub">Claim a free drink on your 6th order!</p>
+
+      <hr class="ho-rule">
+
+      <label class="ho-field" id="hoField" for="hoInput">
+        <span class="ho-at" aria-hidden="true">@</span>
+        <input type="text" class="ho-input" id="hoInput" placeholder="yourhandle"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+               inputmode="text" aria-describedby="hoErr">
+      </label>
+      <p class="ho-err" id="hoErr" role="status" aria-live="polite"></p>
+
+      <button type="button" class="ho-go" id="hoGo">Claim rewards</button>
+    </div>
+  </div>
+
   <div id="closedOverlay" aria-hidden="true">
     <img src="img/Logo-Open.png" alt="Gens Matcha" class="co-logo">
     <div class="co-confetti" aria-hidden="true"></div>
@@ -533,6 +700,8 @@
         <button type="button" class="so-copy" id="soCopy">Copy</button>
       </div>
 
+      <p class="so-stamp" id="soStamp" hidden></p>
+
       <div class="so-note">
         <p class="so-note-title">Your order number is a real star</p>
         <p class="so-note-body">Look up <b id="soStarName">&mdash;</b> to find yours in the sky.</p>
@@ -549,22 +718,24 @@
       <p class="tagline">whisked by hand · made with care</p>
     </header>
 
-    <!-- Progress toward discount -->
+    <!-- Progress toward the free drink. Always on: with no handle it sits at
+         zero and reads as an invitation rather than disappearing. -->
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-header">
         <span class="progress-title">
           <img class="progress-star" src="img/star.png" alt="">
-          Order 3+ cups for 10% off
+          Every 6th order, a drink on us :)
         </span>
-        <span class="progress-status" id="progressStatus">0/3 cups</span>
+        <span class="progress-status" id="progressStatus">0/6 orders</span>
       </div>
-      <div class="progress-bar-track">
+      <div class="progress-bar-track" id="progressTrack">
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
         </div>
         <img class="progress-tip-star" id="progressTipStar" src="img/star-ani-1.png" alt="">
       </div>
-      <p class="progress-hint" id="progressHint">Add 3 more cups to unlock 10% off</p>
+      <p class="progress-hint" id="progressHint">&nbsp;</p>
+      <p class="progress-who" id="progressWho"></p>
     </div>
 
     <div class="layout">
@@ -586,7 +757,7 @@
         <div class="divider"></div>
 
         <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
-        <div class="row" id="discountRow" style="display:none;"><span class="muted">10% discount (3+ cups)</span><strong id="discountAmount" class="success-text">-$0.00</strong></div>
+        <div class="row" id="freeRow" style="display:none;"><span class="muted" id="freeLabel">Free drink</span><strong id="freeAmount" class="success-text">-$0.00</strong></div>
         <div class="total-section">
           <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
         </div>
@@ -594,7 +765,7 @@
 
         <div class="divider"></div>
 
-        <!-- Telegram handle -->
+        <!-- Telegram handle. Prefilled from the pop-up; editable if they got it wrong. -->
         <div class="teleGroup">
           <label class="teleLabel" for="teleHandle">
             <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -602,7 +773,7 @@
             </svg>
             Telegram handle
           </label>
-          <input type="text" id="teleHandle" placeholder="@yourhandle">
+          <input type="text" id="teleHandle" placeholder="@yourhandle" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         </div>
 
         <div class="btn-group">
@@ -641,9 +812,15 @@
     </div>
   </div>
 
+
   <script>
   // ============= CONFIG =============
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzubORsSWS-WbPJfi9Gc3CeMDipr-JpOg63lT45zmBImWmEw7S2UHyg2En-afHhuzkR/exec';
+
+  // The loyalty rule, in one place. REWARD_AFTER completed orders earns a free
+  // drink on the next one, so the card has REWARD_AFTER + 1 slots.
+  const REWARD_AFTER = 5;
+  const CARD_SLOTS   = REWARD_AFTER + 1;
   // ==================================
 
 
@@ -663,6 +840,53 @@
   function itemPrice(p, chosen){
     const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
     return p.basePrice + addSum;
+  }
+
+  /* Asks the sheet how many paid orders this handle has behind them. The
+     balance is never kept on the device: only the handle is, so a stale or
+     edited localStorage can claim to be someone else but can never claim a
+     free drink that person has not earned.
+
+     A lookup that fails returns 0, which means no reward is offered. That is
+     deliberate rather than unlucky: the customer pays whatever the cart showed
+     them, and the server refuses to discount an order the page did not ask to
+     discount, so the two figures can never drift apart. Their stamps are
+     untouched and they claim on the next visit. */
+  async function fetchOrderCount(handle){
+    try {
+      const res = await fetch(
+        APPS_SCRIPT_URL + '?action=stamps&telegram=' + encodeURIComponent(handle) + '&t=' + Date.now(),
+        { method: 'GET', cache: 'no-store' }
+      );
+      const data = await res.json();
+      return Number(data && data.orders) || 0;
+    } catch(e){
+      return 0;
+    }
+  }
+
+
+  // ---- Who we think this is, and where they are on the card ----
+  const HANDLE_KEY = 'gm_handle_v1';
+  const rewards = { handle: '', pastOrders: 0, known: false };
+
+  // Telegram usernames: 5–32 chars, letters, digits and underscore.
+  function normHandle(v){ return String(v || '').trim().replace(/^@+/, '').toLowerCase(); }
+  function validHandle(v){ return /^[a-z0-9_]{5,32}$/.test(normHandle(v)); }
+
+  // Reward is live once they have REWARD_AFTER completed orders behind them
+  // and something in the cart for it to land on.
+  function rewardReady(){ return rewards.known && rewards.pastOrders >= REWARD_AFTER && cart.length > 0; }
+
+  // The line printed on the confirmation, telling them where the order they
+  // just placed left their card.
+  function stampLineFor(pastCount, redeemed){
+    if(redeemed) return 'That’s your free drink claimed. Fresh card starts on your next order.';
+    const done = Math.min(pastCount, REWARD_AFTER);
+    const tail = done >= REWARD_AFTER
+      ? 'Your next drink is on us.'
+      : (REWARD_AFTER - done) + ' to go until a free drink.';
+    return 'Order <b>' + done + ' of ' + REWARD_AFTER + '</b>. ' + tail;
   }
 
   // Ticked "sold out" in the Item-Status sheet: whole drinks, and milks.
@@ -692,12 +916,22 @@
   function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
   function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
 
+  /* One free cup per order, and it is always the dearest one in the cart —
+     ties go to whatever was added first, which is the only tie-break nobody
+     can argue with. */
+  function freeLine(){
+    if(!rewardReady()) return null;
+    let best = null;
+    cart.forEach(x=>{ if(!best || x.unitPrice > best.unitPrice) best = x; });
+    return best ? { key: best.key, title: best.title, addonsLabel: best.addonsLabel, price: best.unitPrice } : null;
+  }
+
   function totals(){
     const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
     const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
-    const discount = totalCups >= 3 ? sub * 0.1 : 0;
-    const total = sub - discount;
-    return { sub, total, discount, totalCups };
+    const free = freeLine();
+    const discount = free ? free.price : 0;
+    return { sub, total: sub - discount, discount, totalCups, free };
   }
 
   /* Swipe between a drink's photos. Mobile first: the gesture only takes over
@@ -906,15 +1140,37 @@
   const $sub = document.getElementById('subtotal');
   const $tot = document.getElementById('total');
   const $count = document.getElementById('cartCount');
-  const $discountRow = document.getElementById('discountRow');
-  const $discountAmount = document.getElementById('discountAmount');
+  const $freeRow = document.getElementById('freeRow');
+  const $freeLabel = document.getElementById('freeLabel');
+  const $freeAmount = document.getElementById('freeAmount');
   const $progressStatus = document.getElementById('progressStatus');
   const $progressFill = document.getElementById('progressFill');
   const $progressHint = document.getElementById('progressHint');
+  const $progressWho = document.getElementById('progressWho');
   const $progressWrap = document.getElementById('progressWrap');
+  const $progressTrack = document.getElementById('progressTrack');
   const $progressTipStar = document.getElementById('progressTipStar');
-  // dull -> half-filled -> glowing. swap these filenames to taste.
-  const STAR_FRAMES = ['img/star-ani-1.png', 'img/star-ani-3.png', 'img/star-ani-6.png'];
+
+  /* One star per slot, sitting where that slot's fill ends. Colours come off
+     the same palette as the background confetti; the tilts are hand-picked and
+     fixed, so the row never reads as evenly spaced clip art. */
+  const DOT_COLOURS = ['#E58AB0', '#6FA5C9', '#F0A04B', '#6FA96B', '#E8734A', '#C3D46A'];
+  const DOT_TILTS   = [-13, 7, -6, 14, -9, 5];
+  const progressDots = [];
+  for(let i = 1; i <= CARD_SLOTS; i++){
+    const dot = document.createElement('span');
+    dot.className = 'progress-dot' + (i === CARD_SLOTS ? ' last' : '');
+    dot.style.left = (i / CARD_SLOTS * 100) + '%';
+    dot.style.transform = 'translateX(-50%) rotate(' + DOT_TILTS[(i - 1) % DOT_TILTS.length] + 'deg)';
+    dot.style.setProperty('--dot-color', DOT_COLOURS[(i - 1) % DOT_COLOURS.length]);
+    $progressTrack.appendChild(dot);
+    progressDots.push(dot);
+  }
+  // One frame per slot on the card: dull at the start, glowing at the end.
+  const STAR_FRAMES = [
+    'img/star-ani-1.png','img/star-ani-2.png','img/star-ani-3.png',
+    'img/star-ani-4.png','img/star-ani-5.png','img/star-ani-6.png'
+  ];
 
   let stickyProgressState = {
     isInCheckout: false,
@@ -922,36 +1178,88 @@
     hideTimeout: null
   };
 
-  function updateProgressBar(totalCups){
-    const needed = 3;
-    const progress = Math.min((totalCups / needed) * 100, 100);
+  /* A line of its own for every state, rather than one sentence with the
+     number swapped out, so something new appears each time they move up a slot.
+     Deliberately not shuffled on load: this sits above a count that has to stay
+     readable, and words that change while nothing else has makes the whole bar
+     feel untrustworthy. Indexed by how many orders are still to go. */
+  const HINTS_IDLE = [
+    null,                                              // 0 never reaches here
+    'one more order!! so so close :)',
+    '2 more! getting close now :)',
+    "3 more orders and the next one's on us!",
+    '4 to go till we owe you a drink :)',
+    'a fresh card :) 5 orders till a free drink!'
+  ];
+  // Same idea, but an order is already in the cart holding the next slot, so
+  // these count what is left after it rather than including it.
+  const HINTS_IN_CART = [
+    "after this one, your next drink's on us! ⭐",
+    'just one more after this one!!',
+    'nice :) 2 more after this one!',
+    "that's 2 down! 3 more after this one :)",
+    'this one counts :) 4 more after it!'
+  ];
 
-    $progressStatus.textContent = `${totalCups}/${needed} cups`;
+  /* Slots fill from orders already completed, and the order being built right
+     now claims the next one the moment anything lands in the cart, at every
+     step, not just the last. Empty the cart and it gives the slot back. */
+  function updateProgressBar(){
+    // No handle yet just means an empty card, not a hidden one.
+    const earned = rewards.known ? Math.min(REWARD_AFTER, rewards.pastOrders) : 0;
+    const filled = Math.min(CARD_SLOTS, earned + (cart.length ? 1 : 0));
+    const progress = Math.min((filled / CARD_SLOTS) * 100, 100);
+    const complete = rewardReady();
+
+    $progressStatus.textContent = `${filled}/${CARD_SLOTS} orders`;
     $progressFill.style.width = progress + '%';
+    progressDots.forEach((d, i)=>{
+      d.classList.toggle('on', i < filled);
+      d.classList.toggle('under-star', i === filled - 1);   // the one the tip star is parked on
+    });
 
-    // Star rides the tip of the fill and changes state: 0-1 dull, 2 half, 3+ glowing
     if($progressTipStar){
-      const starIdx = Math.min(2, Math.max(0, totalCups - 1));
+      const starIdx = Math.min(STAR_FRAMES.length - 1, Math.max(0, filled - 1));
       $progressTipStar.style.left = progress + '%';
       const nextSrc = STAR_FRAMES[starIdx];
       if(!$progressTipStar.src.endsWith(nextSrc)) $progressTipStar.src = nextSrc;
-      $progressTipStar.classList.toggle('is-complete', starIdx === 2);
+      $progressTipStar.classList.toggle('is-complete', complete);
     }
 
-    if(totalCups >= needed){
-      $progressHint.innerHTML = '<span class="unlocked">Discount unlocked! Enjoy 10% off</span>';
+    if(complete){
+      // No drink named here on purpose. It would change under them the moment
+      // they add something dearer, and the cart already says which cup it is,
+      // twice: a FREE badge on the item and a named line above the total.
+      $progressHint.innerHTML = '<span class="unlocked">free drink unlocked!! the priciest cup is on us :)</span>';
       if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
         stickyProgressState.hasReachedThreshold = true;
         if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
         stickyProgressState.hideTimeout = setTimeout(() => { hideStickyProgressBar(); }, 1500);
       }
     } else {
-      const remaining = needed - totalCups;
-      $progressHint.textContent = `Add ${remaining} more cup${remaining > 1 ? 's' : ''} to unlock 10% off`;
+      if(earned >= REWARD_AFTER){
+        // Card is full, they just haven't put anything in the cart yet.
+        // Pays off "4 to go till we owe you a drink" from earlier on the card.
+        // This is the one state where the debt is real: card full, cart empty.
+        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> add one and we\'ll take the priciest off :)';
+      } else if(cart.length){
+        // An order is being built, so it mustn't be counted twice.
+        const left = REWARD_AFTER - earned - 1;
+        $progressHint.textContent = HINTS_IN_CART[left]
+          || `${left} more after this one and your next drink's free!`;
+      } else {
+        const left = REWARD_AFTER - earned;
+        $progressHint.textContent = HINTS_IDLE[left]
+          || `${left} more orders till a free drink!`;
+      }
       stickyProgressState.hasReachedThreshold = false;
       if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
       if(window.innerWidth <= 900 && !stickyProgressState.isInCheckout){ showStickyProgressBar(); }
     }
+
+    $progressWho.innerHTML = rewards.known
+      ? 'Counting for <b>@' + rewards.handle + '</b>'
+      : '';
   }
 
   function hideStickyProgressBar(){
@@ -969,25 +1277,28 @@
     $count.textContent = totalItems;
 
     const t = totals();
-    updateProgressBar(t.totalCups);
+    updateProgressBar();
 
     const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
 
     if(cart.length===0){
       $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
       $sub.textContent = money(0); $tot.textContent = money(0);
-      $discountRow.style.display = 'none';
+      $freeRow.style.display = 'none';
       return;
     }
     $items.innerHTML = note;
     cart.forEach(it=>{
       const row = document.createElement('div');
       row.className = 'item';
+      const tag = (t.free && t.free.key === it.key)
+        ? '<span class="free-tag"><img src="img/star.png" alt="">1 free</span>' : '';
       row.innerHTML = `
         <div>
           <div><strong>${it.title}</strong></div>
           <div class="addons">${it.addonsLabel}</div>
           <div class="small muted">${money(it.unitPrice)} each</div>
+          ${tag}
         </div>
         <div style="text-align:right">
           <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
@@ -1001,15 +1312,15 @@
     });
 
     $sub.textContent = money(t.sub);
-    if(t.discount > 0){
-      $discountRow.style.display = 'flex';
-      $discountAmount.textContent = '-' + money(t.discount);
+    if(t.free){
+      $freeRow.style.display = 'flex';
+      $freeLabel.textContent = 'Free drink · ' + t.free.title;
+      $freeAmount.textContent = '-' + money(t.free.price);
     } else {
-      $discountRow.style.display = 'none';
+      $freeRow.style.display = 'none';
     }
     $tot.textContent = money(t.total);
   }
-  renderCart();
 
   if(window.innerWidth <= 900){
     let scrollTimeout;
@@ -1043,11 +1354,125 @@
   const submitBtn    = document.getElementById('submitProofBtn');
   const submitStatus = document.getElementById('submitStatus');
 
+  // ---- Adopt a handle: light up their card and fill the cart field ----
+  function applyHandle(h, count, fillInput){
+    rewards.handle = h;
+    rewards.pastOrders = Number(count) || 0;
+    rewards.known = true;
+    try { localStorage.setItem(HANDLE_KEY, h); } catch(e){}
+    if(fillInput !== false) teleInput.value = '@' + h;
+    setCheckoutDisabled();
+    renderCart();
+  }
+
+  function forgetHandle(){
+    rewards.known = false; rewards.handle = ''; rewards.pastOrders = 0;
+    renderCart();
+  }
+
+  async function adoptHandle(raw, opts){
+    const h = normHandle(raw);
+    if(!validHandle(h)){ forgetHandle(); return false; }
+    applyHandle(h, await fetchOrderCount(h), !opts || opts.fillInput !== false);
+    return true;
+  }
+
+  // ---- The handle pop-up ----
+  const handleOverlay = document.getElementById('handleOverlay');
+  const hoInput  = document.getElementById('hoInput');
+  const hoField  = document.getElementById('hoField');
+  const hoErr    = document.getElementById('hoErr');
+  const hoGo     = document.getElementById('hoGo');
+  const hoClose  = document.getElementById('hoClose');
+  const hoCloseImg = hoClose ? hoClose.querySelector('img') : null;
+
+  // If button-7.png isn't in /img yet, fall back to a drawn cross rather than
+  // leaving a dialog with no visible way out.
+  if(hoCloseImg){
+    hoCloseImg.addEventListener('error', function(){
+      this.style.display = 'none';
+      hoClose.classList.add('no-img');
+    });
+    if(hoCloseImg.complete && hoCloseImg.naturalWidth === 0){
+      hoCloseImg.style.display = 'none';
+      hoClose.classList.add('no-img');
+    }
+  }
+
+  function showHandlePrompt(){
+    handleOverlay.setAttribute('aria-hidden','false');
+    handleOverlay.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    void handleOverlay.offsetWidth;
+    handleOverlay.style.opacity = '1';
+    handleOverlay.classList.add('is-open');
+    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, 320);
+  }
+  function hideHandlePrompt(){
+    handleOverlay.style.opacity = '0';
+    handleOverlay.classList.remove('is-open');
+    handleOverlay.setAttribute('aria-hidden','true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(handleOverlay.style.opacity === '0') handleOverlay.style.display = 'none'; }, 400);
+  }
+
+  async function submitHandle(){
+    const raw = hoInput.value;
+    const h = normHandle(raw);
+    if(!h){
+      hoField.classList.add('is-bad');
+      hoErr.textContent = 'Pop your Telegram username in first.';
+      return;
+    }
+    if(!validHandle(h)){
+      hoField.classList.add('is-bad');
+      hoErr.textContent = 'That doesn’t look like a Telegram username. Letters, numbers and underscores, 5 characters or more.';
+      return;
+    }
+    hoField.classList.remove('is-bad');
+    hoErr.textContent = '';
+    hoGo.disabled = true; hoGo.textContent = 'Checking…';
+    await adoptHandle(h);
+    hoGo.disabled = false; hoGo.textContent = 'Claim rewards';
+    hideHandlePrompt();
+  }
+
+  hoGo.addEventListener('click', submitHandle);
+  hoInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); submitHandle(); } });
+  hoInput.addEventListener('input', ()=>{
+    // strip an @ if they typed one anyway, and clear the error as they fix it
+    if(hoInput.value.startsWith('@')) hoInput.value = hoInput.value.slice(1);
+    if(hoErr.textContent){ hoErr.textContent = ''; hoField.classList.remove('is-bad'); }
+  });
+
+  // Dismissed means dismissed: no rewards this visit, and the bar stays hidden.
+  // They can still order exactly as before by typing a handle in the cart.
+  hoClose.addEventListener('click', hideHandlePrompt);
+  handleOverlay.addEventListener('click', e=>{ if(e.target === handleOverlay) hideHandlePrompt(); });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && handleOverlay.style.display === 'flex') hideHandlePrompt();
+  });
+
+  // Typing a different handle in the cart re-points the card at that person.
+  let teleDebounce = null;
+  teleInput.addEventListener('input', ()=>{
+    setCheckoutDisabled();
+    clearTimeout(teleDebounce);
+    teleDebounce = setTimeout(()=>{
+      const h = normHandle(teleInput.value);
+      if(h === rewards.handle) return;
+      if(validHandle(h)) adoptHandle(h, { fillInput:false });
+      else forgetHandle();
+    }, 450);
+  });
+
   function setCheckoutDisabled(){
     const hasTelegram = teleInput.value.trim() !== '';
     confirmBtn.disabled = !hasTelegram;
   }
-  teleInput.addEventListener('input', setCheckoutDisabled); setCheckoutDisabled();
+  setCheckoutDisabled();
 
   let pendingOrder = null;
 
@@ -1061,6 +1486,10 @@
       subtotal: t.sub,
       discount: t.discount,
       total: t.total,
+      // The server must re-check the count and decide this for itself. These
+      // two fields are the browser asking, not the browser deciding.
+      redeem: !!t.free,
+      free_item: t.free ? (t.free.title + ' (' + t.free.addonsLabel + ')') : '',
       items: JSON.parse(JSON.stringify(cart))
     };
 
@@ -1114,6 +1543,8 @@
       subtotal: String(order.subtotal),
       discount: String(order.discount || 0),
       total: String(order.total),
+      redeem: order.redeem ? 'TRUE' : 'FALSE',
+      free_item: order.free_item || '',
       items: order.items,
       proof: base64
     };
@@ -1148,7 +1579,15 @@
       if(resp.ok){
         submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
 
-        showSuccess(pendingOrder.order_id, pickupTimeStr);
+        // Where their card sits now comes back with the order, so the receipt
+        // needs no second lookup. The server moved it; we only report it.
+        let stampLine = '';
+        if(rewards.known && resp.orders != null){
+          rewards.pastOrders = Number(resp.orders) || 0;
+          stampLine = stampLineFor(rewards.pastOrders, !!resp.redeemed);
+        }
+
+        showSuccess(pendingOrder.order_id, pickupTimeStr, stampLine);
 
         cart = []; saveCart(cart); renderCart();
 
@@ -1175,20 +1614,25 @@
       submitBtn.disabled = false;
     }
   });
-  // ---- Order confirmation overlay (replaces the old native alert) ----
+
+  // ---- Order confirmation overlay ----
   const successOverlay = document.getElementById('successOverlay');
   const soTime     = document.getElementById('soTime');
   const soRef      = document.getElementById('soRef');
   const soStarName = document.getElementById('soStarName');
+  const soStamp    = document.getElementById('soStamp');
   const soCopyBtn  = document.getElementById('soCopy');
   const soDoneBtn  = document.getElementById('soDone');
 
-  function showSuccess(orderId, pickupTimeStr){
+  function showSuccess(orderId, pickupTimeStr, stampLine){
     if(!successOverlay) return;
     const starNum = orderId.replace('HR-', '').replace(/^0+/, '');
     soTime.textContent     = pickupTimeStr;
     soRef.textContent      = orderId;
     soStarName.textContent = '"HR ' + starNum + ' star"';
+
+    if(stampLine){ soStamp.innerHTML = stampLine; soStamp.hidden = false; }
+    else { soStamp.hidden = true; }
 
     successOverlay.setAttribute('aria-hidden', 'false');
     successOverlay.style.display = 'flex';
@@ -1235,10 +1679,12 @@
     });
   }
 
+
   // ---- Show the in-page closed overlay ----
   function showClosed(animate){
     var ov = document.getElementById('closedOverlay');
     if(!ov) return;
+    hideHandlePrompt();                                  // never stack the two
     ov.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';  // lock the page behind the overlay
     document.body.style.overflow = 'hidden';
@@ -1255,7 +1701,9 @@
     setTimeout(function(){ if(ov.style.opacity === '0') ov.style.display = 'none'; }, 500);
   }
 
-  // ---- Open/closed check: crossfade splash -> menu (open) or closed overlay (closed) ----
+  // ============ Boot ============
+  renderCart();
+
   (function(){
     var splash = document.getElementById('loadingSplash');
     function hideSplash(){
@@ -1267,33 +1715,47 @@
     // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
     var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
 
-    // Open/closed check + opening dates in ONE request (was two round-trips to Apps Script)
     (async function(){
+      // A returning customer's handle rides along on this request, so opening
+      // the site costs one round trip whether or not they have a card.
+      var saved = '';
+      try { saved = localStorage.getItem(HANDLE_KEY) || ''; } catch(e){}
+      var known = validHandle(saved);
+      var isOpen = false;
+
       try {
-        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        var url = APPS_SCRIPT_URL + '?t=' + Date.now()
+                + (known ? '&telegram=' + encodeURIComponent(saved) : '');
+        const res = await fetch(url, { method: 'GET', cache: 'no-store' });
         const status = await res.json();
         decided = true;
         clearTimeout(safety);
-        if (status && status.open === true) { hideClosed(); }   // confirmed open -> show the menu
-        else { showClosed(false); }                             // closed or unknown -> closed screen
+        isOpen = !!(status && status.open === true);
+        if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
+        else { showClosed(false); }     // closed or unknown -> closed screen
         // grey out anything ticked in Item-Status (drinks and milks)
         applySoldOut((status && status.soldOut) || [], (status && status.soldOutMilks) || []);
         if (status && Array.isArray(status.dates)) {
           if (window.__renderSchedule) window.__renderSchedule(status.dates);
           try { localStorage.setItem('gm_dates_v2', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
         }
+        if (known) applyHandle(saved, status && status.orders);
       } catch (e) {
         decided = true;
         clearTimeout(safety);
         showClosed(false);   // on error, default to closed (safe)
       }
       hideSplash();
+
+      // Only ask for a handle if there is a menu behind the question. Asking
+      // over the closed screen would be a dialog about a shop they can't buy from.
+      if (isOpen && !known) setTimeout(showHandlePrompt, 420);
     })();
   })();
   </script>
 
   <script>
-  // ============= Star confetti (open page + closed overlay) =============
+  // ============= Star confetti =============
   (function(){
     var STAR_PATH = "M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z";
     // [position css, fill, size, rotation]
