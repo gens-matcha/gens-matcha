@@ -129,12 +129,15 @@
     .milk-label{ color:var(--green-soft); font-size:12px; margin:2px 0 6px; }
     .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
     /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
-       button's corner, and never in the way of the tap. */
+       button's corner, and never in the way of the tap. Drinks with a milk
+       choice hang it off that row; the rest hang it off the add-to-cart row. */
+    .sticker-host{ position:relative; }
     .sticker{
       position:absolute; z-index:3; pointer-events:none;
       width:15%; height:auto; right:-9px; top:-14px;
       transform:rotate(14deg); transform-origin:center;
     }
+    .card.is-soldout .sticker{ display:none; }
     .milk-opt{
       flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
       background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
@@ -648,8 +651,8 @@
     { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', sticker: 'img/bestseller-card.png', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
     { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 4.8, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
     { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
-    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   basePrice: 5.5, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
-    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.5, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
+    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   img2: 'img/matcha-rasp-2.webp', basePrice: 5.5, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
+    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   sticker: 'img/bestseller-card.png', basePrice: 5.5, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
   ];
   const CART_KEY = 'whisk_matcha_cart_v1';
   const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -774,10 +777,12 @@
       ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
     const milkBlock = p.milk ? `
       <p class="milk-label">Choose your milk</p>
-      <div class="milk-toggle">${stickerEl}
+      <div class="milk-toggle sticker-host">${stickerEl}
         <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
         <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
       </div>` : '';
+    /* No milk row to hang it off, so the tonics get it on the buy row instead. */
+    const rowSticker = (p.sticker && !p.milk) ? stickerEl : '';
     /* One photo stays a plain img. A second one turns it into a swipe track,
        so nothing changes for the other four drinks. */
     const photos = p.img2 ? `
@@ -800,7 +805,7 @@
       <div class="title">${p.title}</div>
       <p class="desc">${p.desc}</p>
       ${milkBlock}
-      <div class="row" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">
+      <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${rowSticker}
         <div class="qty small">Qty <input type="number" min="1" value="1"></div>
         <strong class="livePrice">${money(p.basePrice)}</strong>
         <button class="add-btn">Add to cart</button>
