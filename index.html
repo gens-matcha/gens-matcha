@@ -444,9 +444,6 @@
       padding:32px 28px 28px; text-align:center; position:relative;
       transform:translateY(12px) scale(.98); transition:transform .3s ease; }
     #handleOverlay.is-open .ho-modal{ transform:none; }
-    /* Straight to the finished state, no fade, no rise. Only ever set for the
-       frame in which the window first appears behind the splash. */
-    #handleOverlay.no-anim, #handleOverlay.no-anim .ho-modal{ transition:none; }
     @media (prefers-reduced-motion:reduce){
       #handleOverlay .ho-modal{ transform:none; transition:none; }
     }
@@ -1417,26 +1414,15 @@
     }
   }
 
-  /* `instant` puts it on screen already finished, with no fade and no rise.
-     Used on first load, where it goes up behind the splash: the logo crossfades
-     straight into the page with this window already sitting there, so it reads
-     as part of arriving rather than as something that interrupted it. The flag
-     comes off a frame later so dismissing still animates normally. */
-  function showHandlePrompt(instant){
+  function showHandlePrompt(){
     handleOverlay.setAttribute('aria-hidden','false');
-    if(instant) handleOverlay.classList.add('no-anim');
     handleOverlay.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     void handleOverlay.offsetWidth;
     handleOverlay.style.opacity = '1';
     handleOverlay.classList.add('is-open');
-    if(instant){
-      requestAnimationFrame(function(){
-        requestAnimationFrame(function(){ handleOverlay.classList.remove('no-anim'); });
-      });
-    }
-    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, instant ? 600 : 320);
+    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, 320);
   }
   function hideHandlePrompt(){
     handleOverlay.style.opacity = '0';
@@ -1772,11 +1758,11 @@
         clearTimeout(safety);
         showClosed(false);   // on error, default to closed (safe)
       }
-      // Ask who they are, every visit, but only when there's a menu behind the
-      // question. Raised BEFORE the splash goes, so it is already there when
-      // the logo clears rather than popping up over a page they just met.
-      if (isOpen) showHandlePrompt(true);
       hideSplash();
+
+      // The one addition: ask who they are, every visit, but only when there's
+      // a menu behind the question.
+      if (isOpen) setTimeout(showHandlePrompt, 420);
     })();
   })();
   </script>
