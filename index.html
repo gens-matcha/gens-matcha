@@ -1727,67 +1727,41 @@
       setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
     var decided = false;
-    /* Last resort only. The splash stays up while we are still genuinely
-       trying, because a CLOSED sign is not a loading state: flashing one at a
-       customer standing in front of an open shop is worse than making them
-       look at the logo for another second. */
-    var safety = setTimeout(function(){ if(!decided){ showClosed(false); hideSplash(); } }, 15000);
+    // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
+    var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
 
-    /* Apps Script is slow to wake. A /exec URL answers with a redirect to
-       googleusercontent.com, so every call is two round trips, and a cold
-       project can sit there for several seconds before the first one. One
-       timed-out attempt is not evidence that the shop is shut, so we ask
-       twice before believing it. */
-    async function fetchStatus(url, ms){
-      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
-      try {
-        const res = await fetch(url, {
-          method: 'GET', cache: 'no-store',
-          signal: ctrl ? ctrl.signal : undefined
-        });
-        return await res.json();
-      } finally {
-        if (timer) clearTimeout(timer);
-      }
-    }
-
+    // Open/closed check + opening dates in ONE request. Nothing about the
+    // loyalty card happens here: the card is looked up only when someone
+    // actually types a handle, so this stays exactly as quick as it was.
     (async function(){
       // Clears any handle left on devices from before this was dropped, so
       // nobody is stuck carrying a typo they can no longer see or reach.
       try { localStorage.removeItem(HANDLE_KEY); } catch(e){}
 
       var isOpen = false;
-      var status = null;
-
-      for (var attempt = 0; attempt < 2 && !status; attempt++){
-        if (attempt) await new Promise(function(r){ setTimeout(r, 600); });
-        try {
-          status = await fetchStatus(APPS_SCRIPT_URL + '?t=' + Date.now(), 6000);
-        } catch (e) { status = null; }
-      }
-
-      decided = true;
-      clearTimeout(safety);
-
-      isOpen = !!(status && status.open === true);
-      if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
-      else { showClosed(false); }     // closed, or we never got an answer
-
-      if (status) {
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
+        const status = await res.json();
+        decided = true;
+        clearTimeout(safety);
+        isOpen = !!(status && status.open === true);
+        if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
+        else { showClosed(false); }     // closed or unknown -> closed screen
         // grey out anything ticked in Item-Status (drinks and milks)
-        applySoldOut(status.soldOut || [], status.soldOutMilks || []);
-        if (Array.isArray(status.dates)) {
+        applySoldOut((status && status.soldOut) || [], (status && status.soldOutMilks) || []);
+        if (status && Array.isArray(status.dates)) {
           if (window.__renderSchedule) window.__renderSchedule(status.dates);
           try { localStorage.setItem('gm_dates_v2', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
         }
+      } catch (e) {
+        decided = true;
+        clearTimeout(safety);
+        showClosed(false);   // on error, default to closed (safe)
       }
       hideSplash();
 
-      // Asked on every visit now, so a mistyped handle is never more than a
-      // refresh away from being fixed. Only when there is a menu behind the
-      // question though: over the closed screen it would be a dialog about a
-      // shop they can't buy from.
+      // The one addition: ask who they are, every visit, but only when there's
+      // a menu behind the question.
       if (isOpen) setTimeout(showHandlePrompt, 420);
     })();
   })();
