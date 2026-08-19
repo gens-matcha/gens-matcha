@@ -1746,9 +1746,76 @@
       splash.style.opacity = '0';
       setTimeout(function(){ splash.style.display = 'none'; }, 450);
     }
-    var decided = false;
-    // If we can't confirm the shop is OPEN in time, default to CLOSED (never show "open" when unsure)
-    var safety = setTimeout(function(){ if(!decided){ showClosed(false); } hideSplash(); }, 3500);
+
+    /* A line that appears only if the wait runs long. Most visits never see it.
+       It exists so a slow first request reads as "still working" rather than
+       "this is broken", which is what sends people reaching for refresh. */
+    var waitNote = null;
+    var waitTimer = setTimeout(function(){
+      if(!splash) return;
+      waitNote = document.createElement('div');
+      waitNote.textContent = 'just a moment…';
+      waitNote.style.cssText = 'position:absolute;left:0;right:0;bottom:22%;text-align:center;'
+        + 'font-size:14px;color:#7E9B85;opacity:0;transition:opacity .4s ease;';
+      splash.appendChild(waitNote);
+      void waitNote.offsetWidth;
+      waitNote.style.opacity = '1';
+    }, 4000);
+
+    function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    /* One attempt, with its own abort timer. Without the abort a stalled
+       request can hang far past any deadline and hold the whole boot open. */
+    async function statusOnce(ms){
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(),
+          ctrl ? { method:'GET', cache:'no-store', signal: ctrl.signal }
+               : { method:'GET', cache:'no-store' });
+        return await res.json();
+      } finally {
+        if(timer) clearTimeout(timer);
+      }
+    }
+
+    /* Only a reply that actually read the sheet counts as an answer.
+       ok:false means the script reached us but couldn't tell — a cold start, a
+       timed-out spreadsheet read — and that is emphatically not the same as
+       "we're shut", so we ask again rather than hanging a CLOSED sign.
+
+       ok undefined means the script hasn't been updated yet. Those replies are
+       trusted on their `open` field alone, so this page keeps working against
+       the deployment that's live right now. */
+    function isAnswer(d){
+      if(!d) return false;
+      if(d.ok === true) return true;
+      if(d.ok === undefined && typeof d.open === 'boolean') return true;
+      return false;
+    }
+
+    // Generous first attempt, because the usual cause of a slow reply is simply
+    // a cold Apps Script container that is already on its way back.
+    var ATTEMPTS = [
+      { timeout: 6000, wait: 0 },
+      { timeout: 5000, wait: 400 },
+      { timeout: 5000, wait: 900 }
+    ];
+    var TOTAL_BUDGET = 13000;   // hard ceiling on how long the splash can hold
+
+    async function getStatus(){
+      var started = Date.now();
+      for (var i = 0; i < ATTEMPTS.length; i++){
+        if (ATTEMPTS[i].wait) await sleep(ATTEMPTS[i].wait);
+        var left = TOTAL_BUDGET - (Date.now() - started);
+        if (left <= 0) break;
+        try {
+          var data = await statusOnce(Math.min(ATTEMPTS[i].timeout, left));
+          if (isAnswer(data)) return data;
+        } catch (e) { /* aborted, offline, or not JSON: fall through and retry */ }
+      }
+      return null;   // never got a trustworthy answer
+    }
 
     // Open/closed check + opening dates in ONE request. Nothing about the
     // loyalty card happens here: the card is looked up only when someone
@@ -1758,26 +1825,24 @@
       // nobody is stuck carrying a typo they can no longer see or reach.
       try { localStorage.removeItem(HANDLE_KEY); } catch(e){}
 
-      var isOpen = false;
-      try {
-        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(), { method: 'GET', cache: 'no-store' });
-        const status = await res.json();
-        decided = true;
-        clearTimeout(safety);
-        isOpen = !!(status && status.open === true);
-        if (isOpen) { hideClosed(); }   // confirmed open -> show the menu
-        else { showClosed(false); }     // closed or unknown -> closed screen
+      var status = await getStatus();
+      clearTimeout(waitTimer);
+
+      // Still closed when we genuinely don't know — but now that verdict is
+      // reached only after every attempt has failed, not on one unlucky request.
+      var isOpen = !!(status && status.open === true);
+      if (isOpen) { hideClosed(); }
+      else { showClosed(false); }
+
+      if (status) {
         // grey out anything ticked in Item-Status (drinks and milks)
-        applySoldOut((status && status.soldOut) || [], (status && status.soldOutMilks) || []);
-        if (status && Array.isArray(status.dates)) {
+        applySoldOut(status.soldOut || [], status.soldOutMilks || []);
+        if (Array.isArray(status.dates)) {
           if (window.__renderSchedule) window.__renderSchedule(status.dates);
           try { localStorage.setItem('gm_dates_v2', JSON.stringify({ at: Date.now(), dates: status.dates })); } catch(e){}
         }
-      } catch (e) {
-        decided = true;
-        clearTimeout(safety);
-        showClosed(false);   // on error, default to closed (safe)
       }
+
       // Ask who they are, every visit, but only when there's a menu behind the
       // question. Opened *before* the splash lifts and with no entrance
       // animation, so the blur is already in place as the splash clears —
