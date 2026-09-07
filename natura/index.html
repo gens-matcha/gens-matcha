@@ -22,14 +22,16 @@
 
     :root{
       --cream:#FFFDF7; --card:#FFFFFF; --brown:#4A3324;
-      --green-deep:#357A52; --green-soft:#8FA894;
-      --line:#E7ECE3; --tint:#F1F7F1;
+      /* Blues lifted from the Natura wordmark (#8BD6EB) and darkened for type,
+         so this page and the collection board read as one system. */
+      --blue-deep:#166D85; --blue-soft:#75A7B4;
+      --line:#DBECF1; --tint:#EBF6F8;
       --star:#F6E17E; --radius:10px;
       --warn:#B85C3C;
     }
     *,*::before,*::after{box-sizing:border-box}
     body{
-      margin:0; background:var(--cream); color:var(--green-deep);
+      margin:0; background:var(--cream); color:var(--blue-deep);
       font:16px/1.55 'Brandon Grotesque', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       -webkit-font-smoothing:antialiased; overflow-x:hidden;
     }
@@ -44,7 +46,7 @@
     .menu-section{ margin-bottom:34px; }
     .section-title{
       font-weight:700; text-transform:uppercase; letter-spacing:.14em;
-      font-size:22px; color:var(--green-deep); margin:0 0 18px;
+      font-size:22px; color:var(--blue-deep); margin:0 0 18px;
       padding-bottom:8px; border-bottom:1px solid var(--line);
     }
 
@@ -87,11 +89,11 @@
     }
     .gal-dots button{
       width:6px; height:6px; padding:0; border-radius:50%; cursor:pointer;
-      background:transparent; border:1px solid var(--green-soft);
+      background:transparent; border:1px solid var(--blue-soft);
       box-shadow:0 0 0 1.5px rgba(255,253,247,.85);
       transition:background .2s ease, border-color .2s ease;
     }
-    .gal-dots button.on{ background:var(--green-deep); border-color:var(--green-deep); }
+    .gal-dots button.on{ background:var(--blue-deep); border-color:var(--blue-deep); }
     .card.is-soldout .gal-dots{ opacity:.45; }
     @media (prefers-reduced-motion:reduce){ .gal-track{ transition:none; } }
 
@@ -100,7 +102,7 @@
     .soldout-tag{
       display:none; position:absolute; top:8px; left:8px;
       background:var(--cream); border:1px solid var(--line); border-radius:8px;
-      color:var(--green-soft); font-size:11px; font-weight:700;
+      color:var(--blue-soft); font-size:11px; font-weight:700;
       text-transform:uppercase; letter-spacing:.12em; padding:4px 9px;
     }
     .card.is-soldout .soldout-tag{ display:block; }
@@ -111,22 +113,22 @@
     .card.is-soldout .milk-label,
     .card.is-soldout .milk-toggle,
     .card.is-soldout .qty{ display:none; }
-    .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--green-soft); border-color:var(--line); }
+    .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--blue-soft); border-color:var(--line); }
     .cart-note{
-      font-size:13px; color:var(--green-soft); line-height:1.45;
+      font-size:13px; color:var(--blue-soft); line-height:1.45;
       border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px;
     }
     .title{
       font-weight:700; text-transform:uppercase; letter-spacing:.02em;
-      font-size:17px; color:var(--green-deep); margin:2px 0 4px;
+      font-size:17px; color:var(--blue-deep); margin:2px 0 4px;
     }
-    .desc{ color:var(--green-soft); font-size:14px; line-height:1.45; margin:0 0 12px; }
+    .desc{ color:var(--blue-soft); font-size:14px; line-height:1.45; margin:0 0 12px; }
 
-    .muted{ color:var(--green-soft); }
+    .muted{ color:var(--blue-soft); }
     .small{ font-size:12px; }
 
     /* Milk toggle */
-    .milk-label{ color:var(--green-soft); font-size:12px; margin:2px 0 6px; }
+    .milk-label{ color:var(--blue-soft); font-size:12px; margin:2px 0 6px; }
     .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
     /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
        button's corner, and never in the way of the tap. Drinks with a milk
@@ -140,35 +142,35 @@
     .card.is-soldout .sticker{ display:none; }
     .milk-opt{
       flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
-      background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
+      background:var(--cream); color:var(--blue-deep); border:1px solid var(--line);
       border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
       cursor:pointer; transition:border-color .15s ease, background .15s ease;
     }
-    .milk-opt.active{ background:var(--tint); border-color:var(--green-deep); }
+    .milk-opt.active{ background:var(--tint); border-color:var(--blue-deep); }
     /* A milk that's run out: struck through and dimmed, never selectable. */
     .milk-opt.is-out{
-      background:var(--cream); border-color:var(--line); color:var(--green-soft);
+      background:var(--cream); border-color:var(--line); color:var(--blue-soft);
       text-decoration:line-through; opacity:.55; cursor:not-allowed;
     }
 
     /* Qty + add row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .qty{ display:flex; align-items:center; gap:8px; color:var(--green-soft); }
+    .qty{ display:flex; align-items:center; gap:8px; color:var(--blue-soft); }
     .qty input{
       width:54px; padding:7px 8px; border:1px solid var(--line); border-radius:8px;
-      text-align:center; font-family:inherit; font-weight:700; color:var(--green-deep); background:#fff;
+      text-align:center; font-family:inherit; font-weight:700; color:var(--blue-deep); background:#fff;
     }
-    .qty input:focus{ outline:none; border-color:var(--green-deep); }
-    .livePrice{ color:var(--green-deep); font-weight:700; font-size:18px; }
+    .qty input:focus{ outline:none; border-color:var(--blue-deep); }
+    .livePrice{ color:var(--blue-deep); font-weight:700; font-size:18px; }
 
     button{ font-family:inherit; cursor:pointer; }
     .add-btn, #confirmBtn{
-      appearance:none; border:1px solid var(--green-deep); border-radius:8px;
-      background:var(--green-deep); color:var(--cream); font-weight:700; padding:10px 14px; font-size:14px;
+      appearance:none; border:1px solid var(--blue-deep); border-radius:8px;
+      background:var(--blue-deep); color:var(--cream); font-weight:700; padding:10px 14px; font-size:14px;
       transition:background .15s ease;
     }
     .add-btn{ flex:1; min-width:120px; }
-    .add-btn:hover, #confirmBtn:hover:not(:disabled){ background:#2c6644; border-color:#2c6644; }
+    .add-btn:hover, #confirmBtn:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
 
     /* Cart */
@@ -178,10 +180,10 @@
     }
     .cart h3{
       margin:0 0 14px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
-      font-size:17px; color:var(--green-deep); display:flex; align-items:center; gap:8px;
+      font-size:17px; color:var(--blue-deep); display:flex; align-items:center; gap:8px;
     }
     .cart-badge{
-      background:var(--green-deep); color:var(--cream); font-size:12px; font-weight:700;
+      background:var(--blue-deep); color:var(--cream); font-size:12px; font-weight:700;
       padding:1px 9px; border-radius:999px;
     }
     .divider{ height:1px; background:var(--line); margin:14px 0; }
@@ -189,13 +191,13 @@
       display:grid; grid-template-columns:1fr auto; gap:10px;
       padding:12px 0; border-bottom:1px solid var(--line);
     }
-    .addons{ font-size:13px; color:var(--green-soft); margin-top:2px; }
+    .addons{ font-size:13px; color:var(--blue-soft); margin-top:2px; }
     /* The one cup the voucher is being spent on */
     .free-tag{
       display:inline-flex; align-items:center; gap:5px; margin-top:5px;
-      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
+      background:var(--tint); border:1px solid var(--blue-deep); border-radius:999px;
       padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.06em;
-      text-transform:uppercase; color:var(--green-deep);
+      text-transform:uppercase; color:var(--blue-deep);
     }
     .free-tag img{ width:12px; height:12px; object-fit:contain; }
     .total-section{
@@ -203,17 +205,17 @@
       padding:12px 14px; margin:14px 0;
     }
     .total-section .row{ font-size:17px; }
-    .total-section strong{ color:var(--green-deep); font-size:20px; }
-    .success-text{ color:var(--green-deep); font-weight:700; }
+    .total-section strong{ color:var(--blue-deep); font-size:20px; }
+    .success-text{ color:var(--blue-deep); font-weight:700; }
 
     /* Secondary buttons (clear / remove) */
     #clearBtn, .item button{
       appearance:none; border:1px solid var(--line); border-radius:8px;
-      background:var(--cream); color:var(--green-soft); font-family:inherit; font-weight:700;
+      background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700;
       transition:border-color .15s ease, color .15s ease;
     }
     #clearBtn{ padding:10px 14px; font-size:14px; }
-    #clearBtn:hover, .item button:hover{ border-color:var(--green-soft); color:var(--green-deep); }
+    #clearBtn:hover, .item button:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
     .item button{ padding:6px 10px; font-size:12px; }
 
     .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
@@ -221,33 +223,33 @@
     /* Forms */
     /* The bundle card. Same shape as a drink, with a quiet accent so it reads
        as an offer rather than a sixth flavour. */
-    .card.is-bundle{ border-color:var(--green-deep); }
+    .card.is-bundle{ border-color:var(--blue-deep); }
 
     /* The cart nudge. Never blocks, always dismissible. */
-    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--green-deep);
+    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--blue-deep);
       border-radius:8px; padding:12px 34px 12px 13px; margin:0 0 12px; }
     .bundle-nudge[hidden]{ display:none; }
-    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--green-deep); }
+    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--blue-deep); }
     .bundle-nudge b{ font-weight:700; }
-    .bundle-nudge-go{ appearance:none; border:1px solid var(--green-deep); border-radius:8px;
-      background:var(--green-deep); color:var(--cream); font-family:inherit; font-weight:700;
+    .bundle-nudge-go{ appearance:none; border:1px solid var(--blue-deep); border-radius:8px;
+      background:var(--blue-deep); color:var(--cream); font-family:inherit; font-weight:700;
       font-size:13px; padding:8px 14px; cursor:pointer; transition:background .15s ease; }
-    .bundle-nudge-go:hover{ background:#2c6644; }
+    .bundle-nudge-go:hover{ background:#115E74; }
     .bundle-nudge-x{ position:absolute; top:6px; right:7px; appearance:none; background:none;
-      border:0; font-size:17px; line-height:1; color:var(--green-soft); cursor:pointer; padding:4px 6px; }
-    .bundle-nudge-x:hover{ color:var(--green-deep); }
+      border:0; font-size:17px; line-height:1; color:var(--blue-soft); cursor:pointer; padding:4px 6px; }
+    .bundle-nudge-x:hover{ color:var(--blue-deep); }
 
     /* Event purchase — same two-button language as the milk choice */
     .eventGroup{ margin:6px 0 0; }
     .event-toggle{ display:flex; gap:8px; }
     .event-opt{
       flex:1; display:inline-flex; align-items:center; justify-content:center;
-      background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
+      background:var(--cream); color:var(--blue-deep); border:1px solid var(--line);
       border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
       cursor:pointer; transition:border-color .15s ease, background .15s ease;
     }
-    .event-opt.active{ background:var(--tint); border-color:var(--green-deep); }
-    .event-note{ font-size:13px; line-height:1.45; color:var(--green-soft); margin:8px 0 0; }
+    .event-opt.active{ background:var(--tint); border-color:var(--blue-deep); }
+    .event-note{ font-size:13px; line-height:1.45; color:var(--blue-soft); margin:8px 0 0; }
     .event-note:empty{ display:none; }
 
     /* Voucher */
@@ -256,17 +258,17 @@
     #voucherCode{
       width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
       letter-spacing:.06em; text-transform:uppercase;
-      color:var(--green-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+      color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
     }
-    #voucherCode::placeholder{ letter-spacing:.06em; color:#C6D2C6; }
-    #voucherCode:focus{ outline:none; border-color:var(--green-deep); }
+    #voucherCode::placeholder{ letter-spacing:.06em; color:#B2D8E2; }
+    #voucherCode:focus{ outline:none; border-color:var(--blue-deep); }
     #voucherCode.is-bad{ border-color:var(--warn); }
     #voucherApply{
       appearance:none; border:1px solid var(--line); border-radius:8px; padding:0 16px;
-      background:var(--cream); color:var(--green-soft); font-family:inherit; font-weight:700; font-size:14px;
+      background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700; font-size:14px;
       transition:border-color .15s ease, color .15s ease;
     }
-    #voucherApply:hover{ border-color:var(--green-soft); color:var(--green-deep); }
+    #voucherApply:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
     /* Applied state: the entry field steps aside for a chip they can undo.
        The display rules above out-rank the browser's own [hidden] rule, so
        hiding either half has to be spelled out here. */
@@ -274,29 +276,29 @@
     .voucher-entry[hidden], .voucher-applied[hidden]{ display:none; }
     .voucher-chip{
       display:inline-flex; align-items:center; gap:7px;
-      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
-      padding:6px 13px; font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--green-deep);
+      background:var(--tint); border:1px solid var(--blue-deep); border-radius:999px;
+      padding:6px 13px; font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--blue-deep);
     }
     .voucher-chip img{ width:14px; height:14px; object-fit:contain; }
     .voucher-remove{
       appearance:none; background:none; border:0; padding:4px 2px;
-      font-family:inherit; font-size:13px; color:var(--green-soft); text-decoration:underline;
+      font-family:inherit; font-size:13px; color:var(--blue-soft); text-decoration:underline;
     }
-    .voucher-remove:hover{ color:var(--green-deep); }
-    .voucher-msg{ font-size:13px; line-height:1.45; color:var(--green-soft); margin:8px 0 0; }
+    .voucher-remove:hover{ color:var(--blue-deep); }
+    .voucher-msg{ font-size:13px; line-height:1.45; color:var(--blue-soft); margin:8px 0 0; }
     .voucher-msg:empty{ display:none; }
     .voucher-msg.is-bad{ color:var(--warn); }
 
     .teleGroup{ margin:6px 0 12px; }
-    .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--green-deep); margin-bottom:8px; }
+    .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--blue-deep); margin-bottom:8px; }
     #teleHandle{
       width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
-      color:var(--green-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+      color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
     }
-    #teleHandle:focus{ outline:none; border-color:var(--green-deep); }
+    #teleHandle:focus{ outline:none; border-color:var(--blue-deep); }
     input[type="file"]{
-      width:100%; padding:12px; border:1px dashed var(--green-soft); border-radius:8px;
-      background:var(--cream); font-family:inherit; color:var(--green-soft); cursor:pointer;
+      width:100%; padding:12px; border:1px dashed var(--blue-soft); border-radius:8px;
+      background:var(--cream); font-family:inherit; color:var(--blue-soft); cursor:pointer;
     }
 
     /* QR */
@@ -305,17 +307,17 @@
       padding:18px; margin-top:18px; text-align:center;
     }
     .qrWrap img{ max-width:230px; width:100%; border-radius:10px; border:1px solid var(--line); margin:10px 0; background:#fff; }
-    .qrHeader .title{ font-weight:700; font-size:16px; color:var(--green-deep); margin-bottom:6px; }
-    .qrHeader .hint{ color:var(--green-soft); font-size:13px; margin:0 0 10px; }
+    .qrHeader .title{ font-weight:700; font-size:16px; color:var(--blue-deep); margin-bottom:6px; }
+    .qrHeader .hint{ color:var(--blue-soft); font-size:13px; margin:0 0 10px; }
     .orderRefBlock{
       display:inline-flex; align-items:center; gap:10px; background:#fff;
-      border:1px solid var(--green-deep); border-radius:999px; padding:7px 12px;
-      font-weight:700; font-size:14px; color:var(--green-deep);
+      border:1px solid var(--blue-deep); border-radius:999px; padding:7px 12px;
+      font-weight:700; font-size:14px; color:var(--blue-deep);
     }
-    .copyBtn{ background:var(--green-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
+    .copyBtn{ background:var(--blue-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
 
     /* Empty cart */
-    .empty-cart{ text-align:center; padding:24px 12px; color:var(--green-soft); }
+    .empty-cart{ text-align:center; padding:24px 12px; color:var(--blue-soft); }
     .empty-cart-img{ width:110px; height:auto; display:block; margin:0 auto 10px; opacity:.9; }
 
     @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
@@ -399,44 +401,23 @@
       #successOverlay .so-hero, #successOverlay .so-sat{ animation:none; opacity:1; }
     }
 
-    #successOverlay .so-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--blue-deep); margin:0 0 22px; }
     #successOverlay .so-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
-    #successOverlay .so-label{ font-size:14px; color:var(--green-soft); margin:0 0 4px; }
-    #successOverlay .so-time{ font-size:38px; line-height:1.1; font-weight:700; color:var(--green-deep); letter-spacing:-.01em; margin:0 0 18px; }
-    /* block-level flex, not inline-flex -- inline-flex let the ref pill sit beside it */
-    #successOverlay .so-place{ display:flex; align-items:center; justify-content:center; gap:8px;
-      font-size:24px; line-height:1.2; font-weight:700; color:var(--brown); margin:0 0 22px; }
-    #successOverlay .so-place svg{ width:19px; height:19px; color:var(--green-soft); flex:none; }
-
-    #successOverlay .so-ref{ display:inline-flex; align-items:center; gap:10px; background:#fff;
-      border:1px solid var(--green-deep); border-radius:3px; padding:8px 14px;
-      font-weight:700; font-size:15px; color:var(--green-deep); margin:0 0 22px; }
-    #successOverlay .so-ref-tag{ font-size:12px; color:var(--green-soft); letter-spacing:.08em; text-transform:uppercase; }
-    #successOverlay .so-ref-div{ width:1px; height:15px; background:var(--line); display:inline-block; }
-    #successOverlay .so-copy{ appearance:none; border:0; background:none; font-family:inherit;
-      font-size:12px; font-weight:700; color:var(--green-soft); cursor:pointer; padding:0; transition:color .15s ease; }
-    #successOverlay .so-copy:hover{ color:var(--green-deep); }
-
-    /* Event-discount note. Nothing is asked of them, so it is reassurance
-       rather than an instruction — same calm tint as the note below it. */
-    #successOverlay .so-proof{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
-      padding:14px 16px; margin:0 0 16px; }
-    #successOverlay .so-proof[hidden]{ display:none; }
-    #successOverlay .so-proof-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
-    #successOverlay .so-proof-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
-
+    #successOverlay .so-label{ font-size:14px; color:var(--blue-soft); margin:0 0 4px; }
+    #successOverlay .so-num{ font-size:50px; line-height:1.08; font-weight:700; color:var(--blue-deep); letter-spacing:.005em; margin:0 0 16px; }
+    #successOverlay .so-where{ font-size:15px; line-height:1.55; color:var(--blue-soft); margin:0 auto 22px; max-width:34ch; }
     #successOverlay .so-note{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
       padding:14px 16px; margin:0 0 24px; }
     #successOverlay .so-note-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
-    #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
-    #successOverlay .so-note-body b{ color:var(--green-deep); }
+    #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--blue-soft); margin:0; }
+    #successOverlay .so-note-body b{ color:var(--blue-deep); }
 
 
     #successOverlay .so-done{ appearance:none; display:block; width:100%;
-      background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
+      background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
       padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
       cursor:pointer; transition:background .15s ease; }
-    #successOverlay .so-done:hover{ background:#2c6644; border-color:#2c6644; }
+    #successOverlay .so-done:hover{ background:#115E74; border-color:#115E74; }
     #successOverlay .so-done:focus{ outline:none; }
     #successOverlay .so-done:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
 
@@ -444,8 +425,7 @@
       #successOverlay{ padding:18px; }
       #successOverlay .so-modal{ padding:28px 22px 24px; }
       #successOverlay .so-head{ font-size:20px; }
-      #successOverlay .so-time{ font-size:34px; }
-      #successOverlay .so-place{ font-size:21px; }
+      #successOverlay .so-num{ font-size:42px; }
       #successOverlay .so-hero{ width:46px; height:46px; }
       #successOverlay .so-sat{ width:21px; height:21px; }
     }
@@ -473,26 +453,10 @@
 
       <hr class="so-rule">
 
-      <p class="so-label">Ready for pick-up at</p>
-      <p class="so-time" id="soTime">…</p>
+      <p class="so-label">Your order number</p>
+      <p class="so-num" id="soRef">…</p>
 
-      <p class="so-label">Please collect your order at</p>
-      <p class="so-place">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span>Level 5</span>
-      </p>
-
-      <div class="so-ref">
-        <span class="so-ref-tag">Ref</span>
-        <span id="soRef">…</span>
-        <span class="so-ref-div"></span>
-        <button type="button" class="so-copy" id="soCopy">Copy</button>
-      </div>
-
-      <div class="so-proof" id="soProof" hidden>
-        <p class="so-proof-title">Your 5% Natura discount is on</p>
-        <p class="so-proof-body">No need to show proof, we trust ya :)</p>
-      </div>
+      <p class="so-where">Watch for it on the screen at the matcha cart.</p>
 
       <div class="so-note">
         <p class="so-note-title">Your order number is a real star</p>
@@ -1409,7 +1373,7 @@
         // Only a paid, submitted order spends the voucher.
         if(pendingOrder.voucher_code) markVoucherUsed();
 
-        showSuccess(pendingOrder.order_id, pickupTimeStr, !!pendingOrder.event_purchase);
+        showSuccess(pendingOrder.order_id);
 
         cart = []; saveCart(cart); eventPurchase = false; nudgeDismissed = false; clearVoucher(true);
       } else if (resp.closed) {
@@ -1434,20 +1398,15 @@
 
   // ---- Order confirmation overlay ----
   const successOverlay = document.getElementById('successOverlay');
-  const soTime     = document.getElementById('soTime');
   const soRef      = document.getElementById('soRef');
   const soStarName = document.getElementById('soStarName');
-  const soProof    = document.getElementById('soProof');
-  const soCopyBtn  = document.getElementById('soCopy');
   const soDoneBtn  = document.getElementById('soDone');
 
-  function showSuccess(orderId, pickupTimeStr, needsProof){
+  function showSuccess(orderId){
     if(!successOverlay) return;
     const starNum = orderId.replace('HR-', '').replace(/^0+/, '');
-    soTime.textContent     = pickupTimeStr;
     soRef.textContent      = orderId;
     soStarName.textContent = '"HR ' + starNum + ' star"';
-    if(soProof) soProof.hidden = !needsProof;
 
     successOverlay.setAttribute('aria-hidden', 'false');
     successOverlay.style.display = 'flex';
@@ -1467,16 +1426,6 @@
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
     setTimeout(function(){ if(successOverlay.style.opacity === '0') successOverlay.style.display = 'none'; }, 450);
-  }
-
-  if(soCopyBtn){
-    soCopyBtn.addEventListener('click', async ()=>{
-      try {
-        await navigator.clipboard.writeText(soRef.textContent);
-        soCopyBtn.textContent = 'Copied!';
-        setTimeout(()=> soCopyBtn.textContent = 'Copy', 900);
-      } catch(e){}
-    });
   }
 
   // Done closes the overlay and resets checkout so a second order can be placed
@@ -1552,7 +1501,7 @@
       waitNote = document.createElement('div');
       waitNote.textContent = 'just a moment…';
       waitNote.style.cssText = 'position:absolute;left:0;right:0;bottom:22%;text-align:center;'
-        + 'font-size:14px;color:#7E9B85;opacity:0;transition:opacity .4s ease;';
+        + 'font-size:14px;color:#609AAA;opacity:0;transition:opacity .4s ease;';
       splash.appendChild(waitNote);
       void waitNote.offsetWidth;
       waitNote.style.opacity = '1';
