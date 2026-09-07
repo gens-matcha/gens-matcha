@@ -11,12 +11,12 @@
   <style>
     @font-face{
       font-family:'Brandon Grotesque';
-      src:url("fonts/Gen's Matcha Regular.woff2") format('woff2');
+      src:url("/fonts/Gen's Matcha Regular.woff2") format('woff2');
       font-weight:400; font-style:normal; font-display:swap;
     }
     @font-face{
       font-family:'Brandon Grotesque';
-      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');
+      src:url("/fonts/Gen's Matcha Bold.woff2") format('woff2');
       font-weight:700; font-style:normal; font-display:swap;
     }
 
@@ -443,19 +443,19 @@
 </head>
 <body>
   <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
-    <img src="img/Gen_Natura_Loading.png" alt="Gens Matcha × Natura" style="width:78%;max-width:380px;height:auto;opacity:.9;">
+    <img src="/img/Gen_Natura_Loading.png" alt="Gens Matcha × Natura" style="width:78%;max-width:380px;height:auto;opacity:.9;">
   </div>
 
   <div id="closedOverlay" aria-hidden="true">
-    <img class="co-logo" src="img/Gen_Natura_Loading.png" alt="Gens Matcha, Natura">
+    <img class="co-logo" src="/img/Gen_Natura_Loading.png" alt="Gens Matcha, Natura">
   </div>
 
   <div id="successOverlay" aria-hidden="true">
     <div class="so-modal" role="dialog" aria-modal="true" aria-labelledby="soHead">
       <div class="so-stars" aria-hidden="true">
-        <img class="so-sat a" src="img/star-loading-1.png" alt="">
-        <img class="so-hero" src="img/star-loading-2.png" alt="">
-        <img class="so-sat b" src="img/star-loading-3.png" alt="">
+        <img class="so-sat a" src="/img/star-loading-1.png" alt="">
+        <img class="so-hero" src="/img/star-loading-2.png" alt="">
+        <img class="so-sat b" src="/img/star-loading-3.png" alt="">
       </div>
 
       <p class="so-head" id="soHead">Your order is on its way</p>
@@ -495,7 +495,7 @@
   <div class="bg-confetti" aria-hidden="true"></div>
   <div class="wrap">
     <header>
-      <img class="site-logo" src="img/Gen_Natura_Home.png" alt="Natura, a partnership with Gen's Matcha">
+      <img class="site-logo" src="/img/Gen_Natura_Home.png" alt="Natura, a partnership with Gen's Matcha">
     </header>
 
     <div class="layout">
@@ -559,7 +559,7 @@
             <button type="button" id="voucherApply">Apply</button>
           </div>
           <div class="voucher-applied" id="voucherApplied" hidden>
-            <span class="voucher-chip"><img src="img/star.png" alt="">SUNNYDAYS</span>
+            <span class="voucher-chip"><img src="/img/star.png" alt="">SUNNYDAYS</span>
             <button type="button" class="voucher-remove" id="voucherRemove">Remove</button>
           </div>
           <p class="voucher-msg" id="voucherMsg" role="status" aria-live="polite"></p>
@@ -605,7 +605,7 @@
             </div>
           </div>
 
-          <img id="paynowQR" src="img/paynow-qr.webp" alt="PayNow QR">
+          <img id="paynowQR" src="/img/paynow-qr.webp" alt="PayNow QR">
 
           <p class="small muted" style="margin:12px 0">
             Scan the QR, pay the exact amount shown, and include the reference above.
@@ -635,7 +635,7 @@
 
   /* Menu order is this array's order, within each category.
      A drink wears the hand-stuck bestseller tag by adding one field:
-         sticker: 'img/bestseller-card.png'
+         sticker: '/img/bestseller-card.png'
      Nobody carries it right now; the rendering for it is untouched, so putting
      that line back on any drink below brings the tag straight back. */
   const products = [
@@ -643,17 +643,17 @@
        so the card names its drinks once and leaves it there. Its `bundle` list is
        what the nudge and the sold-out check read; `milkFor` gives it one milk
        toggle per milk drink inside it. */
-    { id: 'event-bundle', title: 'Event Bundle', img: 'img/bundle.png', basePrice: 19.0, dealPrice: 17.0,
+    { id: 'event-bundle', title: 'Event Bundle', img: '/img/bundle.png', basePrice: 19.0, dealPrice: 17.0,
       desc: 'Raspberry Matcha Tonic, Gen\'s Matcha and Hojicha Latte.',
       bundle: ['matcha-rasp', 'gens-matcha', 'hojicha-latte'],
       milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
       milk: false, category: 'bundle' },
-    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', img: 'img/Lemmon-latte.png', basePrice: 10.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
-    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 7.5, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
-    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', basePrice: 6.0, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
-    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 6.0, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
-    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   img2: 'img/matcha-rasp-2.webp', basePrice: 7.0, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
-    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 7.0, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
+    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', img: '/img/Lemmon-latte.png', basePrice: 10.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: '/img/mango-matcha.png',  basePrice: 7.5, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
+    { id: 'gens-matcha',   title: "Gen's Matcha",           img: '/img/matcha-latte.png',  img2: '/img/matcha-latte-2.webp', basePrice: 6.0, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
+    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: '/img/hojicha-latte.png', basePrice: 6.0, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
+    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: '/img/matcha-rasp.png',   img2: '/img/matcha-rasp-2.webp', basePrice: 7.0, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
+    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: '/img/matcha-yuzu.png',   basePrice: 7.0, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
   ];
   /* The voucher, in one place. There is no server check behind it, so this is
      one hard-coded code redeemable once per browser — enough to stop casual
@@ -1050,7 +1050,7 @@
     const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
 
     if(cart.length===0){
-      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
+      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="/img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
       $sub.textContent = money(0); $tot.textContent = money(0);
       $vRow.style.display = 'none';
       $eRow.style.display = 'none';
@@ -1062,7 +1062,7 @@
       const row = document.createElement('div');
       row.className = 'item';
       const tag = (t.free && t.free.key === it.key)
-        ? '<span class="free-tag"><img src="img/star.png" alt="">1 free</span>' : '';
+        ? '<span class="free-tag"><img src="/img/star.png" alt="">1 free</span>' : '';
       row.innerHTML = `
         <div>
           <div><strong>${it.title}</strong></div>
