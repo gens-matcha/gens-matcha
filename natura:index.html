@@ -1,0 +1,1650 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gens Matcha</title>
+
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="/img/star.png" />
+  <meta name="theme-color" content="#FFFDF7" />
+  <style>
+    @font-face{
+      font-family:'Brandon Grotesque';
+      src:url("fonts/Gen's Matcha Regular.woff2") format('woff2');
+      font-weight:400; font-style:normal; font-display:swap;
+    }
+    @font-face{
+      font-family:'Brandon Grotesque';
+      src:url("fonts/Gen's Matcha Bold.woff2") format('woff2');
+      font-weight:700; font-style:normal; font-display:swap;
+    }
+
+    :root{
+      --cream:#FFFDF7; --card:#FFFFFF; --brown:#4A3324;
+      --green-deep:#357A52; --green-soft:#8FA894;
+      --line:#E7ECE3; --tint:#F1F7F1;
+      --star:#F6E17E; --radius:10px;
+      --warn:#B85C3C;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    body{
+      margin:0; background:var(--cream); color:var(--green-deep);
+      font:16px/1.55 'Brandon Grotesque', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    }
+    .wrap{max-width:1080px; margin:auto; padding:32px 28px; position:relative; z-index:1}
+
+    header{ text-align:center; margin-bottom:26px; }
+    .site-logo{ width:100%; max-width:380px; height:auto; display:block; margin:0 auto 8px; }
+
+    .star-mark{ display:inline-block; vertical-align:middle; }
+
+    /* Menu sections */
+    .menu-section{ margin-bottom:34px; }
+    .section-title{
+      font-weight:700; text-transform:uppercase; letter-spacing:.14em;
+      font-size:22px; color:var(--green-deep); margin:0 0 18px;
+      padding-bottom:8px; border-bottom:1px solid var(--line);
+    }
+
+    .layout{ display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; }
+    @media (max-width:900px){ .layout{grid-template-columns:1fr} }
+
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:16px; display:flex; flex-direction:column;
+      animation:fadeUp .35s ease backwards;
+    }
+    .img-wrap{ position:relative; }
+    .img{
+      display:block; /* kills the inline baseline gap under the picture */
+      width:100%; aspect-ratio:1/1; object-fit:contain; background:var(--cream);
+      border-radius:8px; margin-bottom:12px;
+    }
+
+    /* Swipeable photos. touch-action:pan-y hands vertical scrolling back to the
+       browser so the page still scrolls normally through the picture; only the
+       sideways gesture is ours. */
+    .gal{
+      position:relative; overflow:hidden; border-radius:8px; margin-bottom:12px;
+      touch-action:pan-y; -webkit-user-select:none; user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .gal-track{ display:flex; will-change:transform; transition:transform .34s cubic-bezier(.22,.61,.36,1); }
+    .gal-track.dragging{ transition:none; }
+    .gal .img{
+      flex:0 0 100%; width:100%; margin-bottom:0; border-radius:0;
+      pointer-events:none; -webkit-user-drag:none;
+    }
+    /* Sat on the picture rather than under it, so this card stays exactly the
+       same height as the other four. */
+    .gal-dots{
+      position:absolute; left:0; right:0; bottom:20px;
+      display:flex; justify-content:center; gap:7px;
+    }
+    .gal-dots button{
+      width:6px; height:6px; padding:0; border-radius:50%; cursor:pointer;
+      background:transparent; border:1px solid var(--green-soft);
+      box-shadow:0 0 0 1.5px rgba(255,253,247,.85);
+      transition:background .2s ease, border-color .2s ease;
+    }
+    .gal-dots button.on{ background:var(--green-deep); border-color:var(--green-deep); }
+    .card.is-soldout .gal-dots{ opacity:.45; }
+    @media (prefers-reduced-motion:reduce){ .gal-track{ transition:none; } }
+
+    /* Sold out: dim the card, hairline tag over the image, controls disabled.
+       No accent colours, no badge fills — same restraint as the rest of the menu. */
+    .soldout-tag{
+      display:none; position:absolute; top:8px; left:8px;
+      background:var(--cream); border:1px solid var(--line); border-radius:8px;
+      color:var(--green-soft); font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.12em; padding:4px 9px;
+    }
+    .card.is-soldout .soldout-tag{ display:block; }
+    .card.is-soldout .img{ filter:grayscale(.9); opacity:.45; }
+    .card.is-soldout .title,
+    .card.is-soldout .desc,
+    .card.is-soldout .livePrice{ opacity:.5; }
+    .card.is-soldout .milk-label,
+    .card.is-soldout .milk-toggle,
+    .card.is-soldout .qty{ display:none; }
+    .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--green-soft); border-color:var(--line); }
+    .cart-note{
+      font-size:13px; color:var(--green-soft); line-height:1.45;
+      border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px;
+    }
+    .title{
+      font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+      font-size:17px; color:var(--green-deep); margin:2px 0 4px;
+    }
+    .desc{ color:var(--green-soft); font-size:14px; line-height:1.45; margin:0 0 12px; }
+
+    .muted{ color:var(--green-soft); }
+    .small{ font-size:12px; }
+
+    /* Milk toggle */
+    .milk-label{ color:var(--green-soft); font-size:12px; margin:2px 0 6px; }
+    .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
+    /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
+       button's corner, and never in the way of the tap. Drinks with a milk
+       choice hang it off that row; the rest hang it off the add-to-cart row. */
+    .sticker-host{ position:relative; }
+    .sticker{
+      position:absolute; z-index:3; pointer-events:none;
+      width:15%; height:auto; right:-9px; top:-14px;
+      transform:rotate(14deg); transform-origin:center;
+    }
+    .card.is-soldout .sticker{ display:none; }
+    .milk-opt{
+      flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
+      border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
+      cursor:pointer; transition:border-color .15s ease, background .15s ease;
+    }
+    .milk-opt.active{ background:var(--tint); border-color:var(--green-deep); }
+    /* A milk that's run out: struck through and dimmed, never selectable. */
+    .milk-opt.is-out{
+      background:var(--cream); border-color:var(--line); color:var(--green-soft);
+      text-decoration:line-through; opacity:.55; cursor:not-allowed;
+    }
+
+    /* Qty + add row */
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .qty{ display:flex; align-items:center; gap:8px; color:var(--green-soft); }
+    .qty input{
+      width:54px; padding:7px 8px; border:1px solid var(--line); border-radius:8px;
+      text-align:center; font-family:inherit; font-weight:700; color:var(--green-deep); background:#fff;
+    }
+    .qty input:focus{ outline:none; border-color:var(--green-deep); }
+    .livePrice{ color:var(--green-deep); font-weight:700; font-size:18px; }
+
+    button{ font-family:inherit; cursor:pointer; }
+    .add-btn, #confirmBtn{
+      appearance:none; border:1px solid var(--green-deep); border-radius:8px;
+      background:var(--green-deep); color:var(--cream); font-weight:700; padding:10px 14px; font-size:14px;
+      transition:background .15s ease;
+    }
+    .add-btn{ flex:1; min-width:120px; }
+    .add-btn:hover, #confirmBtn:hover:not(:disabled){ background:#2c6644; border-color:#2c6644; }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    /* Cart */
+    .cart{
+      position:sticky; top:16px; background:var(--card);
+      border:1px solid var(--line); border-radius:var(--radius); padding:20px;
+    }
+    .cart h3{
+      margin:0 0 14px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+      font-size:17px; color:var(--green-deep); display:flex; align-items:center; gap:8px;
+    }
+    .cart-badge{
+      background:var(--green-deep); color:var(--cream); font-size:12px; font-weight:700;
+      padding:1px 9px; border-radius:999px;
+    }
+    .divider{ height:1px; background:var(--line); margin:14px 0; }
+    .item{
+      display:grid; grid-template-columns:1fr auto; gap:10px;
+      padding:12px 0; border-bottom:1px solid var(--line);
+    }
+    .addons{ font-size:13px; color:var(--green-soft); margin-top:2px; }
+    /* The one cup the voucher is being spent on */
+    .free-tag{
+      display:inline-flex; align-items:center; gap:5px; margin-top:5px;
+      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
+      padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--green-deep);
+    }
+    .free-tag img{ width:12px; height:12px; object-fit:contain; }
+    .total-section{
+      background:var(--tint); border:1px solid var(--line); border-radius:8px;
+      padding:12px 14px; margin:14px 0;
+    }
+    .total-section .row{ font-size:17px; }
+    .total-section strong{ color:var(--green-deep); font-size:20px; }
+    .success-text{ color:var(--green-deep); font-weight:700; }
+
+    /* Secondary buttons (clear / remove) */
+    #clearBtn, .item button{
+      appearance:none; border:1px solid var(--line); border-radius:8px;
+      background:var(--cream); color:var(--green-soft); font-family:inherit; font-weight:700;
+      transition:border-color .15s ease, color .15s ease;
+    }
+    #clearBtn{ padding:10px 14px; font-size:14px; }
+    #clearBtn:hover, .item button:hover{ border-color:var(--green-soft); color:var(--green-deep); }
+    .item button{ padding:6px 10px; font-size:12px; }
+
+    .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+
+    /* Forms */
+    /* The bundle card. Same shape as a drink, with a quiet accent so it reads
+       as an offer rather than a sixth flavour. */
+    .card.is-bundle{ border-color:var(--green-deep); }
+
+    /* The cart nudge. Never blocks, always dismissible. */
+    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--green-deep);
+      border-radius:8px; padding:12px 34px 12px 13px; margin:0 0 12px; }
+    .bundle-nudge[hidden]{ display:none; }
+    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--green-deep); }
+    .bundle-nudge b{ font-weight:700; }
+    .bundle-nudge-go{ appearance:none; border:1px solid var(--green-deep); border-radius:8px;
+      background:var(--green-deep); color:var(--cream); font-family:inherit; font-weight:700;
+      font-size:13px; padding:8px 14px; cursor:pointer; transition:background .15s ease; }
+    .bundle-nudge-go:hover{ background:#2c6644; }
+    .bundle-nudge-x{ position:absolute; top:6px; right:7px; appearance:none; background:none;
+      border:0; font-size:17px; line-height:1; color:var(--green-soft); cursor:pointer; padding:4px 6px; }
+    .bundle-nudge-x:hover{ color:var(--green-deep); }
+
+    /* Event purchase — same two-button language as the milk choice */
+    .eventGroup{ margin:6px 0 0; }
+    .event-toggle{ display:flex; gap:8px; }
+    .event-opt{
+      flex:1; display:inline-flex; align-items:center; justify-content:center;
+      background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
+      border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
+      cursor:pointer; transition:border-color .15s ease, background .15s ease;
+    }
+    .event-opt.active{ background:var(--tint); border-color:var(--green-deep); }
+    .event-note{ font-size:13px; line-height:1.45; color:var(--green-soft); margin:8px 0 0; }
+    .event-note:empty{ display:none; }
+
+    /* Voucher */
+    .voucherGroup{ margin:6px 0 0; }
+    .voucher-entry{ display:grid; grid-template-columns:1fr auto; gap:8px; }
+    #voucherCode{
+      width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
+      letter-spacing:.06em; text-transform:uppercase;
+      color:var(--green-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+    }
+    #voucherCode::placeholder{ letter-spacing:.06em; color:#C6D2C6; }
+    #voucherCode:focus{ outline:none; border-color:var(--green-deep); }
+    #voucherCode.is-bad{ border-color:var(--warn); }
+    #voucherApply{
+      appearance:none; border:1px solid var(--line); border-radius:8px; padding:0 16px;
+      background:var(--cream); color:var(--green-soft); font-family:inherit; font-weight:700; font-size:14px;
+      transition:border-color .15s ease, color .15s ease;
+    }
+    #voucherApply:hover{ border-color:var(--green-soft); color:var(--green-deep); }
+    /* Applied state: the entry field steps aside for a chip they can undo.
+       The display rules above out-rank the browser's own [hidden] rule, so
+       hiding either half has to be spelled out here. */
+    .voucher-applied{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .voucher-entry[hidden], .voucher-applied[hidden]{ display:none; }
+    .voucher-chip{
+      display:inline-flex; align-items:center; gap:7px;
+      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
+      padding:6px 13px; font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--green-deep);
+    }
+    .voucher-chip img{ width:14px; height:14px; object-fit:contain; }
+    .voucher-remove{
+      appearance:none; background:none; border:0; padding:4px 2px;
+      font-family:inherit; font-size:13px; color:var(--green-soft); text-decoration:underline;
+    }
+    .voucher-remove:hover{ color:var(--green-deep); }
+    .voucher-msg{ font-size:13px; line-height:1.45; color:var(--green-soft); margin:8px 0 0; }
+    .voucher-msg:empty{ display:none; }
+    .voucher-msg.is-bad{ color:var(--warn); }
+
+    .teleGroup{ margin:6px 0 12px; }
+    .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--green-deep); margin-bottom:8px; }
+    #teleHandle{
+      width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
+      color:var(--green-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+    }
+    #teleHandle:focus{ outline:none; border-color:var(--green-deep); }
+    input[type="file"]{
+      width:100%; padding:12px; border:1px dashed var(--green-soft); border-radius:8px;
+      background:var(--cream); font-family:inherit; color:var(--green-soft); cursor:pointer;
+    }
+
+    /* QR */
+    .qrWrap{
+      display:none; background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
+      padding:18px; margin-top:18px; text-align:center;
+    }
+    .qrWrap img{ max-width:230px; width:100%; border-radius:10px; border:1px solid var(--line); margin:10px 0; background:#fff; }
+    .qrHeader .title{ font-weight:700; font-size:16px; color:var(--green-deep); margin-bottom:6px; }
+    .qrHeader .hint{ color:var(--green-soft); font-size:13px; margin:0 0 10px; }
+    .orderRefBlock{
+      display:inline-flex; align-items:center; gap:10px; background:#fff;
+      border:1px solid var(--green-deep); border-radius:999px; padding:7px 12px;
+      font-weight:700; font-size:14px; color:var(--green-deep);
+    }
+    .copyBtn{ background:var(--green-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
+
+    /* Empty cart */
+    .empty-cart{ text-align:center; padding:24px 12px; color:var(--green-soft); }
+    .empty-cart-img{ width:110px; height:auto; display:block; margin:0 auto 10px; opacity:.9; }
+
+    @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+    @media (max-width:600px){
+      .wrap{ padding:18px 20px; }
+      .site-logo{ max-width:300px; }
+      .grid{ grid-template-columns:1fr; gap:14px; }
+      .section-title{ font-size:19px; letter-spacing:.1em; }
+      .layout{ gap:22px; }
+      .cart{ position:static; }
+    }
+  </style>
+
+<style id="closedOverlayStyle">
+    /* Closed. The loading lockup and nothing else: sized exactly like the
+       splash, so the page simply never moves on. */
+    #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
+      transition:opacity .5s ease; background:var(--cream);
+      align-items:center; justify-content:center; padding:40px 24px; }
+    #closedOverlay .co-logo{ width:78%; max-width:380px; height:auto; opacity:.9; }
+  </style>
+<style id="confettiStyle">
+    /* star confetti */
+    .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-confetti svg{ position:absolute; opacity:.5; }
+
+    @media (max-width:600px){
+      .bg-confetti svg{ opacity:.42; }
+    }
+  </style>
+  <style id="successOverlayStyle">
+    /* scrim */
+    #successOverlay{ position:fixed; inset:0; z-index:9997; display:none; opacity:0;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:center; justify-content:center; padding:24px; }
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #successOverlay{ background:rgba(255,253,247,.86); }
+    }
+    /* the window itself */
+    #successOverlay .so-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #successOverlay.is-open .so-modal{ transform:none; }
+    @media (prefers-reduced-motion:reduce){
+      #successOverlay .so-modal{ transform:none; transition:none; }
+    }
+
+    /* hero star sways, satellites twinkle out of sync -- deliberately not a loading rhythm */
+    #successOverlay .so-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 22px; }
+    #successOverlay .so-stars img{ object-fit:contain; flex:none; }
+    #successOverlay .so-hero{ width:52px; height:52px; transform-origin:50% 65%;
+      animation:soSway 3.4s ease-in-out infinite; }
+    #successOverlay .so-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #successOverlay .so-sat.a{ animation-delay:.6s; }
+    #successOverlay .so-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
+    @keyframes soSway{
+      0%,100%{ transform:rotate(-7deg) translateY(0); }
+      50%    { transform:rotate(7deg) translateY(-3px); }
+    }
+    @keyframes soTwinkle{
+      0%,100%{ opacity:.55; transform:scale(.82) rotate(-6deg); }
+      50%    { opacity:1;   transform:scale(1.1) rotate(6deg); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #successOverlay .so-hero, #successOverlay .so-sat{ animation:none; opacity:1; }
+    }
+
+    #successOverlay .so-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
+    #successOverlay .so-label{ font-size:14px; color:var(--green-soft); margin:0 0 4px; }
+    #successOverlay .so-time{ font-size:38px; line-height:1.1; font-weight:700; color:var(--green-deep); letter-spacing:-.01em; margin:0 0 18px; }
+    /* block-level flex, not inline-flex -- inline-flex let the ref pill sit beside it */
+    #successOverlay .so-place{ display:flex; align-items:center; justify-content:center; gap:8px;
+      font-size:24px; line-height:1.2; font-weight:700; color:var(--brown); margin:0 0 22px; }
+    #successOverlay .so-place svg{ width:19px; height:19px; color:var(--green-soft); flex:none; }
+
+    #successOverlay .so-ref{ display:inline-flex; align-items:center; gap:10px; background:#fff;
+      border:1px solid var(--green-deep); border-radius:3px; padding:8px 14px;
+      font-weight:700; font-size:15px; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-ref-tag{ font-size:12px; color:var(--green-soft); letter-spacing:.08em; text-transform:uppercase; }
+    #successOverlay .so-ref-div{ width:1px; height:15px; background:var(--line); display:inline-block; }
+    #successOverlay .so-copy{ appearance:none; border:0; background:none; font-family:inherit;
+      font-size:12px; font-weight:700; color:var(--green-soft); cursor:pointer; padding:0; transition:color .15s ease; }
+    #successOverlay .so-copy:hover{ color:var(--green-deep); }
+
+    /* Event-discount note. Nothing is asked of them, so it is reassurance
+       rather than an instruction — same calm tint as the note below it. */
+    #successOverlay .so-proof{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
+      padding:14px 16px; margin:0 0 16px; }
+    #successOverlay .so-proof[hidden]{ display:none; }
+    #successOverlay .so-proof-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
+    #successOverlay .so-proof-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
+
+    #successOverlay .so-note{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
+      padding:14px 16px; margin:0 0 24px; }
+    #successOverlay .so-note-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
+    #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
+    #successOverlay .so-note-body b{ color:var(--green-deep); }
+
+
+    #successOverlay .so-done{ appearance:none; display:block; width:100%;
+      background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      cursor:pointer; transition:background .15s ease; }
+    #successOverlay .so-done:hover{ background:#2c6644; border-color:#2c6644; }
+    #successOverlay .so-done:focus{ outline:none; }
+    #successOverlay .so-done:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
+
+    @media (max-width:600px){
+      #successOverlay{ padding:18px; }
+      #successOverlay .so-modal{ padding:28px 22px 24px; }
+      #successOverlay .so-head{ font-size:20px; }
+      #successOverlay .so-time{ font-size:34px; }
+      #successOverlay .so-place{ font-size:21px; }
+      #successOverlay .so-hero{ width:46px; height:46px; }
+      #successOverlay .so-sat{ width:21px; height:21px; }
+    }
+  </style>
+
+</head>
+<body>
+  <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
+    <img src="img/Gen_Natura_Loading.png" alt="Gens Matcha × Natura" style="width:78%;max-width:380px;height:auto;opacity:.9;">
+  </div>
+
+  <div id="closedOverlay" aria-hidden="true">
+    <img class="co-logo" src="img/Gen_Natura_Loading.png" alt="Gens Matcha, Natura">
+  </div>
+
+  <div id="successOverlay" aria-hidden="true">
+    <div class="so-modal" role="dialog" aria-modal="true" aria-labelledby="soHead">
+      <div class="so-stars" aria-hidden="true">
+        <img class="so-sat a" src="img/star-loading-1.png" alt="">
+        <img class="so-hero" src="img/star-loading-2.png" alt="">
+        <img class="so-sat b" src="img/star-loading-3.png" alt="">
+      </div>
+
+      <p class="so-head" id="soHead">Your order is on its way</p>
+
+      <hr class="so-rule">
+
+      <p class="so-label">Ready for pick-up at</p>
+      <p class="so-time" id="soTime">…</p>
+
+      <p class="so-label">Please collect your order at</p>
+      <p class="so-place">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Level 5</span>
+      </p>
+
+      <div class="so-ref">
+        <span class="so-ref-tag">Ref</span>
+        <span id="soRef">…</span>
+        <span class="so-ref-div"></span>
+        <button type="button" class="so-copy" id="soCopy">Copy</button>
+      </div>
+
+      <div class="so-proof" id="soProof" hidden>
+        <p class="so-proof-title">Your 5% Natura discount is on</p>
+        <p class="so-proof-body">No need to show proof, we trust ya :)</p>
+      </div>
+
+      <div class="so-note">
+        <p class="so-note-title">Your order number is a real star</p>
+        <p class="so-note-body">Look up <b id="soStarName">…</b> to find yours in the sky.</p>
+      </div>
+
+      <button type="button" class="so-done" id="soDone">Done</button>
+    </div>
+  </div>
+
+  <div class="bg-confetti" aria-hidden="true"></div>
+  <div class="wrap">
+    <header>
+      <img class="site-logo" src="img/Gen_Natura_Home.png" alt="Natura, a partnership with Gen's Matcha">
+    </header>
+
+    <div class="layout">
+      <main>
+        <section class="menu-section">
+          <div class="grid" id="bundleGrid"></div>
+        </section>
+        <section class="menu-section">
+          <h2 class="section-title">Lattes</h2>
+          <div class="grid" id="latteGrid"></div>
+        </section>
+        <section class="menu-section">
+          <h2 class="section-title">Tonics</h2>
+          <div class="grid" id="tonicGrid"></div>
+        </section>
+      </main>
+
+      <aside class="cart" id="cart">
+        <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
+        <div id="cartItems"></div>
+
+        <!-- Bundle nudge. Appears only when they are 1-2 drinks short of the
+             trio, and only until they dismiss it. Deliberately not a pop-up. -->
+        <div class="bundle-nudge" id="bundleNudge" hidden>
+          <button type="button" class="bundle-nudge-x" id="bundleNudgeX" aria-label="No thanks">&times;</button>
+          <p id="bundleNudgeText"></p>
+          <button type="button" class="bundle-nudge-go" id="bundleNudgeGo">Make it the bundle</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Event purchase. Trust-based end to end: nothing is asked for here
+             and nothing is checked at collection either. -->
+        <div class="eventGroup">
+          <span class="teleLabel" id="eventLabel">
+            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+            Bought something from Natura at the event?
+          </span>
+          <div class="event-toggle" role="group" aria-labelledby="eventLabel">
+            <button type="button" class="event-opt" id="eventYes" aria-pressed="false">Yes</button>
+            <button type="button" class="event-opt active" id="eventNo" aria-pressed="true">No</button>
+          </div>
+          <p class="event-note" id="eventNote"></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Voucher. Checked in the browser only, so it is deliberately a
+             single hard-coded code rather than anything that looks verified. -->
+        <div class="voucherGroup">
+          <label class="teleLabel" for="voucherCode">
+            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 12a2 2 0 0 1 2-2V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v3a2 2 0 0 1 0 4v3a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-3a2 2 0 0 1-2-2Z"/><path d="M13 6v12"/>
+            </svg>
+            Voucher code
+          </label>
+          <div class="voucher-entry" id="voucherEntry">
+            <input type="text" id="voucherCode" placeholder="Enter code" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+            <button type="button" id="voucherApply">Apply</button>
+          </div>
+          <div class="voucher-applied" id="voucherApplied" hidden>
+            <span class="voucher-chip"><img src="img/star.png" alt="">SUNNYDAYS</span>
+            <button type="button" class="voucher-remove" id="voucherRemove">Remove</button>
+          </div>
+          <p class="voucher-msg" id="voucherMsg" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+        <div class="row" id="bundleRow" style="display:none;"><span class="muted">Bundle deal</span><strong id="bundleRowAmount" class="success-text">-$0.00</strong></div>
+        <div class="row" id="voucherRow" style="display:none;"><span class="muted" id="voucherRowLabel">Voucher</span><strong id="voucherRowAmount" class="success-text">-$0.00</strong></div>
+        <div class="row" id="eventRow" style="display:none;"><span class="muted">Event purchase · 5%</span><strong id="eventRowAmount" class="success-text">-$0.00</strong></div>
+        <div class="total-section">
+          <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
+        </div>
+        <p class="small muted">Cart saved on this device.</p>
+
+        <div class="divider"></div>
+
+        <!-- Telegram handle. Prefilled from the pop-up; editable if they got it wrong. -->
+        <div class="teleGroup">
+          <label class="teleLabel" for="teleHandle">
+            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z"/>
+            </svg>
+            Telegram handle
+          </label>
+          <input type="text" id="teleHandle" placeholder="@yourhandle" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+
+        <div class="btn-group">
+          <button id="confirmBtn">Check out</button>
+          <button id="clearBtn">Clear cart</button>
+        </div>
+
+        <!-- QR + Proof upload -->
+        <div class="qrWrap" id="qrWrap">
+          <div class="qrHeader">
+            <div class="title">PayNow to complete order</div>
+            <p class="hint">Enter this reference in your banking app:</p>
+            <div class="orderRefBlock">
+              <span id="orderRef">…</span>
+              <button id="copyRef" class="copyBtn">Copy</button>
+            </div>
+          </div>
+
+          <img id="paynowQR" src="img/paynow-qr.webp" alt="PayNow QR">
+
+          <p class="small muted" style="margin:12px 0">
+            Scan the QR, pay the exact amount shown, and include the reference above.
+          </p>
+
+          <div class="teleGroup" style="text-align:left; margin-bottom:0">
+            <label class="teleLabel" for="paymentProof">Upload payment proof</label>
+            <input type="file" id="paymentProof" name="proof" accept="image/*">
+            <div id="proofPreview" class="small muted" style="margin-top:8px"></div>
+            <div class="row" style="margin-top:14px; flex-wrap:wrap">
+              <button id="submitProofBtn" disabled>Submit proof</button>
+              <span id="submitStatus" class="small"></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+
+  <script>
+  // ============= CONFIG =============
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSTqh727GFR6FdpR6gB-Ri7tm77ii6HN5rtLmQvLaL2w5E1Txu8r_q88lhT1sILB6Zbg/exec';
+
+  // ==================================
+
+
+  /* Menu order is this array's order, within each category.
+     A drink wears the hand-stuck bestseller tag by adding one field:
+         sticker: 'img/bestseller-card.png'
+     Nobody carries it right now; the rendering for it is untouched, so putting
+     that line back on any drink below brings the tag straight back. */
+  const products = [
+    /* The bundle is a single cart line at one price. The photo does the talking,
+       so the card names its drinks once and leaves it there. Its `bundle` list is
+       what the nudge and the sold-out check read; `milkFor` gives it one milk
+       toggle per milk drink inside it. */
+    { id: 'event-bundle', title: 'Event Bundle', img: 'img/bundle.png', basePrice: 19.0, dealPrice: 17.0,
+      desc: 'Raspberry Matcha Tonic, Gen\'s Matcha and Hojicha Latte.',
+      bundle: ['matcha-rasp', 'gens-matcha', 'hojicha-latte'],
+      milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
+      milk: false, category: 'bundle' },
+    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', img: 'img/Lemmon-latte.png', basePrice: 10.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 7.5, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
+    { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', basePrice: 6.0, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
+    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 6.0, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
+    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   img2: 'img/matcha-rasp-2.webp', basePrice: 7.0, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
+    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 7.0, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
+  ];
+  /* The voucher, in one place. There is no server check behind it, so this is
+     one hard-coded code redeemable once per browser — enough to stop casual
+     repeat use, and honest about being no more than that. */
+  const VOUCHER = {
+    code: 'SUNNYDAYS',
+    eligible: ['gens-matcha', 'hojicha-latte'],   // one free cup of either, any milk
+    blurb: "one free Gen's Matcha or Hojicha Latte",
+    usedKey: 'gm_voucher_used_v1'
+  };
+
+  // Bought something from Natura at the event? Trust-based — no proof is ever
+  // asked for, here or at the cart.
+  const EVENT_DISCOUNT = 0.05;
+
+  /* Bumped with the Sep 2026 price change: a cart saved on someone's device
+     carries the unit price it was added at, so the old key is retired rather
+     than letting a stale cart check out at last month's prices. */
+  const CART_KEY = 'whisk_matcha_cart_v2';
+  const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+  let cart = loadCart();
+
+  const productById = id => products.find(x => x.id === id);
+  const isBundle    = x => { const p = productById(x.productId); return !!(p && p.bundle); };
+  function round2(n){ return Math.round(n * 100) / 100; }
+
+  let voucher = null;         // the code currently applied to this cart, or null
+  let eventPurchase = false;  // ticked "Yes" to an event purchase
+
+  function voucherUsed(){
+    try { return localStorage.getItem(VOUCHER.usedKey) === VOUCHER.code; } catch(e){ return false; }
+  }
+  function markVoucherUsed(){
+    try { localStorage.setItem(VOUCHER.usedKey, VOUCHER.code); } catch(e){}
+  }
+  function cartHasEligible(){ return cart.some(x=> VOUCHER.eligible.indexOf(x.productId) !== -1); }
+
+  function money(n){ return '$' + (Math.round(n*100)/100).toFixed(2); }
+  function itemPrice(p, chosen){
+    const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
+    return p.basePrice + addSum;
+  }
+
+
+  // Ticked "sold out" in the Item-Status sheet: whole drinks, and milks.
+  // A milk running out hits every latte at once, so it's tracked separately.
+  const MILKS = ['Fresh milk', 'Oatmilk'];
+  let SOLD_OUT = new Set();
+  let SOLD_OUT_MILKS = new Set();
+  const cardsByTitle = new Map();   // filled in as the menu renders
+  let soldOutNotice = '';           // shown in the cart when we drop an item
+
+  // Every milk an item depends on, whether it is one drink or a bundle of them.
+  const milksOf = x => (x.addons || []).map(a => a.milk || a.label).filter(Boolean);
+
+  function addToCart({productId, qty, chosen}){
+    const p = products.find(x=>x.id===productId);
+    if(!p) return;
+    if(SOLD_OUT.has(p.title)) return;
+    if(p.bundle && p.bundle.some(id => SOLD_OUT.has((productById(id)||{}).title))) return;
+    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk || a.label))) return;
+    const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
+    const title = p.title;
+    const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
+    const unitPrice = itemPrice(p, chosen);
+
+    const existing = cart.find(x=>x.key===key);
+    if(existing){ existing.qty += qty; }
+    else { cart.push({ key, productId, title, addons: chosen, addonsLabel, unitPrice, qty }); }
+    saveCart(cart); renderCart();
+  }
+
+  function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
+  function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
+
+  /* The cup the voucher lands on: an eligible drink, dearest first, since the
+     milk choice can move the price. Ties go to whatever was added first. One
+     cup only — a line with qty 2 still pays for the second. */
+  function cartHasBundle(){ return cart.some(isBundle); }
+
+  /* The voucher never touches a bundle: the drinks inside one are already
+     discounted. A Gen's Matcha or Hojicha bought on its own is an ordinary
+     drink, though, so it can still be claimed even with a bundle in the cart. */
+  function voucherLine(){
+    if(!voucher) return null;
+    let best = null;
+    cart.forEach(x=>{
+      if(VOUCHER.eligible.indexOf(x.productId) === -1) return;
+      if(!best || x.unitPrice > best.unitPrice) best = x;
+    });
+    return best ? { key:best.key, title:best.title, addonsLabel:best.addonsLabel, price:best.unitPrice } : null;
+  }
+
+  function totals(){
+    const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
+    const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
+    /* Discounts do not stack, which is what people expect of them. A bundle in
+       the cart is the whole of the deal: its own saving shows as a line, and
+       neither the voucher nor the 5% is added on top. The bundle's drinks are
+       counted at full price in the subtotal so that saving is visible rather
+       than baked silently into one number. */
+    const bundleOff = cart.reduce((t, x)=>{
+      const prod = productById(x.productId);
+      return t + (prod && prod.bundle
+        ? (prod.basePrice - prod.dealPrice) * x.qty
+        : 0);
+    }, 0);
+    const bundled = bundleOff > 0;
+
+    const free = voucherLine();
+    const voucherOff = free ? free.price : 0;
+    // The 5% comes off what is left after the free cup, not off the cup itself.
+    const eventOff = (eventPurchase && !bundled)
+      ? Math.round((sub - voucherOff) * EVENT_DISCOUNT * 100) / 100
+      : 0;
+
+    const discount = Math.round((bundleOff + voucherOff + eventOff) * 100) / 100;
+    return { sub, total: Math.round((sub - discount) * 100) / 100,
+             discount, bundleOff, voucherOff, eventOff, totalCups, free };
+  }
+
+  /* Swipe between a drink's photos. Mobile first: the gesture only takes over
+     once it is clearly sideways, so a vertical flick still scrolls the page. */
+  function initGallery(card){
+    const gal = card.querySelector('.gal');
+    if(!gal) return;
+    const track = gal.querySelector('.gal-track');
+    const dots  = [...card.querySelectorAll('.gal-dots button')];
+    const n     = track.children.length;
+    let idx = 0, x0 = 0, y0 = 0, dx = 0, axis = null, live = false, w = 0;
+
+    function place(px){
+      track.style.transform = px == null
+        ? `translate3d(${-idx*100}%,0,0)`
+        : `translate3d(calc(${-idx*100}% + ${px}px),0,0)`;
+    }
+    function go(i, animate){
+      idx = Math.max(0, Math.min(n-1, i));
+      if(animate === false) track.classList.add('dragging');
+      else track.classList.remove('dragging');
+      place(null);
+      dots.forEach((d,k)=> d.classList.toggle('on', k === idx));
+    }
+    function start(x,y){
+      x0 = x; y0 = y; dx = 0; axis = null; live = true; w = gal.clientWidth || 1;
+      track.classList.add('dragging');
+    }
+    function move(x,y){
+      if(!live) return false;
+      const ddx = x - x0, ddy = y - y0;
+      if(axis === null){
+        if(Math.abs(ddx) < 5 && Math.abs(ddy) < 5) return false;
+        axis = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y';
+        if(axis === 'y'){ live = false; go(idx); return false; }   // let the page scroll
+      }
+      dx = ddx;
+      // resist at the two ends instead of pulling into empty space
+      let d = dx;
+      if((idx === 0 && d > 0) || (idx === n-1 && d < 0)) d *= 0.32;
+      place(d);
+      return true;
+    }
+    function end(){
+      if(!live) return;
+      live = false;
+      const threshold = Math.max(34, w * 0.18);
+      if(dx <= -threshold) go(idx+1);
+      else if(dx >= threshold) go(idx-1);
+      else go(idx);
+    }
+
+    gal.addEventListener('touchstart', e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); }, {passive:true});
+    gal.addEventListener('touchmove',  e=>{ const t=e.touches[0];
+      if(move(t.clientX,t.clientY)) e.preventDefault();
+    }, {passive:false});
+    gal.addEventListener('touchend', end);
+    gal.addEventListener('touchcancel', end);
+
+    gal.addEventListener('mousedown', e=>{ e.preventDefault(); start(e.clientX,e.clientY); });
+    window.addEventListener('mousemove', e=>{ if(live) move(e.clientX,e.clientY); });
+    window.addEventListener('mouseup', end);
+
+    dots.forEach((d,k)=> d.addEventListener('click', ()=> go(k)));
+    go(0, false);
+    requestAnimationFrame(()=> track.classList.remove('dragging'));
+  }
+
+  const grids = {
+    bundle: document.getElementById('bundleGrid'),
+    latte: document.getElementById('latteGrid'),
+    tonic: document.getElementById('tonicGrid')
+  };
+  products.forEach(p=>{
+    const card = document.createElement('article');
+    card.className = 'card' + (p.bundle ? ' is-bundle' : '');
+    const stickerEl = p.sticker
+      ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
+    /* One toggle per milk drink. A plain drink has a single unlabelled one;
+       the bundle gets one per drink inside it, each labelled. */
+    const milkRows = p.milkFor
+      ? p.milkFor
+      : (p.milk ? [{ id: p.id, label: '' }] : []);
+    const milkBlock = milkRows.map((mf, i) => `
+      <p class="milk-label">${mf.label ? 'Milk for ' + mf.label : 'Choose your milk'}</p>
+      <div class="milk-toggle${i === 0 ? ' sticker-host' : ''}" data-milk-for="${mf.id}">${i === 0 ? stickerEl : ''}
+        <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
+        <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
+      </div>`).join('');
+
+    /* No milk row to hang it off, so the tonics get it on the buy row instead. */
+    const rowSticker = (p.sticker && !milkRows.length) ? stickerEl : '';
+    /* One photo stays a plain img. A second one turns it into a swipe track,
+       so nothing changes for the other four drinks. */
+    const photos = p.img2 ? `
+        <div class="gal">
+          <div class="gal-track">
+            <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+            <img class="img" src="${p.img2}" alt="${p.title}, made up in the shop" loading="lazy" decoding="async"/>
+          </div>
+        </div>
+        <div class="gal-dots">
+          <button type="button" class="on" aria-label="Photo 1 of 2"></button>
+          <button type="button" aria-label="Photo 2 of 2"></button>
+        </div>`
+      : `<img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>`;
+    card.innerHTML = `
+      <div class="img-wrap">
+        ${photos}
+        <span class="soldout-tag">Sold out</span>
+      </div>
+      <div class="title">${p.title}</div>
+      <p class="desc">${p.desc}</p>
+      ${milkBlock}
+      <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${rowSticker}
+        <div class="qty small">Qty <input type="number" min="1" value="1"></div>
+        <strong class="livePrice">${money(p.dealPrice || p.basePrice)}</strong>
+        <button class="add-btn">Add to cart</button>
+      </div>
+    `;
+
+    initGallery(card);
+
+    /* Milk selection, keyed by which drink the row is for (default: Oatmilk).
+       A plain drink has exactly one key, so the single-milk case is just the
+       one-row version of the same thing. */
+    const picked = {};
+    milkRows.forEach(mf=> picked[mf.id] = 'Oatmilk');
+    const milkBtns = [...card.querySelectorAll('.milk-opt')];
+
+    function selectMilk(label, forId){
+      milkRows.forEach(mf=>{
+        if(forId && mf.id !== forId) return;
+        picked[mf.id] = label;
+      });
+      card.querySelectorAll('.milk-toggle').forEach(row=>{
+        const rid = row.dataset.milkFor;
+        row.querySelectorAll('.milk-opt').forEach(x=>
+          x.classList.toggle('active', x.dataset.milk === picked[rid]));
+      });
+    }
+
+    milkBtns.forEach(mb=>{
+      mb.addEventListener('click', ()=>{
+        if(mb.disabled) return;
+        selectMilk(mb.dataset.milk, mb.closest('.milk-toggle').dataset.milkFor);
+      });
+    });
+
+    const qty = card.querySelector('input[type="number"]');
+    const btn = card.querySelector('.add-btn');
+    cardsByTitle.set(p.title, {
+      card, btn, qty, milkBtns, selectMilk,
+      usesMilk: milkRows.length > 0,
+      milkRows,
+      product: p,
+      getMilk: ()=> picked[milkRows.length ? milkRows[0].id : p.id] || null
+    });
+
+    /* The add-on list. One entry per milk row; a bundle names the drink each
+       milk belongs to so the cart line and the sheet stay readable. */
+    function chosenMilks(){
+      return milkRows.map(mf=>{
+        const milk = picked[mf.id];
+        const short = mf.label ? mf.label.replace(/ (Matcha|Latte)$/,'') : '';
+        return {
+          id: (mf.label ? mf.id + '-' : '') + 'milk-' + milk.toLowerCase().replace(/\s+/g,''),
+          label: mf.label ? short + ': ' + milk : milk,
+          milk: milk,           // the bare name, so sold-out checks never parse the label
+          price: 0
+        };
+      });
+    }
+
+    btn.addEventListener('click', ()=>{
+      if(SOLD_OUT.has(p.title)) return;
+      const chosen = chosenMilks();
+      if(chosen.some(a=> SOLD_OUT_MILKS.has(a.label))) return;
+      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+      btn.textContent = 'Added ✓';
+      setTimeout(()=> {
+        btn.textContent='Add to cart';
+        qty.value = '1';
+      }, 900);
+    });
+
+    (grids[p.category] || grids.latte).appendChild(card);
+  });
+
+  // ---- Apply the sold-out state from the sheet to the menu + cart ----
+  function applySoldOut(list, milkList){
+    SOLD_OUT = new Set(Array.isArray(list) ? list : []);
+    SOLD_OUT_MILKS = new Set(Array.isArray(milkList) ? milkList : []);
+
+    // No milk left at all = every milk drink is off, whatever the sheet says.
+    const allMilkGone = MILKS.every(m=> SOLD_OUT_MILKS.has(m));
+
+    const fullyOut = new Set();   // drinks off the menu entirely, milk or not
+
+    cardsByTitle.forEach((entry, title)=>{
+      const { card, btn, qty, milkBtns, selectMilk, usesMilk, product } = entry;
+      // A bundle goes off the menu the moment any one of its drinks does.
+      const partGone = product && product.bundle &&
+        product.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+      const out = SOLD_OUT.has(title) || partGone || (usesMilk && allMilkGone);
+      if(out) fullyOut.add(title);
+
+      card.classList.toggle('is-soldout', out);
+      btn.disabled = out;
+      btn.textContent = out ? 'Sold out' : 'Add to cart';
+      if(qty){ qty.disabled = out; }
+
+      if(!usesMilk) return;
+
+      // Grey out whichever milk ran out, and move the selection off it.
+      milkBtns.forEach(mb=>{
+        const milkOut = SOLD_OUT_MILKS.has(mb.dataset.milk);
+        mb.disabled = milkOut;
+        mb.classList.toggle('is-out', milkOut);
+      });
+      const left = milkBtns.filter(mb=> !mb.disabled);
+      if(left.length === 1) selectMilk(left[0].dataset.milk);   // every row moves off the missing milk
+    });
+
+    // Drop anything in the cart that's no longer available, and say so.
+    const gone = x => fullyOut.has(x.title) || milksOf(x).some(m => SOLD_OUT_MILKS.has(m));
+    const dropped = [...new Set(cart.filter(gone).map(x=>
+      fullyOut.has(x.title) ? x.title : x.title + ' with ' + x.addonsLabel
+    ))];
+    if(dropped.length){
+      cart = cart.filter(x=> !gone(x));
+      saveCart(cart);
+      const many = dropped.length > 1;
+      soldOutNotice = dropped.join(' and ') + (many ? ' have' : ' has')
+        + ' sold out, so we removed ' + (many ? 'them' : 'it') + ' from your cart.';
+    }
+    renderCart();
+  }
+
+  const $items = document.getElementById('cartItems');
+  const $sub = document.getElementById('subtotal');
+  const $tot = document.getElementById('total');
+  const $count = document.getElementById('cartCount');
+  const $nudge     = document.getElementById('bundleNudge');
+  const $nudgeText = document.getElementById('bundleNudgeText');
+  const $nudgeGo   = document.getElementById('bundleNudgeGo');
+  const $nudgeX    = document.getElementById('bundleNudgeX');
+  const $bRow    = document.getElementById('bundleRow');
+  const $bAmount = document.getElementById('bundleRowAmount');
+  const $eRow    = document.getElementById('eventRow');
+  const $eAmount = document.getElementById('eventRowAmount');
+  const $eYes    = document.getElementById('eventYes');
+  const $eNo     = document.getElementById('eventNo');
+  const $eNote   = document.getElementById('eventNote');
+  const $vRow    = document.getElementById('voucherRow');
+  const $vLabel  = document.getElementById('voucherRowLabel');
+  const $vAmount = document.getElementById('voucherRowAmount');
+  const $vEntry   = document.getElementById('voucherEntry');
+  const $vApplied = document.getElementById('voucherApplied');
+  const $vInput   = document.getElementById('voucherCode');
+  const $vApply   = document.getElementById('voucherApply');
+  const $vRemove  = document.getElementById('voucherRemove');
+  const $vMsg     = document.getElementById('voucherMsg');
+
+  function renderCart(){
+    const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
+    $count.textContent = totalItems;
+
+    const t = totals();
+    renderVoucher(t);
+    renderEvent();
+    renderNudge();
+
+    const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
+
+    if(cart.length===0){
+      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
+      $sub.textContent = money(0); $tot.textContent = money(0);
+      $vRow.style.display = 'none';
+      $eRow.style.display = 'none';
+      $bRow.style.display = 'none';
+      return;
+    }
+    $items.innerHTML = note;
+    cart.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'item';
+      const tag = (t.free && t.free.key === it.key)
+        ? '<span class="free-tag"><img src="img/star.png" alt="">1 free</span>' : '';
+      row.innerHTML = `
+        <div>
+          <div><strong>${it.title}</strong></div>
+          <div class="addons">${it.addonsLabel}</div>
+          <div class="small muted">${money(it.unitPrice)} each</div>
+          ${tag}
+        </div>
+        <div style="text-align:right">
+          <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
+          <div style="margin-top:8px"><button title="Remove">Remove</button></div>
+        </div>`;
+      const qtyInput = row.querySelector('input');
+      const rm = row.querySelector('button');
+      qtyInput.addEventListener('change', e=> setQty(it.key, parseInt(e.target.value||'1',10)) );
+      rm.addEventListener('click', ()=> removeItem(it.key) );
+      $items.appendChild(row);
+    });
+
+    $sub.textContent = money(t.sub);
+    if(t.bundleOff > 0){
+      $bRow.style.display = 'flex';
+      $bAmount.textContent = '-' + money(t.bundleOff);
+    } else {
+      $bRow.style.display = 'none';
+    }
+    if(t.free){
+      $vRow.style.display = 'flex';
+      $vLabel.textContent = VOUCHER.code + ' · ' + t.free.title;
+      $vAmount.textContent = '-' + money(t.free.price);
+    } else {
+      $vRow.style.display = 'none';
+    }
+    if(t.eventOff > 0){
+      $eRow.style.display = 'flex';
+      $eAmount.textContent = '-' + money(t.eventOff);
+    } else {
+      $eRow.style.display = 'none';
+    }
+    $tot.textContent = money(t.total);
+  }
+
+  /* ---- Voucher panel ----
+     Applied but not yet landing on anything is its own state: the code is
+     still held, and the panel says what is missing rather than silently
+     dropping it the moment the eligible cup leaves the cart. */
+  function voucherNote(text, bad){
+    $vMsg.textContent = text || '';
+    $vMsg.classList.toggle('is-bad', !!bad);
+  }
+
+  function renderVoucher(t){
+    const applied = !!voucher;
+    $vEntry.hidden = applied;
+    $vApplied.hidden = !applied;
+    if(applied){
+      $vInput.classList.remove('is-bad');
+      if(t && t.free){
+        voucherNote(VOUCHER.code + ' applied. ' + t.free.title + ' is on us.', false);
+      } else if(cartHasBundle()){
+        voucherNote("Held. The drinks inside the Event Bundle are already discounted. Add one on its own and this comes off.", true);
+      } else {
+        voucherNote("Add a Gen's Matcha or a Hojicha Latte and this comes off.", true);
+      }
+    } else if(voucherUsed()){
+      voucherNote('', false);
+    }
+  }
+
+  function applyVoucher(){
+    const code = $vInput.value.trim().toUpperCase();
+    $vInput.classList.remove('is-bad');
+    if(!code){
+      $vInput.classList.add('is-bad');
+      voucherNote('Pop the code in first.', true);
+      return;
+    }
+    if(code !== VOUCHER.code){
+      $vInput.classList.add('is-bad');
+      voucherNote("That code isn't one of ours.", true);
+      return;
+    }
+    if(voucherUsed()){
+      $vInput.classList.add('is-bad');
+      voucherNote("This voucher has already been used on this device.", true);
+      return;
+    }
+    if(!cartHasEligible()){
+      $vInput.classList.add('is-bad');
+      voucherNote(cartHasBundle()
+        ? "The drinks inside the Event Bundle are already discounted. Add a Gen's Matcha or Hojicha Latte on its own to use this."
+        : "This one's for a Gen's Matcha or a Hojicha Latte, so add one first.", true);
+      return;
+    }
+    voucher = VOUCHER.code;
+    renderCart();
+  }
+
+  function clearVoucher(quiet){
+    voucher = null;
+    $vInput.value = '';
+    $vInput.classList.remove('is-bad');
+    voucherNote(quiet ? '' : 'Voucher removed.', false);
+    renderCart();
+  }
+
+  /* ---- Bundle nudge ----
+     Shows only when the cart is 1-2 drinks short of the trio and they have not
+     waved it away. It is a line in the cart, never a pop-up: at an event with a
+     queue behind you, an interruption costs more than the two dollars it wins. */
+  const BUNDLE = products.find(x => x.bundle);
+  let nudgeDismissed = false;
+
+  // Which of the bundle's drinks are already in the cart, and which are not.
+  function nudgeSplit(){
+    const have = [], missing = [];
+    (BUNDLE ? BUNDLE.bundle : []).forEach(id=>{
+      const line = cart.find(x => x.productId === id);
+      (line ? have : missing).push({ id: id, line: line,
+        title: (productById(id) || {}).title || id });
+    });
+    return { have, missing };
+  }
+
+  function renderNudge(){
+    if(!BUNDLE || !$nudge) return;
+    const split = nudgeSplit();
+    const show = !nudgeDismissed
+      && !cartHasBundle()
+      && split.have.length > 0
+      && split.missing.length > 0
+      && !SOLD_OUT.has(BUNDLE.title)
+      && !BUNDLE.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+    $nudge.hidden = !show;
+    if(!show) return;
+
+    const names = split.missing.map(m => m.title);
+    const list = names.length > 1
+      ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+      : names[0];
+    $nudgeText.innerHTML = 'Add ' + list + ' to make it the Event Bundle, <b>'
+      + money(BUNDLE.dealPrice || BUNDLE.basePrice) + '</b> for all three.';
+  }
+
+  /* Swaps the loose drinks for the bundle, carrying their milk choices over so
+     nobody silently loses the Fresh milk they picked a moment ago. */
+  function takeBundle(){
+    if(!BUNDLE) return;
+    const split = nudgeSplit();
+
+    const chosen = (BUNDLE.milkFor || []).map(mf=>{
+      const line = (cart.find(x => x.productId === mf.id) || {});
+      const carried = (line.addons || []).map(a => a.milk || a.label)
+        .find(m => MILKS.indexOf(m) !== -1);
+      // Their own choice wins; otherwise Oatmilk, which is what every card
+      // defaults to — falling back to MILKS[0] would quietly hand them Fresh.
+      const fallback = !SOLD_OUT_MILKS.has('Oatmilk')
+        ? 'Oatmilk'
+        : (MILKS.find(m => !SOLD_OUT_MILKS.has(m)) || 'Oatmilk');
+      const milk = (carried && !SOLD_OUT_MILKS.has(carried)) ? carried : fallback;
+      const short = mf.label.replace(/ (Matcha|Latte)$/, '');
+      return {
+        id: mf.id + '-milk-' + milk.toLowerCase().replace(/\s+/g, ''),
+        label: short + ': ' + milk,
+        milk: milk,
+        price: 0
+      };
+    });
+
+    // One cup of each goes into the bundle; anything beyond that they keep.
+    split.have.forEach(h=>{
+      if(!h.line) return;
+      if(h.line.qty > 1){ h.line.qty -= 1; }
+      else { cart = cart.filter(x => x.key !== h.line.key); }
+    });
+
+    saveCart(cart);
+    addToCart({ productId: BUNDLE.id, qty: 1, chosen: chosen });   // saves + renders
+  }
+
+  if($nudgeGo) $nudgeGo.addEventListener('click', takeBundle);
+  if($nudgeX)  $nudgeX.addEventListener('click', ()=>{ nudgeDismissed = true; renderNudge(); });
+
+  /* ---- Event purchase ---- */
+  function renderEvent(){
+    $eYes.classList.toggle('active', eventPurchase);
+    $eNo.classList.toggle('active', !eventPurchase);
+    $eYes.setAttribute('aria-pressed', String(eventPurchase));
+    $eNo.setAttribute('aria-pressed', String(!eventPurchase));
+    if(!eventPurchase){ $eNote.textContent = ''; return; }
+    $eNote.textContent = cartHasBundle()
+      ? 'Noted \u00A0\u2736 your bundle saving is the bigger one, so we kept that.'
+      : '5% off \u00A0\u2736 no proof needed, we trust ya (:';   // nbsp holds the wider gap
+  }
+  function setEventPurchase(on){
+    if(eventPurchase === on) return;
+    eventPurchase = on;
+    renderCart();
+  }
+  $eYes.addEventListener('click', ()=> setEventPurchase(true));
+  $eNo.addEventListener('click', ()=> setEventPurchase(false));
+  renderEvent();
+
+  $vApply.addEventListener('click', applyVoucher);
+  $vInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); applyVoucher(); } });
+  $vInput.addEventListener('input', ()=>{
+    if($vMsg.textContent){ voucherNote('', false); $vInput.classList.remove('is-bad'); }
+  });
+  $vRemove.addEventListener('click', ()=> clearVoucher(false));
+
+  const qrWrap     = document.getElementById('qrWrap');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const clearBtn   = document.getElementById('clearBtn');
+  const teleInput  = document.getElementById('teleHandle');
+
+  const orderRefEl = document.getElementById('orderRef');
+  const copyRefBtn = document.getElementById('copyRef');
+
+  const proofInput   = document.getElementById('paymentProof');
+  const proofPreview = document.getElementById('proofPreview');
+  const submitBtn    = document.getElementById('submitProofBtn');
+  const submitStatus = document.getElementById('submitStatus');
+
+  teleInput.addEventListener('input', setCheckoutDisabled);
+
+  function setCheckoutDisabled(){
+    const hasTelegram = teleInput.value.trim() !== '';
+    confirmBtn.disabled = !hasTelegram;
+  }
+  setCheckoutDisabled();
+
+  let pendingOrder = null;
+
+  confirmBtn.addEventListener('click', ()=>{
+    if(cart.length===0){ alert('Cart is empty.'); return; }
+    const t = totals();
+    const orderId = 'HR-' + String(Math.floor(Math.random() * 9110) + 1).padStart(4, '0');
+    pendingOrder = {
+      order_id: orderId,
+      telegram: teleInput.value.trim(),
+      subtotal: t.sub,
+      discount: t.discount,
+      total: t.total,
+      redeem: !!t.free,
+      free_item: t.free ? (t.free.title + ' (' + t.free.addonsLabel + ')') : '',
+      voucher_code: t.free ? VOUCHER.code : '',
+      event_purchase: eventPurchase,
+      event_discount: t.eventOff,
+      items: JSON.parse(JSON.stringify(cart))
+    };
+
+    orderRefEl.textContent = orderId;
+    qrWrap.style.display = 'block';
+    confirmBtn.textContent = 'Order noted ✓';
+    confirmBtn.disabled = true;
+  });
+
+  copyRefBtn.addEventListener('click', async ()=>{
+    try { await navigator.clipboard.writeText(orderRefEl.textContent); copyRefBtn.textContent = 'Copied!'; setTimeout(()=>copyRefBtn.textContent='Copy', 900); } catch(e){}
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    cart = []; saveCart(cart); eventPurchase = false; nudgeDismissed = false;
+    clearVoucher(true); qrWrap.style.display='none';
+    confirmBtn.textContent='Check out'; setCheckoutDisabled();
+    pendingOrder = null;
+    submitBtn.disabled = true; proofInput.value = ''; proofPreview.textContent = ''; submitStatus.textContent='';
+  });
+
+  proofInput.addEventListener('change', ()=>{
+    const f = proofInput.files[0];
+    proofPreview.textContent = f ? `Selected: ${f.name}` : '';
+    submitBtn.disabled = !f;
+  });
+
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadOrderWithProof(order, file){
+    const base64 = await fileToBase64(file);
+    const payload = {
+      action: 'submit_order',
+      order_id: order.order_id,
+      telegram: order.telegram,
+      pickup_time: order.pickup_time,
+      subtotal: String(order.subtotal),
+      discount: String(order.discount || 0),
+      total: String(order.total),
+      redeem: order.redeem ? 'TRUE' : 'FALSE',
+      free_item: order.free_item || '',
+      voucher_code: order.voucher_code || '',
+      event_purchase: order.event_purchase ? 'TRUE' : 'FALSE',
+      event_discount: String(order.event_discount || 0),
+      items: order.items,
+      proof: base64
+    };
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    try {
+      if(!pendingOrder){ alert('Please click Check out first.'); return; }
+      const f = proofInput.files[0];
+      if(!f){ alert('Please select a screenshot.'); return; }
+      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
+
+      // Calculate pickup time (current time + 10 minutes)
+      const now = new Date();
+      const pickupTime = new Date(now.getTime() + 10 * 60 * 1000);
+      const hours = pickupTime.getHours();
+      const minutes = pickupTime.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = minutes.toString().padStart(2, '0');
+      const pickupTimeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+
+      pendingOrder.pickup_time = pickupTimeStr;
+
+      const resp = await uploadOrderWithProof(pendingOrder, f);
+      if(resp.ok){
+        submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
+
+        // Only a paid, submitted order spends the voucher.
+        if(pendingOrder.voucher_code) markVoucherUsed();
+
+        showSuccess(pendingOrder.order_id, pickupTimeStr, !!pendingOrder.event_purchase);
+
+        cart = []; saveCart(cart); eventPurchase = false; nudgeDismissed = false; clearVoucher(true);
+      } else if (resp.closed) {
+        submitStatus.textContent = "Sorry, we've just closed.";
+        submitStatus.className = 'small muted';
+        showClosed(true);   // fade it in over the menu
+      } else if ((resp.soldOut && resp.soldOut.length) || (resp.soldOutMilks && resp.soldOutMilks.length)) {
+        // Something sold out between loading the page and paying — sync and tell them.
+        applySoldOut(resp.soldOut || [], resp.soldOutMilks || []);
+        submitStatus.textContent = resp.error || 'An item just sold out.';
+        submitStatus.className = 'small muted';
+        submitBtn.disabled = false;
+      } else {
+        submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
+        submitBtn.disabled = false;
+      }
+    } catch(e){
+      submitStatus.textContent = 'Network error: ' + e.message;
+      submitBtn.disabled = false;
+    }
+  });
+
+  // ---- Order confirmation overlay ----
+  const successOverlay = document.getElementById('successOverlay');
+  const soTime     = document.getElementById('soTime');
+  const soRef      = document.getElementById('soRef');
+  const soStarName = document.getElementById('soStarName');
+  const soProof    = document.getElementById('soProof');
+  const soCopyBtn  = document.getElementById('soCopy');
+  const soDoneBtn  = document.getElementById('soDone');
+
+  function showSuccess(orderId, pickupTimeStr, needsProof){
+    if(!successOverlay) return;
+    const starNum = orderId.replace('HR-', '').replace(/^0+/, '');
+    soTime.textContent     = pickupTimeStr;
+    soRef.textContent      = orderId;
+    soStarName.textContent = '"HR ' + starNum + ' star"';
+    if(soProof) soProof.hidden = !needsProof;
+
+    successOverlay.setAttribute('aria-hidden', 'false');
+    successOverlay.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    void successOverlay.offsetWidth;              // reflow so the fade + rise run
+    successOverlay.style.opacity = '1';
+    successOverlay.classList.add('is-open');
+    if(soDoneBtn) soDoneBtn.focus();
+  }
+
+  function hideSuccess(){
+    if(!successOverlay) return;
+    successOverlay.style.opacity = '0';
+    successOverlay.classList.remove('is-open');
+    successOverlay.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(successOverlay.style.opacity === '0') successOverlay.style.display = 'none'; }, 450);
+  }
+
+  if(soCopyBtn){
+    soCopyBtn.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(soRef.textContent);
+        soCopyBtn.textContent = 'Copied!';
+        setTimeout(()=> soCopyBtn.textContent = 'Copy', 900);
+      } catch(e){}
+    });
+  }
+
+  // Done closes the overlay and resets checkout so a second order can be placed
+  if(soDoneBtn){
+    soDoneBtn.addEventListener('click', ()=>{
+      hideSuccess();
+      qrWrap.style.display = 'none';
+      confirmBtn.textContent = 'Check out';
+      setCheckoutDisabled();
+      pendingOrder = null;
+      proofInput.value = '';
+      proofPreview.textContent = '';
+      submitStatus.textContent = '';
+      submitBtn.disabled = true;
+    });
+  }
+
+
+  /* ---- Closed ----
+     Covers the menu entirely: nothing behind it is reachable while it is up. */
+  function showClosed(animate){
+    var ov = document.getElementById('closedOverlay');
+    if(!ov) return;
+    ov.setAttribute('aria-hidden', 'false');
+    ov.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    if(animate){ void ov.offsetWidth; }   // reflow so the fade runs
+    ov.style.opacity = '1';
+  }
+  function hideClosed(){
+    var ov = document.getElementById('closedOverlay');
+    if(!ov) return;
+    ov.style.opacity = '0';
+    ov.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(ov.style.opacity === '0') ov.style.display = 'none'; }, 500);
+  }
+
+  // ============ Boot ============
+  renderCart();
+
+  (function(){
+    var splash = document.getElementById('loadingSplash');
+    function hideSplash(){
+      if(!splash) return;
+      splash.style.opacity = '0';
+      setTimeout(function(){ splash.style.display = 'none'; }, 450);
+    }
+
+    /* A line that appears only if the wait runs long. Most visits never see it.
+       It exists so a slow first request reads as "still working" rather than
+       "this is broken", which is what sends people reaching for refresh. */
+    var waitNote = null;
+    var waitTimer = setTimeout(function(){
+      if(!splash) return;
+      waitNote = document.createElement('div');
+      waitNote.textContent = 'just a moment…';
+      waitNote.style.cssText = 'position:absolute;left:0;right:0;bottom:22%;text-align:center;'
+        + 'font-size:14px;color:#7E9B85;opacity:0;transition:opacity .4s ease;';
+      splash.appendChild(waitNote);
+      void waitNote.offsetWidth;
+      waitNote.style.opacity = '1';
+    }, 4000);
+
+    function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    /* One attempt, with its own abort timer. Without the abort a stalled
+       request can hang far past any deadline and hold the whole boot open. */
+    async function statusOnce(ms){
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(),
+          ctrl ? { method:'GET', cache:'no-store', signal: ctrl.signal }
+               : { method:'GET', cache:'no-store' });
+        return await res.json();
+      } finally {
+        if(timer) clearTimeout(timer);
+      }
+    }
+
+    /* Only a reply that actually read the sheet counts as an answer.
+       ok:false means the script reached us but couldn't tell — a cold start, a
+       timed-out spreadsheet read — so we ask again rather than acting on it.
+
+       ok undefined means the script hasn't been updated yet. Those replies are
+       trusted on their `open` field alone, so this page keeps working against
+       the deployment that's live right now. */
+    function isAnswer(d){
+      if(!d) return false;
+      if(d.ok === true) return true;
+      if(d.ok === undefined && typeof d.open === 'boolean') return true;
+      return false;
+    }
+
+    // Generous first attempt, because the usual cause of a slow reply is simply
+    // a cold Apps Script container that is already on its way back.
+    var ATTEMPTS = [
+      { timeout: 6000, wait: 0 },
+      { timeout: 5000, wait: 400 },
+      { timeout: 5000, wait: 900 }
+    ];
+    var TOTAL_BUDGET = 13000;   // hard ceiling on how long the splash can hold
+
+    async function getStatus(){
+      var started = Date.now();
+      for (var i = 0; i < ATTEMPTS.length; i++){
+        if (ATTEMPTS[i].wait) await sleep(ATTEMPTS[i].wait);
+        var left = TOTAL_BUDGET - (Date.now() - started);
+        if (left <= 0) break;
+        try {
+          var data = await statusOnce(Math.min(ATTEMPTS[i].timeout, left));
+          if (isAnswer(data)) return data;
+        } catch (e) { /* aborted, offline, or not JSON: fall through and retry */ }
+      }
+      return null;   // never got a trustworthy answer
+    }
+
+    // Sold-out sync in ONE request.
+    (async function(){
+      var status = await getStatus();
+      clearTimeout(waitTimer);
+
+      /* Closed whenever we cannot confirm we are open — and that verdict is
+         only reached after every retry above has failed, not on one unlucky
+         request. Taking orders while shut is the worse mistake. */
+      if (status && status.open === true) { hideClosed(); }
+      else { showClosed(false); }
+
+      if (status) {
+        // grey out anything ticked in Item-Status (drinks and milks)
+        applySoldOut(status.soldOut || [], status.soldOutMilks || []);
+      }
+
+      hideSplash();
+    })();
+  })();
+  </script>
+
+  <script>
+  // ============= Star confetti =============
+  (function(){
+    var STAR_PATH = "M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z";
+    // [position css, fill, size, rotation]
+    var CONFETTI = [
+      ["top:3%;left:41%","#6FA5C9",10,-8],["top:4%;right:39%","#E8734A",11,12],
+      ["top:6%;left:15%","#E8734A",15,-15],["top:9%;right:16%","#6FA5C9",13,12],
+      ["top:17%;left:25%","#C3D46A",12,20],["top:15%;right:26%","#E58AB0",11,-8],
+      ["top:27%;left:6%","#6FA5C9",12,6],["top:24%;right:7%","#F0A04B",15,-18],
+      ["top:38%;left:23%","#E58AB0",12,14],["top:37%;right:22%","#6FA96B",13,-10],
+      ["top:50%;left:8%","#E58AB0",14,8],["top:48%;right:10%","#E8734A",18,16],
+      ["top:62%;left:20%","#6FA96B",12,-12],["top:60%;right:18%","#C3D46A",12,10],
+      ["top:74%;left:10%","#F0A04B",13,14],["top:72%;right:24%","#E58AB0",13,-16],
+      ["top:85%;left:26%","#6FA5C9",12,-10],["top:84%;right:14%","#F0A04B",14,18],
+      ["bottom:5%;left:44%","#E58AB0",12,-12],["bottom:6%;right:40%","#C3D46A",11,14]
+    ];
+    // sparser, balanced layout for narrow screens (top + bottom bands, slim side edges)
+    var CONFETTI_MOBILE = [
+      ["top:2%;left:8%","#E8734A",12,-12],["top:3%;right:10%","#6FA5C9",12,12],
+      ["top:4%;left:31%","#C3D46A",10,18],["top:5%;right:29%","#E58AB0",10,-8],
+      ["top:40%;left:3%","#6FA96B",11,8],["top:43%;right:3%","#F0A04B",11,-14],
+      ["top:60%;left:4%","#E58AB0",11,10],["top:58%;right:4%","#6FA5C9",11,-10],
+      ["bottom:4%;left:14%","#F0A04B",12,14],["bottom:5%;right:16%","#E8734A",12,-16],
+      ["bottom:7%;left:40%","#C3D46A",10,-10],["bottom:6%;right:38%","#E58AB0",10,16]
+    ];
+    var list = (window.matchMedia && window.matchMedia("(max-width:600px)").matches) ? CONFETTI_MOBILE : CONFETTI;
+    function paint(el){
+      if(!el) return;
+      el.innerHTML = list.map(function(c){
+        return '<svg style="' + c[0] + ';width:' + c[2] + 'px;height:' + c[2]
+          + 'px;transform:rotate(' + c[3] + 'deg)" viewBox="0 0 24 24" fill="' + c[1]
+          + '"><path d="' + STAR_PATH + '"/></svg>';
+      }).join("");
+    }
+    document.querySelectorAll('.bg-confetti').forEach(paint);
+  })();
+
+  </script>
+</body>
+</html>
