@@ -337,8 +337,11 @@
        splash, so the page simply never moves on. */
     #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
       transition:opacity .5s ease; background:var(--cream);
-      align-items:center; justify-content:center; padding:40px 24px; }
+      flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; }
     #closedOverlay .co-logo{ width:78%; max-width:380px; height:auto; opacity:.9; }
+    /* Quiet, letter-spaced, the same treatment the menu gives its section labels. */
+    #closedOverlay .co-word{ margin:20px 0 0; font-size:14px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.22em; color:var(--blue-soft); }
 
     /* In-app browsers (Telegram, Instagram) size position:fixed against a
        viewport that can be shorter than the area they actually paint, so a
@@ -439,6 +442,7 @@
 
   <div id="closedOverlay" aria-hidden="true">
     <img class="co-logo" src="/img/Gen_Natura_Loading.png" alt="Gens Matcha, Natura">
+    <p class="co-word">Closed</p>
   </div>
 
   <div id="successOverlay" aria-hidden="true">
