@@ -337,6 +337,17 @@
       transition:opacity .5s ease; background:var(--cream);
       align-items:center; justify-content:center; padding:40px 24px; }
     #closedOverlay .co-logo{ width:78%; max-width:380px; height:auto; opacity:.9; }
+
+    /* In-app browsers (Telegram, Instagram) size position:fixed against a
+       viewport that can be shorter than the area they actually paint, so a
+       full-screen cover can leave a strip of menu showing underneath. Belt and
+       braces: size to the dynamic viewport, AND take the page out of the flow
+       while a cover is up, so there is nothing left to show through. */
+    #loadingSplash, #closedOverlay{
+      height:100vh; height:100dvh; min-height:-webkit-fill-available; }
+    body.is-covered{ background:var(--cream); }
+    body.is-covered .wrap,
+    body.is-covered .bg-confetti{ display:none; }
   </style>
 <style id="confettiStyle">
     /* star confetti */
@@ -441,7 +452,7 @@
   </style>
 
 </head>
-<body>
+<body class="is-covered">
   <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
     <img src="/img/Gen_Natura_Loading.png" alt="Gens Matcha × Natura" style="width:78%;max-width:380px;height:auto;opacity:.9;">
   </div>
@@ -1253,7 +1264,7 @@
     $eNo.setAttribute('aria-pressed', String(!eventPurchase));
     if(!eventPurchase){ $eNote.textContent = ''; return; }
     $eNote.textContent = cartHasBundle()
-      ? 'Noted \u00A0\u2736 your bundle saving is the bigger one, so we kept that.'
+      ? "we kept your bundle saving \u00A0\u2736 it's the bigger one (:"
       : '5% off \u00A0\u2736 no proof needed, we trust ya (:';   // nbsp holds the wider gap
   }
   function setEventPurchase(on){
@@ -1484,6 +1495,16 @@
   }
 
 
+  /* Whether a full-screen cover is up. The menu is hidden outright while one
+     is, rather than trusted to sit behind it. */
+  function refreshCover(){
+    var cl = document.getElementById('closedOverlay');
+    var sp = document.getElementById('loadingSplash');
+    var closedUp = !!(cl && cl.style.display === 'flex');
+    var splashUp = !!(sp && sp.style.display !== 'none' && sp.style.opacity !== '0');
+    document.body.classList.toggle('is-covered', closedUp || splashUp);
+  }
+
   /* ---- Closed ----
      Covers the menu entirely: nothing behind it is reachable while it is up. */
   function showClosed(animate){
@@ -1495,6 +1516,7 @@
     document.body.style.overflow = 'hidden';
     if(animate){ void ov.offsetWidth; }   // reflow so the fade runs
     ov.style.opacity = '1';
+    refreshCover();
   }
   function hideClosed(){
     var ov = document.getElementById('closedOverlay');
@@ -1503,7 +1525,10 @@
     ov.setAttribute('aria-hidden', 'true');
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
-    setTimeout(function(){ if(ov.style.opacity === '0') ov.style.display = 'none'; }, 500);
+    setTimeout(function(){
+      if(ov.style.opacity === '0'){ ov.style.display = 'none'; refreshCover(); }
+    }, 500);
+    refreshCover();
   }
 
   // ============ Boot ============
@@ -1514,7 +1539,8 @@
     function hideSplash(){
       if(!splash) return;
       splash.style.opacity = '0';
-      setTimeout(function(){ splash.style.display = 'none'; }, 450);
+      refreshCover();                       // reveals the menu as the splash fades
+      setTimeout(function(){ splash.style.display = 'none'; refreshCover(); }, 450);
     }
 
     /* A line that appears only if the wait runs long. Most visits never see it.
