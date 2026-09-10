@@ -402,14 +402,18 @@
     #spendGate .sg-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
     #spendGate .sg-input[type=number]{ -moz-appearance:textfield; }
 
-    /* Confirmation that a rung is banked. One short line: the panel below is
-       doing the persuading, and this only has to say "yes, you're in". */
+    /* Confirmation that a rung is banked. Big enough to land as good news,
+       and starred, because unlocking something should feel like something.
+       Deliberately no panel, no fill, no border: the nudge below keeps the
+       heavier visual weight, so a win reads as a win without talking the
+       reader out of going for the next one. */
     #spendGate .sg-status{
-      font-size:13px; line-height:1.45; color:var(--blue-deep); font-weight:700;
-      margin:0 0 12px; text-align:left; min-height:19px;
+      display:flex; align-items:center; gap:7px;
+      font-size:16px; line-height:1.35; color:var(--blue-deep); font-weight:700;
+      margin:0 0 12px; text-align:left;
     }
-    #spendGate .sg-status.is-bad{ color:var(--warn); font-weight:400; }
-    #spendGate .sg-status:empty{ display:none; }
+    #spendGate .sg-status[hidden]{ display:none; }
+    #spendGate .sg-status img{ width:18px; height:18px; object-fit:contain; flex:none; }
 
     /* ---- Next up ----
        The persuasion, and it sits directly under the field because that is
@@ -634,7 +638,10 @@
                autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="sgErr">
       </label>
 
-      <p class="sg-status" id="sgStatus" role="status" aria-live="polite"></p>
+      <p class="sg-status" id="sgStatus" role="status" aria-live="polite" hidden>
+        <img src="/img/star.png" alt="" aria-hidden="true">
+        <span id="sgStatusText"></span>
+      </p>
 
       <!-- The upgrade nudge: progress, the drinks themselves, and what they
            are worth against what it costs to reach them. -->
@@ -1261,6 +1268,7 @@
   const $sgField = document.getElementById('sgField');
   const $sgInput = document.getElementById('sgInput');
   const $sgStatus= document.getElementById('sgStatus');
+  const $sgStatusText = document.getElementById('sgStatusText');
   const $sgNext  = document.getElementById('sgNext');
   const $sgNextLabel = document.getElementById('sgNextLabel');
   const $sgNextGap   = document.getElementById('sgNextGap');
@@ -1298,19 +1306,15 @@
     $sgErr.textContent = (hasAmount && !valid) ? 'Pop in the total from your receipt.' : '';
 
     // What they already hold. Said in drinks and money, never in tier numbers.
-    if(reached){
-      $sgStatus.classList.remove('is-bad');
-      $sgStatus.textContent = reached.name + ' unlocked';
-    } else {
-      $sgStatus.textContent = '';
-    }
+    $sgStatus.hidden = !reached;
+    if(reached) $sgStatusText.textContent = reached.name + ' unlocked';
 
     // The nudge. Hidden only at the top of the ladder, where there is nothing
     // left to sell.
     if(!next || !valid && hasAmount){
       $sgNext.hidden = true;
       if(!next && reached){
-        $sgStatus.textContent = reached.name + ' unlocked · the top rung';
+        $sgStatusText.textContent = reached.name + ' unlocked · the top rung';
       }
       return finish();
     }
