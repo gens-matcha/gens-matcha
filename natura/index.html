@@ -1378,9 +1378,12 @@
 
     // The drinks, not the tier. A photo of the Lemon Meringue argues better
     // than the words "Tier 4" ever will.
+    /* The second photo where a drink has one: those are the shots of the cup
+       as it is actually made up, which read better at thumbnail size than the
+       packshot the menu card leads with. Anything with only one photo uses it. */
     const drinks = bestClaim(next);
     $sgNextPics.innerHTML = drinks.map(p =>
-      `<img src="${p.img}" alt="${p.title}" loading="lazy">`).join('');
+      `<img src="${p.img2 || p.img}" alt="${p.title}" loading="lazy">`).join('');
     $sgNextTier.textContent = next.name + ' unlocks';
     $sgNextName.textContent = drinks.length > 1
       ? drinks.map(p => p.title).join(' + ')
