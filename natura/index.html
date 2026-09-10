@@ -179,7 +179,7 @@
       transition:background .15s ease;
     }
     .add-btn{ flex:1; min-width:120px; }
-    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled), #confirmGo:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
+    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
     /* A claim button that can't be pressed — sold out, locked, or the claim is
        already full — steps back to a hairline rather than sitting there as a
@@ -205,13 +205,13 @@
     .success-text{ color:var(--blue-deep); font-weight:700; }
 
     /* Secondary buttons (clear / remove a slot / go back) */
-    #clearBtn, .slot button, .confirm-back{
+    #clearBtn, .slot button{
       appearance:none; border:1px solid var(--line); border-radius:8px;
       background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700;
       transition:border-color .15s ease, color .15s ease;
     }
-    #clearBtn, .confirm-back{ padding:10px 14px; font-size:14px; }
-    #clearBtn:hover, .slot button:hover, .confirm-back:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
+    #clearBtn{ padding:10px 14px; font-size:14px; }
+    #clearBtn:hover, .slot button:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
     .slot button{ padding:6px 10px; font-size:12px; }
 
     .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
@@ -270,24 +270,6 @@
     .saved-section .row{ font-size:17px; }
     .saved-section strong{ color:var(--blue-deep); font-size:20px; }
     .saved-line{ font-size:13px; color:var(--blue-soft); margin:6px 0 0; }
-
-    /* ---- Confirm step ----
-       Nothing is paid, so this is the only moment the claim can be checked.
-       It replaces the cart's buttons rather than covering the page. */
-    .confirm{ border:1px solid var(--blue-deep); border-radius:8px; padding:14px; margin-top:14px; }
-    .confirm[hidden]{ display:none; }
-    .confirm h4{
-      margin:0 0 10px; font-size:13px; font-weight:700;
-      text-transform:uppercase; letter-spacing:.11em; color:var(--blue-deep);
-    }
-    .confirm ul{ margin:0 0 12px; padding:0 0 0 18px; }
-    .confirm li{ font-size:14px; line-height:1.5; color:var(--blue-deep); }
-    .confirm li span{ color:var(--blue-soft); }
-    .confirm-who{
-      font-size:13px; color:var(--blue-soft); line-height:1.45;
-      border-top:1px solid var(--line); padding-top:10px; margin:0 0 12px;
-    }
-    .confirm-who b{ color:var(--blue-deep); }
 
     .teleGroup{ margin:6px 0 12px; }
     .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--blue-deep); margin-bottom:8px; }
@@ -413,7 +395,6 @@
       margin:0 0 12px; text-align:left;
     }
     #spendGate .sg-status[hidden]{ display:none; }
-    #spendGate .sg-status img{ width:18px; height:18px; object-fit:contain; flex:none; }
 
     /* ---- Next up ----
        The persuasion, and it sits directly under the field because that is
@@ -638,10 +619,7 @@
                autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="sgErr">
       </label>
 
-      <p class="sg-status" id="sgStatus" role="status" aria-live="polite" hidden>
-        <img src="/img/star.png" alt="" aria-hidden="true">
-        <span id="sgStatusText"></span>
-      </p>
+      <p class="sg-status" id="sgStatus" role="status" aria-live="polite" hidden></p>
 
       <!-- The upgrade nudge: progress, the drinks themselves, and what they
            are worth against what it costs to reach them. -->
@@ -758,24 +736,12 @@
           <input type="text" id="teleHandle" placeholder="@yourhandle" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         </div>
 
-        <div class="btn-group" id="btnGroup">
+        <div class="btn-group">
           <button id="confirmBtn">Claim</button>
           <button id="clearBtn">Start over</button>
         </div>
 
-        <!-- Nothing is paid, so this is the one place a claim can be checked
-             before it is sent. It takes the buttons' place rather than
-             covering the page. -->
-        <div class="confirm" id="confirmPanel" hidden>
-          <h4>Confirm your claim</h4>
-          <ul id="confirmList"></ul>
-          <p class="confirm-who" id="confirmWho"></p>
-          <div class="btn-group" style="margin-top:0">
-            <button id="confirmGo">Yes, claim it</button>
-            <button type="button" class="confirm-back" id="confirmBack">Back</button>
-          </div>
-          <p class="small" id="submitStatus" style="margin:10px 0 0"></p>
-        </div>
+        <p class="small" id="submitStatus" role="status" aria-live="polite" style="margin:10px 0 0"></p>
       </aside>
     </div>
   </div>
@@ -796,13 +762,13 @@
      that line back on any drink below brings the tag straight back. */
   const products = [
     { id: 'gens-matcha',    title: "Gen's Matcha",           img: '/img/matcha-latte.png',  img2: '/img/matcha-latte-2.webp',
-      value: 6.0,  milk: 'Oat milk',
+      value: 8.0,  milk: 'Oat milk',
       desc: 'The classic matcha latte, whisked exactly how gen likes it.' },
     { id: 'lemon-meringue', title: 'Lemon Meringue Matcha',  img: '/img/Lemmon-latte.png',
-      value: 10.0, milk: 'Oat milk',
+      value: 12.0, milk: 'Oat milk',
       desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.' },
     { id: 'matcha-rasp',    title: 'Raspberry Matcha Tonic', img: '/img/matcha-rasp.png',   img2: '/img/matcha-rasp-2.webp',
-      value: 7.0,  milk: '',
+      value: 9.0,  milk: '',
       desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.' }
   ];
 
@@ -986,6 +952,26 @@
     saveClaim();
   }
   function clearSlot(i){ picks[i] = null; saveClaim(); render(); }
+
+  /* A claim that is full is not a dead end. If a slot would take this drink
+     but something else is sitting in it, tapping swaps them, which is what
+     someone changing their mind actually wants: they should not have to find
+     the Remove button first. Returns the slot a swap would land in, or -1. */
+  function swapSlot(id){
+    const slots = activeSlots();
+    for(let i = 0; i < slots.length; i++){
+      if(slots[i].accepts.indexOf(id) !== -1 && picks[i] && picks[i] !== id) return i;
+    }
+    return -1;
+  }
+  function swapDrink(id){
+    const i = swapSlot(id);
+    if(i === -1 || !available(id)) return;
+    picks[i] = id;
+    saveClaim();
+  }
+  // Already sitting in one of the slots.
+  const isClaimed = id => picks.indexOf(id) !== -1;
   function claimValue(){ return claimedIds().reduce((s, id) => s + (productById(id) || {}).value, 0); }
 
   /* Swipe between a drink's photos. Mobile first: the gesture only takes over
@@ -1095,11 +1081,13 @@
 
     const btn = card.querySelector('.add-btn');
     btn.addEventListener('click', ()=>{
-      if(!canClaim(p.id)) return;
-      addDrink(p.id);
+      if(btn.disabled) return;
+      if(canClaim(p.id))            addDrink(p.id);
+      else if(swapSlot(p.id) !== -1) swapDrink(p.id);
+      else return;
+      /* No transient "Added" flash: the button settles straight to Claimed and
+         the slot fills in the panel beside it, which says it better. */
       render();
-      btn.textContent = 'Added ✓';
-      setTimeout(render, 900);
     });
 
     cardsById.set(p.id, { card, btn, product: p });
@@ -1182,12 +1170,37 @@
   }
   $tierChipEdit.addEventListener('click', ()=> showGate(false));
 
+  /* Put what they can actually claim first. On Tier 2 that means Gen's Matcha
+     and the Raspberry Tonic lead, and the Lemon falls in behind them, because a
+     drink you cannot have is a worse thing to meet first than one you can.
+     Within each group they sit in ladder order, so the row doubles as a hint
+     at what the next rung adds and, just as usefully, keeps the same order at
+     every tier: unlocking something slides it left rather than reshuffling the
+     shelf. Anything sold out sinks to the end. */
+  function orderMenu(){
+    const rank = id => !available(id) ? 3 : (tier && !inTier(id)) ? 2 : 1;
+    const order = [...cardsById.keys()].sort((a, b)=>
+      rank(a) - rank(b)
+      || (unlockedAt(a) || 9) - (unlockedAt(b) || 9)
+      || products.findIndex(p => p.id === a) - products.findIndex(p => p.id === b));
+
+    // Only touch the DOM when the order actually changed: re-inserting a card
+    // replays its fade-in, which would flicker the whole grid on every render.
+    const now = [...menuGrid.children];
+    const same = order.length === now.length
+      && order.every((id, i) => cardsById.get(id).card === now[i]);
+    if(same) return;
+    order.forEach(id => menuGrid.appendChild(cardsById.get(id).card));
+  }
+
   function renderMenu(){
+    orderMenu();
     cardsById.forEach((entry, id)=>{
       const { card, btn, product } = entry;
       const out    = !available(id);
       const locked = !!tier && !out && !inTier(id);
-      const full   = !!tier && !out && !locked && firstOpenSlot(id) === -1;
+      const mine   = !!tier && !out && !locked && isClaimed(id);
+      const swap   = !!tier && !out && !locked && !mine && swapSlot(id) !== -1;
 
       card.classList.toggle('is-soldout', out);
       card.classList.toggle('is-locked', locked);
@@ -1196,11 +1209,14 @@
       const at  = unlockedAt(id);
       if(tag) tag.textContent = at ? 'Tier ' + at : 'Locked';
 
-      btn.disabled = out || locked || full || !tier;
+      // Claimed is the only resting state that cannot be tapped: everything
+      // else either adds, swaps, or explains why it can't.
+      btn.disabled = out || locked || !tier || mine;
       btn.textContent = out    ? 'Sold out'
                       : !tier  ? 'Pick a tier first'
                       : locked ? 'Tier ' + at + ' unlocks this'
-                      : full   ? 'Claim is full'
+                      : mine   ? 'Claimed'
+                      : swap   ? 'Switch to this drink'
                       : 'Add to claim';
     });
   }
@@ -1268,7 +1284,6 @@
   const $sgField = document.getElementById('sgField');
   const $sgInput = document.getElementById('sgInput');
   const $sgStatus= document.getElementById('sgStatus');
-  const $sgStatusText = document.getElementById('sgStatusText');
   const $sgNext  = document.getElementById('sgNext');
   const $sgNextLabel = document.getElementById('sgNextLabel');
   const $sgNextGap   = document.getElementById('sgNextGap');
@@ -1284,6 +1299,11 @@
   const $sgVCode = document.getElementById('sgVCode');
   const $sgVGo   = document.getElementById('sgVGo');
   const $sgVNote = document.getElementById('sgVNote');
+
+  /* The little flourish that trails a win. Kept as one constant so it is
+     changed in one place, and set as text rather than markup so the characters
+     can never be read as anything else. */
+  const UNLOCKED = ' unlocked ˚˖𓍢ִ໋❀';
 
   const typedSpend = ()=>{
     const raw = $sgInput.value.trim();
@@ -1307,14 +1327,14 @@
 
     // What they already hold. Said in drinks and money, never in tier numbers.
     $sgStatus.hidden = !reached;
-    if(reached) $sgStatusText.textContent = reached.name + ' unlocked';
+    if(reached) $sgStatus.textContent = reached.name + UNLOCKED;
 
     // The nudge. Hidden only at the top of the ladder, where there is nothing
     // left to sell.
     if(!next || !valid && hasAmount){
       $sgNext.hidden = true;
       if(!next && reached){
-        $sgStatusText.textContent = reached.name + ' unlocked · the top rung';
+        $sgStatus.textContent = reached.name + ' unlocked · the top rung ˚˖𓍢ִ໋❀';
       }
       return finish();
     }
@@ -1490,12 +1510,6 @@
   const teleInput   = document.getElementById('teleHandle');
   const confirmBtn  = document.getElementById('confirmBtn');
   const clearBtn    = document.getElementById('clearBtn');
-  const btnGroup    = document.getElementById('btnGroup');
-  const confirmPnl  = document.getElementById('confirmPanel');
-  const confirmList = document.getElementById('confirmList');
-  const confirmWho  = document.getElementById('confirmWho');
-  const confirmGo   = document.getElementById('confirmGo');
-  const confirmBack = document.getElementById('confirmBack');
   const submitStatus = document.getElementById('submitStatus');
 
   let pendingOrder = null;
@@ -1518,33 +1532,6 @@
     renderCheckout();
   }
 
-  function showConfirm(){
-    const slots = activeSlots();
-    confirmList.innerHTML = slots.map((s, i)=>{
-      const p = productById(picks[i]) || {};
-      return `<li>${p.title}<span>${p.milk ? ' · ' + p.milk : ''}</span></li>`;
-    }).join('');
-    confirmWho.innerHTML = 'Claiming as <b>' + teleInput.value.trim() + '</b> on <b>'
-      + (tier ? tier.name : '') + '</b>. Nothing to pay. Collect it at the matcha cart.';
-    submitStatus.textContent = '';
-    confirmGo.disabled = false;
-    btnGroup.hidden = true;
-    confirmPnl.hidden = false;
-  }
-  function hideConfirm(){
-    confirmPnl.hidden = true;
-    btnGroup.hidden = false;
-    submitStatus.textContent = '';
-  }
-
-  confirmBtn.addEventListener('click', ()=>{
-    if(!claimComplete()){
-      alert('Pick the drinks your tier covers first.');
-      return;
-    }
-    showConfirm();
-  });
-  confirmBack.addEventListener('click', hideConfirm);
 
   clearBtn.addEventListener('click', ()=>{
     /* Start over empties the claim but keeps the tier: they earned it with a
@@ -1552,7 +1539,7 @@
        a punishment for changing their mind. */
     picks = []; soldOutNotice = '';
     pendingOrder = null;
-    hideConfirm();
+    submitStatus.textContent = '';
     saveClaim(); render();
   });
 
@@ -1583,11 +1570,24 @@
     return await res.json();
   }
 
-  confirmGo.addEventListener('click', async ()=>{
-    if(!claimComplete()){ hideConfirm(); render(); return; }
-    confirmGo.disabled = true;
-    submitStatus.textContent = 'Sending…';
+  /* One tap sends it. There is nothing to pay and nothing to get wrong that
+     the claim panel is not already showing, so a confirm step would only have
+     asked people to agree with a screen they were already looking at. */
+  confirmBtn.addEventListener('click', async ()=>{
+    if(confirmBtn.disabled) return;
+    if(!claimComplete()){ render(); return; }
+    confirmBtn.disabled = true;
+    const label = confirmBtn.textContent;
+    confirmBtn.textContent = 'Sending…';
+    submitStatus.textContent = '';
     submitStatus.className = 'small muted';
+
+    const done = (msg)=>{                 // hand the button back on a failure
+      confirmBtn.textContent = label;
+      renderCheckout();
+      submitStatus.textContent = msg;
+      submitStatus.className = 'small muted';
+    };
 
     const slots = activeSlots();
     const now = new Date();
@@ -1621,8 +1621,8 @@
     try {
       const resp = await submitClaim(pendingOrder);
       if(resp.ok){
-        submitStatus.textContent = 'Claimed ✓';
-        submitStatus.className = 'small success-text';
+        submitStatus.textContent = '';
+        confirmBtn.textContent = label;
 
         // Only a claim that actually went through spends the voucher.
         if(pendingOrder.voucher) markVoucherUsed();
@@ -1630,26 +1630,19 @@
         showSuccess(pendingOrder.order_id);
 
         picks = []; soldOutNotice = '';
-        saveClaim();
+        saveClaim(); render();
       } else if (resp.closed) {
-        submitStatus.textContent = "Sorry, we've just closed.";
-        submitStatus.className = 'small muted';
+        done("Sorry, we've just closed.");
         showClosed(true);
       } else if ((resp.soldOut && resp.soldOut.length) || (resp.soldOutMilks && resp.soldOutMilks.length)) {
         // Something sold out between loading the page and claiming — sync and say so.
         applySoldOut(resp.soldOut || [], resp.soldOutMilks || []);
-        submitStatus.textContent = resp.error || 'One of those just sold out.';
-        submitStatus.className = 'small muted';
-        confirmGo.disabled = false;
+        done(resp.error || 'One of those just sold out.');
       } else {
-        submitStatus.textContent = 'Something went wrong: ' + (resp.error || 'unknown error');
-        submitStatus.className = 'small muted';
-        confirmGo.disabled = false;
+        done('Something went wrong: ' + (resp.error || 'unknown error'));
       }
     } catch(e){
-      submitStatus.textContent = 'Network error: ' + e.message;
-      submitStatus.className = 'small muted';
-      confirmGo.disabled = false;
+      done('Network error: ' + e.message);
     }
   });
   // ---- Order confirmation overlay ----
@@ -1688,8 +1681,8 @@
   if(soDoneBtn){
     soDoneBtn.addEventListener('click', ()=>{
       hideSuccess();
-      hideConfirm();
       pendingOrder = null;
+      submitStatus.textContent = '';
       render();
     });
   }
