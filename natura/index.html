@@ -357,7 +357,7 @@
       #spendGate{ background:rgba(255,253,247,.86); }
     }
     #spendGate .sg-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
-      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:400px; margin:auto;
+      width:100%; max-width:400px; margin:auto;
       padding:32px 28px 28px; text-align:center; position:relative;
       transform:translateY(12px) scale(.98); transition:transform .3s ease; }
     #spendGate.is-open .sg-modal{ transform:none; }
@@ -481,36 +481,6 @@
     }
     #spendGate .sg-next-act[hidden]{ display:none; }
     #spendGate .sg-next-act b{ font-weight:700; }
-
-    /* The map. Compact now that the panel above carries the detail. */
-    #spendGate .sg-ladder{ display:flex; flex-direction:column; gap:5px; margin:0 0 16px; text-align:left; }
-    #spendGate .sg-rung{
-      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:9px;
-      border:1px solid var(--line); border-radius:8px; padding:8px 10px;
-      transition:border-color .2s ease, background .2s ease;
-    }
-    #spendGate .sg-rung.on{ background:var(--tint); border-color:var(--blue-deep); }
-    /* The rung the panel above is pointing at. An outline only, so a reached
-       rung and a target rung never look like the same state. */
-    #spendGate .sg-rung.next{ border-color:var(--blue-soft); }
-    #spendGate .sg-rung.next .sg-rung-name,
-    #spendGate .sg-rung.next .sg-rung-min{ color:var(--blue-deep); }
-    #spendGate .sg-rung.next .sg-tick{ border-color:var(--blue-soft); }
-    #spendGate .sg-tick{
-      width:15px; height:15px; border-radius:999px; border:1px solid var(--line);
-      background:#fff; position:relative; flex:none;
-    }
-    #spendGate .sg-rung.on .sg-tick{ background:var(--blue-deep); border-color:var(--blue-deep); }
-    #spendGate .sg-rung.on .sg-tick::after{
-      content:''; position:absolute; left:4.5px; top:1.5px; width:4px; height:8px;
-      border:solid var(--cream); border-width:0 2px 2px 0; transform:rotate(42deg);
-    }
-    #spendGate .sg-rung-name{ font-size:12.5px; font-weight:700; color:var(--blue-soft); line-height:1.35; }
-    #spendGate .sg-rung.on .sg-rung-name{ color:var(--blue-deep); }
-    #spendGate .sg-rung-min{
-      font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--blue-soft); flex:none;
-    }
-    #spendGate .sg-rung.on .sg-rung-min{ color:var(--blue-deep); }
 
     #spendGate .sg-err{ font-size:13px; line-height:1.45; color:var(--warn); margin:0 0 14px; min-height:19px; text-align:left; }
     #spendGate .sg-err:empty{ display:none; }
@@ -684,8 +654,6 @@
         </div>
         <div class="sg-next-act" id="sgNextAct" hidden></div>
       </div>
-
-      <div class="sg-ladder" id="sgLadder"></div>
 
       <p class="sg-err" id="sgErr" role="status" aria-live="polite"></p>
 
@@ -1292,7 +1260,6 @@
   const gate     = document.getElementById('spendGate');
   const $sgField = document.getElementById('sgField');
   const $sgInput = document.getElementById('sgInput');
-  const $sgLadder= document.getElementById('sgLadder');
   const $sgStatus= document.getElementById('sgStatus');
   const $sgNext  = document.getElementById('sgNext');
   const $sgNextLabel = document.getElementById('sgNextLabel');
@@ -1310,19 +1277,6 @@
   const $sgVGo   = document.getElementById('sgVGo');
   const $sgVNote = document.getElementById('sgVNote');
 
-  const flat = n => money(n).replace('.00','');
-
-  // Built once; the rungs only ever light up and go dark from here on.
-  TIERS.forEach(t=>{
-    const row = document.createElement('div');
-    row.className = 'sg-rung';
-    row.dataset.tier = String(t.n);
-    row.innerHTML = `<span class="sg-tick" aria-hidden="true"></span>
-      <span class="sg-rung-name">${t.name} · ${t.perk}</span>
-      <span class="sg-rung-min">${flat(t.min)}+</span>`;
-    $sgLadder.appendChild(row);
-  });
-
   const typedSpend = ()=>{
     const raw = $sgInput.value.trim();
     if(raw === '') return null;
@@ -1339,12 +1293,6 @@
     const shown = valid ? amount : 0;          // an empty field reads as zero
     const reached = valid ? tierForSpend(amount) : null;
     const next = nextTier(reached);
-
-    [...$sgLadder.children].forEach(row=>{
-      const n = Number(row.dataset.tier);
-      row.classList.toggle('on', !!reached && n <= reached.n);
-      row.classList.toggle('next', !!next && n === next.n);
-    });
 
     $sgGo.disabled = !reached;
     $sgErr.textContent = (hasAmount && !valid) ? 'Pop in the total from your receipt.' : '';
