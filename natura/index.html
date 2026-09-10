@@ -463,6 +463,13 @@
     /* Two drinks overlap slightly, so a second one reads as "and another"
        rather than as a separate row of furniture. */
     #spendGate .sg-next-pics img + img{ margin-left:-12px; }
+    /* The drink alone is just a floating name. This says whose it is and what
+       it takes, in three words, directly above it. */
+    #spendGate .sg-next-tier{
+      font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.13em;
+      color:var(--blue-soft); margin-bottom:3px;
+    }
+    #spendGate .sg-next.is-close .sg-next-tier{ color:var(--blue-deep); }
     #spendGate .sg-next-name{ font-size:14px; font-weight:700; color:var(--blue-deep); line-height:1.3; }
     #spendGate .sg-next-worth{ font-size:13px; color:var(--blue-soft); line-height:1.4; margin-top:2px; }
     #spendGate .sg-next-worth:empty{ display:none; }
@@ -483,6 +490,12 @@
       transition:border-color .2s ease, background .2s ease;
     }
     #spendGate .sg-rung.on{ background:var(--tint); border-color:var(--blue-deep); }
+    /* The rung the panel above is pointing at. An outline only, so a reached
+       rung and a target rung never look like the same state. */
+    #spendGate .sg-rung.next{ border-color:var(--blue-soft); }
+    #spendGate .sg-rung.next .sg-rung-name,
+    #spendGate .sg-rung.next .sg-rung-min{ color:var(--blue-deep); }
+    #spendGate .sg-rung.next .sg-tick{ border-color:var(--blue-soft); }
     #spendGate .sg-tick{
       width:15px; height:15px; border-radius:999px; border:1px solid var(--line);
       background:#fff; position:relative; flex:none;
@@ -664,6 +677,7 @@
         <div class="sg-next-body">
           <div class="sg-next-pics" id="sgNextPics"></div>
           <div>
+            <div class="sg-next-tier" id="sgNextTier"></div>
             <div class="sg-next-name" id="sgNextName"></div>
             <div class="sg-next-worth" id="sgNextWorth"></div>
           </div>
@@ -1285,6 +1299,7 @@
   const $sgNextGap   = document.getElementById('sgNextGap');
   const $sgBarFill   = document.getElementById('sgBarFill');
   const $sgNextPics  = document.getElementById('sgNextPics');
+  const $sgNextTier  = document.getElementById('sgNextTier');
   const $sgNextName  = document.getElementById('sgNextName');
   const $sgNextWorth = document.getElementById('sgNextWorth');
   const $sgNextAct   = document.getElementById('sgNextAct');
@@ -1326,7 +1341,9 @@
     const next = nextTier(reached);
 
     [...$sgLadder.children].forEach(row=>{
-      row.classList.toggle('on', !!reached && Number(row.dataset.tier) <= reached.n);
+      const n = Number(row.dataset.tier);
+      row.classList.toggle('on', !!reached && n <= reached.n);
+      row.classList.toggle('next', !!next && n === next.n);
     });
 
     $sgGo.disabled = !reached;
@@ -1364,6 +1381,7 @@
     const drinks = bestClaim(next);
     $sgNextPics.innerHTML = drinks.map(p =>
       `<img src="${p.img}" alt="${p.title}" loading="lazy">`).join('');
+    $sgNextTier.textContent = next.name + ' unlocks';
     $sgNextName.textContent = drinks.length > 1
       ? drinks.map(p => p.title).join(' + ')
       : (drinks[0] ? drinks[0].title : next.name);
