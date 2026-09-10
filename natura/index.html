@@ -53,7 +53,9 @@
     .layout{ display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; }
     @media (max-width:900px){ .layout{grid-template-columns:1fr} }
 
-    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+    /* Three drinks, so the track is sized to let all three share one row on a
+       desktop and fall to one column on a phone. */
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:20px; }
 
     .card{
       background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
@@ -109,11 +111,28 @@
     .card.is-soldout .img{ filter:grayscale(.9); opacity:.45; }
     .card.is-soldout .title,
     .card.is-soldout .desc,
-    .card.is-soldout .livePrice{ opacity:.5; }
-    .card.is-soldout .milk-label,
-    .card.is-soldout .milk-toggle,
-    .card.is-soldout .qty{ display:none; }
+    .card.is-soldout .milk-note{ opacity:.5; }
     .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--blue-soft); border-color:var(--line); }
+
+    /* Locked: this drink exists, but the tier they picked doesn't reach it.
+       Same restraint as sold out — dimmed and tagged, never hidden, because
+       seeing what the next tier gets you is half the point of the ladder. */
+    .lock-tag{
+      display:none; position:absolute; top:8px; left:8px;
+      background:var(--cream); border:1px solid var(--line); border-radius:8px;
+      color:var(--blue-soft); font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.12em; padding:4px 9px;
+    }
+    .card.is-locked .lock-tag{ display:block; }
+    .card.is-locked .img{ filter:grayscale(.9); opacity:.45; }
+    .card.is-locked .title,
+    .card.is-locked .desc,
+    .card.is-locked .milk-note{ opacity:.5; }
+    .card.is-locked .gal-dots{ opacity:.45; }
+    .card.is-locked .sticker{ display:none; }
+    .card.is-locked .add-btn{ opacity:1; background:transparent; color:var(--blue-soft); border-color:var(--line); }
+    /* Sold out wins the tag slot when a drink is both. */
+    .card.is-soldout .lock-tag{ display:none; }
     .cart-note{
       font-size:13px; color:var(--blue-soft); line-height:1.45;
       border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px;
@@ -127,12 +146,18 @@
     .muted{ color:var(--blue-soft); }
     .small{ font-size:12px; }
 
-    /* Milk toggle */
-    .milk-label{ color:var(--blue-soft); font-size:12px; margin:2px 0 6px; }
-    .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
+    /* Both lattes are made on oat and nothing else, so the old two-button
+       toggle would have been a choice with one answer. It says so instead. */
+    .milk-note{
+      display:inline-flex; align-items:center; gap:6px; align-self:flex-start;
+      color:var(--blue-soft); font-size:12px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.1em;
+      border:1px solid var(--line); border-radius:999px; padding:4px 10px; margin:0 0 12px;
+    }
+    .milk-note:empty{ display:none; }
+
     /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
-       button's corner, and never in the way of the tap. Drinks with a milk
-       choice hang it off that row; the rest hang it off the add-to-cart row. */
+       button's corner, and never in the way of the tap. */
     .sticker-host{ position:relative; }
     .sticker{
       position:absolute; z-index:3; pointer-events:none;
@@ -140,28 +165,12 @@
       transform:rotate(14deg); transform-origin:center;
     }
     .card.is-soldout .sticker{ display:none; }
-    .milk-opt{
-      flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
-      background:var(--cream); color:var(--blue-deep); border:1px solid var(--line);
-      border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
-      cursor:pointer; transition:border-color .15s ease, background .15s ease;
-    }
-    .milk-opt.active{ background:var(--tint); border-color:var(--blue-deep); }
-    /* A milk that's run out: struck through and dimmed, never selectable. */
-    .milk-opt.is-out{
-      background:var(--cream); border-color:var(--line); color:var(--blue-soft);
-      text-decoration:line-through; opacity:.55; cursor:not-allowed;
-    }
 
-    /* Qty + add row */
+    /* Claim row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .qty{ display:flex; align-items:center; gap:8px; color:var(--blue-soft); }
-    .qty input{
-      width:54px; padding:7px 8px; border:1px solid var(--line); border-radius:8px;
-      text-align:center; font-family:inherit; font-weight:700; color:var(--blue-deep); background:#fff;
-    }
-    .qty input:focus{ outline:none; border-color:var(--blue-deep); }
-    .livePrice{ color:var(--blue-deep); font-weight:700; font-size:18px; }
+    /* The retail price, struck through: the saving is the whole story now, so
+       it is shown rather than a number they are about to pay. */
+    .wasPrice{ color:var(--blue-soft); font-weight:700; font-size:15px; text-decoration:line-through; }
 
     button{ font-family:inherit; cursor:pointer; }
     .add-btn, #confirmBtn{
@@ -170,8 +179,14 @@
       transition:background .15s ease;
     }
     .add-btn{ flex:1; min-width:120px; }
-    .add-btn:hover, #confirmBtn:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
+    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled), #confirmGo:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
+    /* A claim button that can't be pressed — sold out, locked, or the claim is
+       already full — steps back to a hairline rather than sitting there as a
+       faded solid. Same restraint the sold-out tag uses. */
+    .add-btn:disabled{
+      opacity:1; background:transparent; color:var(--blue-soft); border-color:var(--line);
+    }
 
     /* Cart */
     .cart{
@@ -187,107 +202,92 @@
       padding:1px 9px; border-radius:999px;
     }
     .divider{ height:1px; background:var(--line); margin:14px 0; }
-    .item{
-      display:grid; grid-template-columns:1fr auto; gap:10px;
-      padding:12px 0; border-bottom:1px solid var(--line);
-    }
-    .addons{ font-size:13px; color:var(--blue-soft); margin-top:2px; }
-    /* The one cup the voucher is being spent on */
-    .free-tag{
-      display:inline-flex; align-items:center; gap:5px; margin-top:5px;
-      background:var(--tint); border:1px solid var(--blue-deep); border-radius:999px;
-      padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.06em;
-      text-transform:uppercase; color:var(--blue-deep);
-    }
-    .free-tag img{ width:12px; height:12px; object-fit:contain; }
-    .total-section{
-      background:var(--tint); border:1px solid var(--line); border-radius:8px;
-      padding:12px 14px; margin:14px 0;
-    }
-    .total-section .row{ font-size:17px; }
-    .total-section strong{ color:var(--blue-deep); font-size:20px; }
     .success-text{ color:var(--blue-deep); font-weight:700; }
 
-    /* Secondary buttons (clear / remove) */
-    #clearBtn, .item button{
+    /* Secondary buttons (clear / remove a slot / go back) */
+    #clearBtn, .slot button, .confirm-back{
       appearance:none; border:1px solid var(--line); border-radius:8px;
       background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700;
       transition:border-color .15s ease, color .15s ease;
     }
-    #clearBtn{ padding:10px 14px; font-size:14px; }
-    #clearBtn:hover, .item button:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
-    .item button{ padding:6px 10px; font-size:12px; }
+    #clearBtn, .confirm-back{ padding:10px 14px; font-size:14px; }
+    #clearBtn:hover, .slot button:hover, .confirm-back:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
+    .slot button{ padding:6px 10px; font-size:12px; }
 
     .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+    .btn-group[hidden]{ display:none; }
 
-    /* Forms */
-    /* The bundle card. Same shape as a drink, with a quiet accent so it reads
-       as an offer rather than a sixth flavour. */
-    .card.is-bundle{ border-color:var(--blue-deep); }
+    .tier-intro{ color:var(--blue-soft); font-size:14px; line-height:1.5; margin:0 0 16px; max-width:62ch; }
 
-    /* The cart nudge. Never blocks, always dismissible. */
-    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--blue-deep);
-      border-radius:8px; padding:12px 34px 12px 13px; margin:0 0 12px; }
-    .bundle-nudge[hidden]{ display:none; }
-    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--blue-deep); }
-    .bundle-nudge b{ font-weight:700; }
-    .bundle-nudge-go{ appearance:none; border:1px solid var(--blue-deep); border-radius:8px;
-      background:var(--blue-deep); color:var(--cream); font-family:inherit; font-weight:700;
-      font-size:13px; padding:8px 14px; cursor:pointer; transition:background .15s ease; }
-    .bundle-nudge-go:hover{ background:#115E74; }
-    .bundle-nudge-x{ position:absolute; top:6px; right:7px; appearance:none; background:none;
-      border:0; font-size:17px; line-height:1; color:var(--blue-soft); cursor:pointer; padding:4px 6px; }
-    .bundle-nudge-x:hover{ color:var(--blue-deep); }
-
-    /* Event purchase — same two-button language as the milk choice */
-    .eventGroup{ margin:6px 0 0; }
-    .event-toggle{ display:flex; gap:8px; }
-    .event-opt{
-      flex:1; display:inline-flex; align-items:center; justify-content:center;
-      background:var(--cream); color:var(--blue-deep); border:1px solid var(--line);
-      border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
-      cursor:pointer; transition:border-color .15s ease, background .15s ease;
+    /* The tier they unlocked, sitting at the top of the claim so it is never
+       a mystery where the slots below came from. */
+    .tier-chip{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background:var(--tint); border:1px solid var(--blue-deep); border-radius:8px;
+      padding:10px 12px; margin-bottom:14px;
     }
-    .event-opt.active{ background:var(--tint); border-color:var(--blue-deep); }
-    .event-note{ font-size:13px; line-height:1.45; color:var(--blue-soft); margin:8px 0 0; }
-    .event-note:empty{ display:none; }
-
-    /* Voucher */
-    .voucherGroup{ margin:6px 0 0; }
-    .voucher-entry{ display:grid; grid-template-columns:1fr auto; gap:8px; }
-    #voucherCode{
-      width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
-      letter-spacing:.06em; text-transform:uppercase;
-      color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+    .tier-chip[hidden]{ display:none; }
+    .tier-chip-name{
+      font-weight:700; text-transform:uppercase; letter-spacing:.1em; font-size:13px; color:var(--blue-deep);
     }
-    #voucherCode::placeholder{ letter-spacing:.06em; color:#B2D8E2; }
-    #voucherCode:focus{ outline:none; border-color:var(--blue-deep); }
-    #voucherCode.is-bad{ border-color:var(--warn); }
-    #voucherApply{
-      appearance:none; border:1px solid var(--line); border-radius:8px; padding:0 16px;
-      background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700; font-size:14px;
-      transition:border-color .15s ease, color .15s ease;
-    }
-    #voucherApply:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
-    /* Applied state: the entry field steps aside for a chip they can undo.
-       The display rules above out-rank the browser's own [hidden] rule, so
-       hiding either half has to be spelled out here. */
-    .voucher-applied{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    .voucher-entry[hidden], .voucher-applied[hidden]{ display:none; }
-    .voucher-chip{
-      display:inline-flex; align-items:center; gap:7px;
-      background:var(--tint); border:1px solid var(--blue-deep); border-radius:999px;
-      padding:6px 13px; font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--blue-deep);
-    }
-    .voucher-chip img{ width:14px; height:14px; object-fit:contain; }
-    .voucher-remove{
+    .tier-chip-spend{ font-size:12px; color:var(--blue-soft); margin-top:2px; }
+    .tier-chip-nudge{ font-size:12px; line-height:1.4; color:var(--blue-deep); margin-top:5px; }
+    .tier-chip-nudge[hidden]{ display:none; }
+    .tier-chip-nudge b{ font-weight:700; }
+    .tier-chip-edit{
       appearance:none; background:none; border:0; padding:4px 2px;
-      font-family:inherit; font-size:13px; color:var(--blue-soft); text-decoration:underline;
+      font-family:inherit; font-size:13px; font-weight:700; color:var(--blue-soft);
+      text-decoration:underline; cursor:pointer; flex:none;
     }
-    .voucher-remove:hover{ color:var(--blue-deep); }
-    .voucher-msg{ font-size:13px; line-height:1.45; color:var(--blue-soft); margin:8px 0 0; }
-    .voucher-msg:empty{ display:none; }
-    .voucher-msg.is-bad{ color:var(--warn); }
+    .tier-chip-edit:hover{ color:var(--blue-deep); }
+
+    /* ---- Claim slots ----
+       The claim is a fixed set of slots, not an open basket, so it is drawn as
+       one: a filled slot and an empty slot look like the same object. */
+    .slots{ display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+    .slot{
+      border:1px solid var(--line); border-radius:8px; padding:12px 13px;
+      display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center;
+    }
+    .slot.is-empty{
+      border-style:dashed; border-color:var(--blue-soft); background:transparent;
+      grid-template-columns:1fr; text-align:center;
+    }
+    .slot-label{
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.11em;
+      color:var(--blue-soft); margin-bottom:3px;
+    }
+    .slot-name{ font-weight:700; color:var(--blue-deep); }
+    .slot-sub{ font-size:13px; color:var(--blue-soft); margin-top:2px; }
+    .slot-empty-text{ font-size:13px; color:var(--blue-soft); line-height:1.45; }
+
+    /* What the claim is worth. Same shape the total used to have, because it
+       is answering the same question — what did this come to. */
+    .saved-section{
+      background:var(--tint); border:1px solid var(--line); border-radius:8px;
+      padding:12px 14px; margin:14px 0;
+    }
+    .saved-section .row{ font-size:17px; }
+    .saved-section strong{ color:var(--blue-deep); font-size:20px; }
+    .saved-line{ font-size:13px; color:var(--blue-soft); margin:6px 0 0; }
+
+    /* ---- Confirm step ----
+       Nothing is paid, so this is the only moment the claim can be checked.
+       It replaces the cart's buttons rather than covering the page. */
+    .confirm{ border:1px solid var(--blue-deep); border-radius:8px; padding:14px; margin-top:14px; }
+    .confirm[hidden]{ display:none; }
+    .confirm h4{
+      margin:0 0 10px; font-size:13px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.11em; color:var(--blue-deep);
+    }
+    .confirm ul{ margin:0 0 12px; padding:0 0 0 18px; }
+    .confirm li{ font-size:14px; line-height:1.5; color:var(--blue-deep); }
+    .confirm li span{ color:var(--blue-soft); }
+    .confirm-who{
+      font-size:13px; color:var(--blue-soft); line-height:1.45;
+      border-top:1px solid var(--line); padding-top:10px; margin:0 0 12px;
+    }
+    .confirm-who b{ color:var(--blue-deep); }
 
     .teleGroup{ margin:6px 0 12px; }
     .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--blue-deep); margin-bottom:8px; }
@@ -296,26 +296,6 @@
       color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
     }
     #teleHandle:focus{ outline:none; border-color:var(--blue-deep); }
-    input[type="file"]{
-      width:100%; padding:12px; border:1px dashed var(--blue-soft); border-radius:8px;
-      background:var(--cream); font-family:inherit; color:var(--blue-soft); cursor:pointer;
-    }
-
-    /* QR */
-    .qrWrap{
-      display:none; background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
-      padding:18px; margin-top:18px; text-align:center;
-    }
-    .qrWrap img{ max-width:230px; width:100%; border-radius:10px; border:1px solid var(--line); margin:10px 0; background:#fff; }
-    .qrHeader .title{ font-weight:700; font-size:16px; color:var(--blue-deep); margin-bottom:6px; }
-    .qrHeader .hint{ color:var(--blue-soft); font-size:13px; margin:0 0 10px; }
-    .orderRefBlock{
-      display:inline-flex; align-items:center; gap:10px; background:#fff;
-      border:1px solid var(--blue-deep); border-radius:999px; padding:7px 12px;
-      font-weight:700; font-size:14px; color:var(--blue-deep);
-    }
-    .copyBtn{ background:var(--blue-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
-
     /* Empty cart */
     .empty-cart{ text-align:center; padding:24px 12px; color:var(--blue-soft); }
     .empty-cart-img{ width:110px; height:auto; display:block; margin:0 auto 10px; opacity:.9; }
@@ -361,6 +341,211 @@
 
     @media (max-width:600px){
       .bg-confetti svg{ opacity:.42; }
+    }
+  </style>
+  <style id="spendGateStyle">
+    /* The spend question. Same window as the order confirmation, so the two
+       read as one family. Frosted rather than tinted: a brown scrim over a
+       cream page turns pink, so this just blurs the menu behind it. */
+    #spendGate{ position:fixed; inset:0; z-index:9996; display:none; opacity:0;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:center; justify-content:center; padding:24px; }
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #spendGate{ background:rgba(255,253,247,.86); }
+    }
+    #spendGate .sg-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:400px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #spendGate.is-open .sg-modal{ transform:none; }
+    /* Used for one frame when the gate opens with the page rather than after
+       it: kills both transitions so the blur and the window are simply there,
+       already settled, as the splash lifts. Removed straight after, so closing
+       still fades out. */
+    #spendGate.no-anim, #spendGate.no-anim .sg-modal{ transition:none; }
+    @media (prefers-reduced-motion:reduce){
+      #spendGate .sg-modal{ transform:none; transition:none; }
+    }
+
+    #spendGate .sg-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 20px; }
+    #spendGate .sg-stars img{ object-fit:contain; flex:none; }
+    #spendGate .sg-hero{ width:52px; height:52px; transform-origin:50% 65%;
+      animation:soSway 3.4s ease-in-out infinite; }
+    #spendGate .sg-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #spendGate .sg-sat.a{ animation-delay:.6s; }
+    #spendGate .sg-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
+    @media (prefers-reduced-motion:reduce){
+      #spendGate .sg-hero, #spendGate .sg-sat{ animation:none; opacity:1; }
+    }
+
+    #spendGate .sg-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--blue-deep); margin:0 0 10px; }
+    #spendGate .sg-sub{ font-size:14px; line-height:1.5; color:var(--blue-soft); margin:0 0 20px; }
+    #spendGate .sg-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
+
+    /* The dollar sign sits inside the field so nobody types a second one. */
+    #spendGate .sg-field{ display:flex; align-items:center; background:#fff;
+      border:1px solid var(--line); border-radius:3px; overflow:hidden; margin:0 0 16px;
+      transition:border-color .15s ease; }
+    #spendGate .sg-field:focus-within{ border-color:var(--blue-deep); }
+    #spendGate .sg-field.is-bad{ border-color:var(--warn); }
+    #spendGate .sg-cur{ padding:0 2px 0 14px; font-weight:700; font-size:18px; color:var(--blue-soft); }
+    #spendGate .sg-input{ flex:1; min-width:0; appearance:none; border:0; background:none;
+      padding:14px 14px 14px 5px; font-family:inherit; font-size:18px; font-weight:700;
+      color:var(--blue-deep); }
+    #spendGate .sg-input:focus{ outline:none; }
+    #spendGate .sg-input::placeholder{ font-weight:400; color:#B2D8E2; }
+    /* Chrome and Firefox both draw spinners that are useless on a phone. */
+    #spendGate .sg-input::-webkit-outer-spin-button,
+    #spendGate .sg-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+    #spendGate .sg-input[type=number]{ -moz-appearance:textfield; }
+
+    /* Confirmation that a rung is banked. One short line: the panel below is
+       doing the persuading, and this only has to say "yes, you're in". */
+    #spendGate .sg-status{
+      font-size:13px; line-height:1.45; color:var(--blue-deep); font-weight:700;
+      margin:0 0 12px; text-align:left; min-height:19px;
+    }
+    #spendGate .sg-status.is-bad{ color:var(--warn); font-weight:400; }
+    #spendGate .sg-status:empty{ display:none; }
+
+    /* ---- Next up ----
+       The persuasion, and it sits directly under the field because that is
+       where their eyes already are. Three things are doing the work: a bar
+       that fills as they type (people push harder the closer a goal looks),
+       the actual drinks rather than a tier number (nobody has ever wanted a
+       Tier 4, they want the Lemon Meringue), and the money those drinks are
+       worth set against the money it takes to get there. */
+    #spendGate .sg-next{
+      border:1px solid var(--line); border-radius:8px; padding:12px 13px 13px;
+      margin:0 0 14px; text-align:left; background:var(--card);
+      transition:border-color .25s ease, background .25s ease, box-shadow .25s ease;
+    }
+    #spendGate .sg-next[hidden]{ display:none; }
+    /* Within touching distance. No alarm colours and no countdown: it simply
+       firms up, which is all a near miss needs to do. */
+    #spendGate .sg-next.is-close{
+      border-color:var(--blue-deep); background:var(--tint);
+      box-shadow:inset 0 0 0 1px var(--blue-deep);
+    }
+
+    #spendGate .sg-next-head{
+      display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 0 9px;
+    }
+    #spendGate .sg-next-label{
+      font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.14em;
+      color:var(--blue-soft);
+    }
+    #spendGate .sg-next.is-close .sg-next-label{ color:var(--blue-deep); }
+    #spendGate .sg-next-gap{
+      font-size:13px; font-weight:700; color:var(--blue-deep); flex:none;
+    }
+
+    /* The goal gradient, drawn. */
+    #spendGate .sg-bar{
+      height:6px; border-radius:999px; background:var(--line); overflow:hidden; margin:0 0 11px;
+    }
+    #spendGate .sg-bar i{
+      display:block; height:100%; width:0; border-radius:999px; background:var(--blue-soft);
+      transition:width .35s cubic-bezier(.22,.61,.36,1), background .25s ease;
+    }
+    #spendGate .sg-next.is-close .sg-bar i{ background:var(--blue-deep); }
+    @media (prefers-reduced-motion:reduce){ #spendGate .sg-bar i{ transition:none; } }
+
+    #spendGate .sg-next-body{ display:flex; align-items:center; gap:11px; }
+    #spendGate .sg-next-pics{ display:flex; flex:none; }
+    #spendGate .sg-next-pics img{
+      width:44px; height:44px; object-fit:contain; border-radius:6px;
+      background:var(--cream); border:1px solid var(--line);
+    }
+    /* Two drinks overlap slightly, so a second one reads as "and another"
+       rather than as a separate row of furniture. */
+    #spendGate .sg-next-pics img + img{ margin-left:-12px; }
+    #spendGate .sg-next-name{ font-size:14px; font-weight:700; color:var(--blue-deep); line-height:1.3; }
+    #spendGate .sg-next-worth{ font-size:13px; color:var(--blue-soft); line-height:1.4; margin-top:2px; }
+    #spendGate .sg-next-worth:empty{ display:none; }
+    #spendGate .sg-next-worth b{ color:var(--blue-deep); font-weight:700; }
+    /* Only ever there on a near miss, so it never becomes wallpaper. */
+    #spendGate .sg-next-act{
+      font-size:13px; line-height:1.4; color:var(--blue-deep);
+      border-top:1px solid var(--line); margin-top:11px; padding-top:10px;
+    }
+    #spendGate .sg-next-act[hidden]{ display:none; }
+    #spendGate .sg-next-act b{ font-weight:700; }
+
+    /* The map. Compact now that the panel above carries the detail. */
+    #spendGate .sg-ladder{ display:flex; flex-direction:column; gap:5px; margin:0 0 16px; text-align:left; }
+    #spendGate .sg-rung{
+      display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:9px;
+      border:1px solid var(--line); border-radius:8px; padding:8px 10px;
+      transition:border-color .2s ease, background .2s ease;
+    }
+    #spendGate .sg-rung.on{ background:var(--tint); border-color:var(--blue-deep); }
+    #spendGate .sg-tick{
+      width:15px; height:15px; border-radius:999px; border:1px solid var(--line);
+      background:#fff; position:relative; flex:none;
+    }
+    #spendGate .sg-rung.on .sg-tick{ background:var(--blue-deep); border-color:var(--blue-deep); }
+    #spendGate .sg-rung.on .sg-tick::after{
+      content:''; position:absolute; left:4.5px; top:1.5px; width:4px; height:8px;
+      border:solid var(--cream); border-width:0 2px 2px 0; transform:rotate(42deg);
+    }
+    #spendGate .sg-rung-name{ font-size:12.5px; font-weight:700; color:var(--blue-soft); line-height:1.35; }
+    #spendGate .sg-rung.on .sg-rung-name{ color:var(--blue-deep); }
+    #spendGate .sg-rung-min{
+      font-size:11px; font-weight:700; letter-spacing:.06em; color:var(--blue-soft); flex:none;
+    }
+    #spendGate .sg-rung.on .sg-rung-min{ color:var(--blue-deep); }
+
+    #spendGate .sg-err{ font-size:13px; line-height:1.45; color:var(--warn); margin:0 0 14px; min-height:19px; text-align:left; }
+    #spendGate .sg-err:empty{ display:none; }
+
+    #spendGate .sg-go{ appearance:none; display:block; width:100%;
+      background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      cursor:pointer; transition:background .15s ease; }
+    #spendGate .sg-go:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
+    #spendGate .sg-go:disabled{ opacity:.45; cursor:not-allowed; }
+    #spendGate .sg-go:focus{ outline:none; }
+    #spendGate .sg-go:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
+
+    /* The influencer door. Second, quieter, and only open while the amount
+       field is empty — a code is an alternative to a receipt, not a topping. */
+    #spendGate .sg-or{
+      display:flex; align-items:center; gap:12px; margin:20px 0 14px;
+      font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--blue-soft);
+    }
+    #spendGate .sg-or::before, #spendGate .sg-or::after{
+      content:''; flex:1; height:1px; background:var(--line);
+    }
+    #spendGate .sg-voucher{ transition:opacity .2s ease; }
+    #spendGate .sg-voucher.is-off{ opacity:.4; pointer-events:none; }
+    #spendGate .sg-vrow{ display:grid; grid-template-columns:1fr auto; gap:8px; }
+    #spendGate .sg-vinput{
+      width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
+      letter-spacing:.06em; text-transform:uppercase;
+      color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:3px;
+    }
+    #spendGate .sg-vinput::placeholder{ letter-spacing:.06em; color:#B2D8E2; text-transform:none; }
+    #spendGate .sg-vinput:focus{ outline:none; border-color:var(--blue-deep); }
+    #spendGate .sg-vinput.is-bad{ border-color:var(--warn); }
+    #spendGate .sg-vgo{
+      appearance:none; border:1px solid var(--line); border-radius:3px; padding:0 16px;
+      background:var(--cream); color:var(--blue-soft); font-family:inherit; font-weight:700; font-size:14px;
+      cursor:pointer; transition:border-color .15s ease, color .15s ease;
+    }
+    #spendGate .sg-vgo:hover{ border-color:var(--blue-soft); color:var(--blue-deep); }
+    #spendGate .sg-vnote{ font-size:12px; line-height:1.45; color:var(--blue-soft); margin:9px 0 0; text-align:left; }
+    #spendGate .sg-vnote.is-bad{ color:var(--warn); }
+
+    @media (max-width:600px){
+      #spendGate{ padding:18px 20px; }
+      #spendGate .sg-modal{ padding:28px 22px 24px; }
+      #spendGate .sg-head{ font-size:20px; }
+      #spendGate .sg-hero{ width:46px; height:46px; }
+      #spendGate .sg-sat{ width:21px; height:21px; }
     }
   </style>
   <style id="successOverlayStyle">
@@ -445,6 +630,66 @@
     <p class="co-word">Closed</p>
   </div>
 
+  <!-- ============ What did you spend at Natura? (unlocks the tier) ============ -->
+  <div id="spendGate" aria-hidden="true">
+    <div class="sg-modal" role="dialog" aria-modal="true" aria-labelledby="sgHead">
+      <div class="sg-stars" aria-hidden="true">
+        <img class="sg-sat a" src="/img/star-loading-1.png" alt="">
+        <img class="sg-hero" src="/img/star-loading-2.png" alt="">
+        <img class="sg-sat b" src="/img/star-loading-3.png" alt="">
+      </div>
+
+      <p class="sg-head" id="sgHead">How much did you spend at Natura today?</p>
+      <p class="sg-sub">Your receipt total unlocks the drinks you can claim.</p>
+
+      <hr class="sg-rule">
+
+      <label class="sg-field" id="sgField" for="sgInput">
+        <span class="sg-cur" aria-hidden="true">$</span>
+        <input type="number" class="sg-input" id="sgInput" placeholder="0"
+               min="0" step="0.01" inputmode="decimal"
+               autocomplete="off" autocorrect="off" spellcheck="false" aria-describedby="sgErr">
+      </label>
+
+      <p class="sg-status" id="sgStatus" role="status" aria-live="polite"></p>
+
+      <!-- The upgrade nudge: progress, the drinks themselves, and what they
+           are worth against what it costs to reach them. -->
+      <div class="sg-next" id="sgNext" hidden>
+        <div class="sg-next-head">
+          <span class="sg-next-label" id="sgNextLabel">Next up</span>
+          <span class="sg-next-gap" id="sgNextGap"></span>
+        </div>
+        <div class="sg-bar" aria-hidden="true"><i id="sgBarFill"></i></div>
+        <div class="sg-next-body">
+          <div class="sg-next-pics" id="sgNextPics"></div>
+          <div>
+            <div class="sg-next-name" id="sgNextName"></div>
+            <div class="sg-next-worth" id="sgNextWorth"></div>
+          </div>
+        </div>
+        <div class="sg-next-act" id="sgNextAct" hidden></div>
+      </div>
+
+      <div class="sg-ladder" id="sgLadder"></div>
+
+      <p class="sg-err" id="sgErr" role="status" aria-live="polite"></p>
+
+      <button type="button" class="sg-go" id="sgGo" disabled>Unlock my drinks</button>
+
+      <div class="sg-or">or</div>
+
+      <div class="sg-voucher" id="sgVoucher">
+        <div class="sg-vrow">
+          <input type="text" class="sg-vinput" id="sgVCode" placeholder="Voucher code"
+                 autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
+          <button type="button" class="sg-vgo" id="sgVGo">Redeem</button>
+        </div>
+        <p class="sg-vnote" id="sgVNote">Got a code from us? Leave the amount blank and redeem it here.</p>
+      </div>
+    </div>
+  </div>
+
   <div id="successOverlay" aria-hidden="true">
     <div class="so-modal" role="dialog" aria-modal="true" aria-labelledby="soHead">
       <div class="so-stars" aria-hidden="true">
@@ -480,80 +725,36 @@
     <div class="layout">
       <main>
         <section class="menu-section">
-          <div class="grid" id="bundleGrid"></div>
-        </section>
-        <section class="menu-section">
-          <h2 class="section-title">Lattes</h2>
-          <div class="grid" id="latteGrid"></div>
-        </section>
-        <section class="menu-section">
-          <h2 class="section-title">Tonics</h2>
-          <div class="grid" id="tonicGrid"></div>
+          <h2 class="section-title" id="menuTitle">Claim Your Drink</h2>
+          <p class="tier-intro" id="menuNote"></p>
+          <div class="grid" id="menuGrid"></div>
         </section>
       </main>
 
       <aside class="cart" id="cart">
-        <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
+        <h3>Your Claim <span class="cart-badge" id="cartCount">0/1</span></h3>
+
+        <!-- Where the tier came from, and the way back to change it. -->
+        <div class="tier-chip" id="tierChip" hidden>
+          <div>
+            <div class="tier-chip-name" id="tierChipName">Tier 1</div>
+            <div class="tier-chip-spend" id="tierChipSpend"></div>
+            <div class="tier-chip-nudge" id="tierChipNudge" hidden></div>
+          </div>
+          <button type="button" class="tier-chip-edit" id="tierChipEdit">Change</button>
+        </div>
+
         <div id="cartItems"></div>
 
-        <!-- Bundle nudge. Appears only when they are 1-2 drinks short of the
-             trio, and only until they dismiss it. Deliberately not a pop-up. -->
-        <div class="bundle-nudge" id="bundleNudge" hidden>
-          <button type="button" class="bundle-nudge-x" id="bundleNudgeX" aria-label="No thanks">&times;</button>
-          <p id="bundleNudgeText"></p>
-          <button type="button" class="bundle-nudge-go" id="bundleNudgeGo">Make it the bundle</button>
-        </div>
-
         <div class="divider"></div>
 
-        <!-- Event purchase. Trust-based end to end: nothing is asked for here
-             and nothing is checked at collection either. -->
-        <div class="eventGroup">
-          <span class="teleLabel" id="eventLabel">
-            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>
-            </svg>
-            Bought something from Natura at the event?
-          </span>
-          <div class="event-toggle" role="group" aria-labelledby="eventLabel">
-            <button type="button" class="event-opt" id="eventYes" aria-pressed="false">Yes</button>
-            <button type="button" class="event-opt active" id="eventNo" aria-pressed="true">No</button>
-          </div>
-          <p class="event-note" id="eventNote"></p>
+        <div class="row" id="valueRow"><span>Menu value</span><strong id="menuValue">$0.00</strong></div>
+        <div class="row" id="coveredRow"><span class="muted">Your tier covers</span><strong id="covered" class="success-text">-$0.00</strong></div>
+        <div class="saved-section">
+          <div class="row"><span>You pay</span><strong id="payTotal">$0.00</strong></div>
+          <p class="saved-line" id="savedLine">Add a drink and your saving shows up here.</p>
         </div>
-
-        <div class="divider"></div>
-
-        <!-- Voucher. Checked in the browser only, so it is deliberately a
-             single hard-coded code rather than anything that looks verified. -->
-        <div class="voucherGroup">
-          <label class="teleLabel" for="voucherCode">
-            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 12a2 2 0 0 1 2-2V7a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v3a2 2 0 0 1 0 4v3a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-3a2 2 0 0 1-2-2Z"/><path d="M13 6v12"/>
-            </svg>
-            Voucher code
-          </label>
-          <div class="voucher-entry" id="voucherEntry">
-            <input type="text" id="voucherCode" placeholder="Enter code" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false">
-            <button type="button" id="voucherApply">Apply</button>
-          </div>
-          <div class="voucher-applied" id="voucherApplied" hidden>
-            <span class="voucher-chip"><img src="/img/star.png" alt="">SUNNYDAYS</span>
-            <button type="button" class="voucher-remove" id="voucherRemove">Remove</button>
-          </div>
-          <p class="voucher-msg" id="voucherMsg" role="status" aria-live="polite"></p>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
-        <div class="row" id="bundleRow" style="display:none;"><span class="muted">Bundle deal</span><strong id="bundleRowAmount" class="success-text">-$0.00</strong></div>
-        <div class="row" id="voucherRow" style="display:none;"><span class="muted" id="voucherRowLabel">Voucher</span><strong id="voucherRowAmount" class="success-text">-$0.00</strong></div>
-        <div class="row" id="eventRow" style="display:none;"><span class="muted">Event purchase · 5%</span><strong id="eventRowAmount" class="success-text">-$0.00</strong></div>
-        <div class="total-section">
-          <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
-        </div>
-        <p class="small muted">Cart saved on this device.</p>
+        <p class="small muted">Claim saved on this device.</p>
 
         <div class="divider"></div>
 
@@ -568,37 +769,23 @@
           <input type="text" id="teleHandle" placeholder="@yourhandle" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         </div>
 
-        <div class="btn-group">
-          <button id="confirmBtn">Check out</button>
-          <button id="clearBtn">Clear cart</button>
+        <div class="btn-group" id="btnGroup">
+          <button id="confirmBtn">Claim</button>
+          <button id="clearBtn">Start over</button>
         </div>
 
-        <!-- QR + Proof upload -->
-        <div class="qrWrap" id="qrWrap">
-          <div class="qrHeader">
-            <div class="title">PayNow to complete order</div>
-            <p class="hint">Enter this reference in your banking app:</p>
-            <div class="orderRefBlock">
-              <span id="orderRef">…</span>
-              <button id="copyRef" class="copyBtn">Copy</button>
-            </div>
+        <!-- Nothing is paid, so this is the one place a claim can be checked
+             before it is sent. It takes the buttons' place rather than
+             covering the page. -->
+        <div class="confirm" id="confirmPanel" hidden>
+          <h4>Confirm your claim</h4>
+          <ul id="confirmList"></ul>
+          <p class="confirm-who" id="confirmWho"></p>
+          <div class="btn-group" style="margin-top:0">
+            <button id="confirmGo">Yes, claim it</button>
+            <button type="button" class="confirm-back" id="confirmBack">Back</button>
           </div>
-
-          <img id="paynowQR" src="/img/paynow-qr.webp" alt="PayNow QR">
-
-          <p class="small muted" style="margin:12px 0">
-            Scan the QR, pay the exact amount shown, and include the reference above.
-          </p>
-
-          <div class="teleGroup" style="text-align:left; margin-bottom:0">
-            <label class="teleLabel" for="paymentProof">Upload payment proof</label>
-            <input type="file" id="paymentProof" name="proof" accept="image/*">
-            <div id="proofPreview" class="small muted" style="margin-top:8px"></div>
-            <div class="row" style="margin-top:14px; flex-wrap:wrap">
-              <button id="submitProofBtn" disabled>Submit proof</button>
-              <span id="submitStatus" class="small"></span>
-            </div>
-          </div>
+          <p class="small" id="submitStatus" style="margin:10px 0 0"></p>
         </div>
       </aside>
     </div>
@@ -612,56 +799,109 @@
   // ==================================
 
 
-  /* Menu order is this array's order, within each category.
+  /* Three drinks, and none of them are sold: a tier unlocks what you may claim
+     and the claim itself is free. Menu order is this array's order.
      A drink wears the hand-stuck bestseller tag by adding one field:
          sticker: '/img/bestseller-card.png'
      Nobody carries it right now; the rendering for it is untouched, so putting
      that line back on any drink below brings the tag straight back. */
   const products = [
-    /* The bundle is a single cart line at one price. The photo does the talking,
-       so the card names its drinks once and leaves it there. Its `bundle` list is
-       what the nudge and the sold-out check read; `milkFor` gives it one milk
-       toggle per milk drink inside it. */
-    { id: 'event-bundle', title: 'Event Bundle', img: '/img/bundle.png', basePrice: 19.0, dealPrice: 17.0,
-      desc: 'Raspberry Matcha Tonic, Gen\'s Matcha and Hojicha Latte.',
-      bundle: ['matcha-rasp', 'gens-matcha', 'hojicha-latte'],
-      milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
-      milk: false, category: 'bundle' },
-    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', img: '/img/Lemmon-latte.png', basePrice: 10.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
-    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: '/img/mango-matcha.png',  basePrice: 7.5, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
-    { id: 'gens-matcha',   title: "Gen's Matcha",           img: '/img/matcha-latte.png',  img2: '/img/matcha-latte-2.webp', basePrice: 6.0, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
-    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: '/img/hojicha-latte.png', basePrice: 6.0, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
-    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: '/img/matcha-rasp.png',   img2: '/img/matcha-rasp-2.webp', basePrice: 7.0, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
-    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: '/img/matcha-yuzu.png',   basePrice: 7.0, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
+    { id: 'gens-matcha',    title: "Gen's Matcha",           img: '/img/matcha-latte.png',  img2: '/img/matcha-latte-2.webp',
+      value: 6.0,  milk: 'Oat milk',
+      desc: 'The classic matcha latte, whisked exactly how gen likes it.' },
+    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha',  img: '/img/Lemmon-latte.png',
+      value: 10.0, milk: 'Oat milk',
+      desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.' },
+    { id: 'matcha-rasp',    title: 'Raspberry Matcha Tonic', img: '/img/matcha-rasp.png',   img2: '/img/matcha-rasp-2.webp',
+      value: 7.0,  milk: '',
+      desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.' }
   ];
+
+  /* ---- The ladder ----
+     A tier is a list of slots, and a slot is one drink-shaped hole with a list
+     of what fits in it. Every rule in the ladder falls out of that shape:
+     tiers 1-3 are a single slot that accepts more as you climb, and tier 4 is
+     two slots — one only a Lemon fits, one only a non-Lemon fits — which is
+     exactly "one Lemon plus one other" without a single special case.
+
+     What someone spent at Natura decides which rung they are on: `min` is the
+     receipt total that reaches it, and the highest rung they clear wins. */
+  const ALL_DRINKS = products.map(p => p.id);
+  const TIERS = [
+    { n: 1, name: 'Tier 1', min: 69,  perk: "Gen's Matcha",
+      slots: [{ label: 'Your drink', accepts: ['gens-matcha'] }] },
+    { n: 2, name: 'Tier 2', min: 119, perk: "Gen's Matcha or the Raspberry Tonic",
+      slots: [{ label: 'Your drink', accepts: ['gens-matcha', 'matcha-rasp'] }] },
+    { n: 3, name: 'Tier 3', min: 169, perk: 'Any one drink on the menu',
+      slots: [{ label: 'Your drink', accepts: ALL_DRINKS }] },
+    { n: 4, name: 'Tier 4', min: 240, perk: 'Lemon Meringue, plus one more',
+      slots: [
+        { label: 'Lemon Meringue Matcha', accepts: ['lemon-meringue'] },
+        { label: 'One more drink',        accepts: ['gens-matcha', 'matcha-rasp'] }
+      ] }
+  ];
+  const MIN_SPEND = TIERS[0].min;
+  // The best rung a receipt reaches, or null if it doesn't reach the first.
+  function tierForSpend(amount){
+    let found = null;
+    TIERS.forEach(t => { if(amount >= t.min) found = t; });
+    return found;
+  }
+  const nextTier = t => t ? TIERS[TIERS.indexOf(t) + 1] || null : TIERS[0];
+
+  /* The best claim a rung allows: the dearest drink each slot will take, with
+     nothing counted twice. Worked out from the slots rather than written down,
+     so it stays honest if a price or a rule changes.
+     It is what the next rung actually hands you, which is what the nudge
+     shows a photo of. */
+  function bestClaim(t){
+    const taken = [];
+    t.slots.forEach(s=>{
+      let best = null;
+      s.accepts.forEach(id=>{
+        if(taken.indexOf(id) !== -1) return;
+        const p = productById(id);
+        if(p && (!best || p.value > best.value)) best = p;
+      });
+      if(best) taken.push(best.id);
+    });
+    return taken.map(productById);
+  }
+
+  /* How far along the leg between the rung they're on and the next one. The
+     bar measures the leg, not the whole ladder, so it fills fast near the top
+     rather than crawling. */
+  function legProgress(amount){
+    const at   = tierForSpend(amount);
+    const next = nextTier(at);
+    if(!next) return 1;
+    const from = at ? at.min : 0;
+    return Math.max(0, Math.min(1, (amount - from) / (next.min - from)));
+  }
+  // Close enough that saying so is useful rather than nagging.
+  const NEAR_GAP = 25;
+
   /* The voucher, in one place. There is no server check behind it, so this is
      one hard-coded code redeemable once per browser — enough to stop casual
-     repeat use, and honest about being no more than that. */
+     repeat use, and honest about being no more than that.
+
+     It is the influencer door rather than a discount: redeeming it puts them
+     on Tier 2 and does nothing else, and it is only offered while the amount
+     field is empty, because a code stands in for a receipt instead of topping
+     one up. */
   const VOUCHER = {
     code: 'SUNNYDAYS',
-    eligible: ['gens-matcha', 'hojicha-latte'],   // one free cup of either, any milk
-    blurb: "one free Gen's Matcha or Hojicha Latte",
+    tier: 2,
     usedKey: 'gm_voucher_used_v1'
   };
 
-  // Bought something from Natura at the event? Trust-based — no proof is ever
-  // asked for, here or at the cart.
-  const EVENT_DISCOUNT = 0.05;
+  /* New keys for the tier rebuild. A cart saved under the old ones is a list
+     of priced drinks with milk choices, which means nothing here, so it is
+     retired rather than migrated. */
+  const CLAIM_KEY = 'gm_claim_v1';
 
-  /* Bumped with the Sep 2026 price change: a cart saved on someone's device
-     carries the unit price it was added at, so the old key is retired rather
-     than letting a stale cart check out at last month's prices. */
-  const CART_KEY = 'whisk_matcha_cart_v2';
-  const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-  const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
-  let cart = loadCart();
-
-  const productById = id => products.find(x => x.id === id);
-  const isBundle    = x => { const p = productById(x.productId); return !!(p && p.bundle); };
-  function round2(n){ return Math.round(n * 100) / 100; }
-
-  let voucher = null;         // the code currently applied to this cart, or null
-  let eventPurchase = false;  // ticked "Yes" to an event purchase
+  const productById = id => products.find(p => p.id === id);
+  function money(n){ return '$' + (Math.round(n * 100) / 100).toFixed(2); }
 
   function voucherUsed(){
     try { return localStorage.getItem(VOUCHER.usedKey) === VOUCHER.code; } catch(e){ return false; }
@@ -669,91 +909,95 @@
   function markVoucherUsed(){
     try { localStorage.setItem(VOUCHER.usedKey, VOUCHER.code); } catch(e){}
   }
-  function cartHasEligible(){ return cart.some(x=> VOUCHER.eligible.indexOf(x.productId) !== -1); }
 
-  function money(n){ return '$' + (Math.round(n*100)/100).toFixed(2); }
-  function itemPrice(p, chosen){
-    const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
-    return p.basePrice + addSum;
+  // ---- Claim state ----
+  let tier    = null;   // the rung their receipt (or code) reached
+  let spend   = null;   // what they told us they spent, or null on the code route
+  let voucher = false;  // came in on SUNNYDAYS rather than a receipt
+  let picks   = [];     // one entry per slot: a product id, or null
+
+  function activeSlots(){ return tier ? tier.slots.slice() : []; }
+
+  function saveClaim(){
+    try {
+      localStorage.setItem(CLAIM_KEY, JSON.stringify({
+        tier: tier ? tier.n : null, spend: spend, picks: picks, voucher: voucher
+      }));
+    } catch(e){}
+  }
+  function loadClaim(){
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem(CLAIM_KEY) || 'null'); } catch(e){}
+    if(!raw) return;
+    tier    = TIERS.find(t => t.n === raw.tier) || null;
+    spend   = typeof raw.spend === 'number' ? raw.spend : null;
+    voucher = !!raw.voucher;
+    picks   = Array.isArray(raw.picks) ? raw.picks.slice() : [];
+    normalise();
   }
 
+  /* Slots are the only source of truth. Anything they no longer hold — a drink
+     that sold out, a tier they stepped down from, a voucher they removed — is
+     dropped here rather than carried along invisibly. */
+  function normalise(){
+    const slots = activeSlots();
+    picks.length = slots.length;
+    for(let i = 0; i < slots.length; i++){
+      const id = picks[i];
+      if(!id || slots[i].accepts.indexOf(id) === -1 || !available(id)) picks[i] = null;
+    }
+  }
 
-  // Ticked "sold out" in the Item-Status sheet: whole drinks, and milks.
-  // A milk running out hits every latte at once, so it's tracked separately.
+  // ---- Sold out, straight from the Item-Status sheet ----
   const MILKS = ['Fresh milk', 'Oatmilk'];
-  let SOLD_OUT = new Set();
+  let SOLD_OUT       = new Set();
   let SOLD_OUT_MILKS = new Set();
-  const cardsByTitle = new Map();   // filled in as the menu renders
-  let soldOutNotice = '';           // shown in the cart when we drop an item
+  const cardsById    = new Map();   // filled in as the menu renders
+  let soldOutNotice  = '';          // shown in the cart when we drop a drink
 
-  // Every milk an item depends on, whether it is one drink or a bundle of them.
-  const milksOf = x => (x.addons || []).map(a => a.milk || a.label).filter(Boolean);
-
-  function addToCart({productId, qty, chosen}){
-    const p = products.find(x=>x.id===productId);
-    if(!p) return;
-    if(SOLD_OUT.has(p.title)) return;
-    if(p.bundle && p.bundle.some(id => SOLD_OUT.has((productById(id)||{}).title))) return;
-    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk || a.label))) return;
-    const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
-    const title = p.title;
-    const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
-    const unitPrice = itemPrice(p, chosen);
-
-    const existing = cart.find(x=>x.key===key);
-    if(existing){ existing.qty += qty; }
-    else { cart.push({ key, productId, title, addons: chosen, addonsLabel, unitPrice, qty }); }
-    saveCart(cart); renderCart();
+  /* The sheet still ticks milks, and both lattes are made on oat and nothing
+     else, so oat running out takes them both with it. The sheet's own spelling
+     ("Oatmilk") and the card's ("Oat milk") both count. */
+  function milkOut(p){
+    if(!p.milk) return false;
+    return SOLD_OUT_MILKS.has('Oatmilk') || SOLD_OUT_MILKS.has(p.milk);
+  }
+  function available(id){
+    const p = productById(id);
+    return !!p && !SOLD_OUT.has(p.title) && !milkOut(p);
   }
 
-  function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
-  function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
-
-  /* The cup the voucher lands on: an eligible drink, dearest first, since the
-     milk choice can move the price. Ties go to whatever was added first. One
-     cup only — a line with qty 2 still pays for the second. */
-  function cartHasBundle(){ return cart.some(isBundle); }
-
-  /* The voucher never touches a bundle: the drinks inside one are already
-     discounted. A Gen's Matcha or Hojicha bought on its own is an ordinary
-     drink, though, so it can still be claimed even with a bundle in the cart. */
-  function voucherLine(){
-    if(!voucher) return null;
-    let best = null;
-    cart.forEach(x=>{
-      if(VOUCHER.eligible.indexOf(x.productId) === -1) return;
-      if(!best || x.unitPrice > best.unitPrice) best = x;
-    });
-    return best ? { key:best.key, title:best.title, addonsLabel:best.addonsLabel, price:best.unitPrice } : null;
+  // ---- Claim operations ----
+  function firstOpenSlot(id){
+    const slots = activeSlots();
+    for(let i = 0; i < slots.length; i++){
+      if(picks[i]) continue;
+      if(slots[i].accepts.indexOf(id) !== -1) return i;
+    }
+    return -1;
+  }
+  // In the tier at all, whether or not there is still room for it.
+  function inTier(id){ return activeSlots().some(s => s.accepts.indexOf(id) !== -1); }
+  function canClaim(id){ return !!tier && available(id) && firstOpenSlot(id) !== -1; }
+  function claimedIds(){ return picks.filter(Boolean); }
+  function claimComplete(){
+    const slots = activeSlots();
+    return slots.length > 0 && slots.every((s, i) => !!picks[i]);
+  }
+  // The lowest rung that reaches a drink — what the lock tag on its card says.
+  function unlockedAt(id){
+    const t = TIERS.find(t => t.slots.some(s => s.accepts.indexOf(id) !== -1));
+    return t ? t.n : null;
   }
 
-  function totals(){
-    const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
-    const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
-    /* Discounts do not stack, which is what people expect of them. A bundle in
-       the cart is the whole of the deal: its own saving shows as a line, and
-       neither the voucher nor the 5% is added on top. The bundle's drinks are
-       counted at full price in the subtotal so that saving is visible rather
-       than baked silently into one number. */
-    const bundleOff = cart.reduce((t, x)=>{
-      const prod = productById(x.productId);
-      return t + (prod && prod.bundle
-        ? (prod.basePrice - prod.dealPrice) * x.qty
-        : 0);
-    }, 0);
-    const bundled = bundleOff > 0;
-
-    const free = voucherLine();
-    const voucherOff = free ? free.price : 0;
-    // The 5% comes off what is left after the free cup, not off the cup itself.
-    const eventOff = (eventPurchase && !bundled)
-      ? Math.round((sub - voucherOff) * EVENT_DISCOUNT * 100) / 100
-      : 0;
-
-    const discount = Math.round((bundleOff + voucherOff + eventOff) * 100) / 100;
-    return { sub, total: Math.round((sub - discount) * 100) / 100,
-             discount, bundleOff, voucherOff, eventOff, totalCups, free };
+  function addDrink(id){
+    const slot = firstOpenSlot(id);
+    if(!tier || !available(id) || slot === -1) return;
+    picks[slot] = id;
+    saveClaim();
   }
+  function clearSlot(i){ picks[i] = null; saveClaim(); render(); }
+  function claimValue(){ return claimedIds().reduce((s, id) => s + (productById(id) || {}).value, 0); }
 
   /* Swipe between a drink's photos. Mobile first: the gesture only takes over
      once it is clearly sideways, so a vertical flick still scrolls the page. */
@@ -821,32 +1065,15 @@
     requestAnimationFrame(()=> track.classList.remove('dragging'));
   }
 
-  const grids = {
-    bundle: document.getElementById('bundleGrid'),
-    latte: document.getElementById('latteGrid'),
-    tonic: document.getElementById('tonicGrid')
-  };
+  // ---- The menu ----
+  const menuGrid = document.getElementById('menuGrid');
   products.forEach(p=>{
     const card = document.createElement('article');
-    card.className = 'card' + (p.bundle ? ' is-bundle' : '');
+    card.className = 'card';
     const stickerEl = p.sticker
       ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
-    /* One toggle per milk drink. A plain drink has a single unlabelled one;
-       the bundle gets one per drink inside it, each labelled. */
-    const milkRows = p.milkFor
-      ? p.milkFor
-      : (p.milk ? [{ id: p.id, label: '' }] : []);
-    const milkBlock = milkRows.map((mf, i) => `
-      <p class="milk-label">${mf.label ? 'Milk for ' + mf.label : 'Choose your milk'}</p>
-      <div class="milk-toggle${i === 0 ? ' sticker-host' : ''}" data-milk-for="${mf.id}">${i === 0 ? stickerEl : ''}
-        <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
-        <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
-      </div>`).join('');
-
-    /* No milk row to hang it off, so the tonics get it on the buy row instead. */
-    const rowSticker = (p.sticker && !milkRows.length) ? stickerEl : '';
     /* One photo stays a plain img. A second one turns it into a swipe track,
-       so nothing changes for the other four drinks. */
+       so nothing changes for the drink that only has the one. */
     const photos = p.img2 ? `
         <div class="gal">
           <div class="gal-track">
@@ -859,489 +1086,521 @@
           <button type="button" aria-label="Photo 2 of 2"></button>
         </div>`
       : `<img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>`;
+
     card.innerHTML = `
       <div class="img-wrap">
         ${photos}
         <span class="soldout-tag">Sold out</span>
+        <span class="lock-tag"></span>
       </div>
       <div class="title">${p.title}</div>
       <p class="desc">${p.desc}</p>
-      ${milkBlock}
-      <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${rowSticker}
-        <div class="qty small">Qty <input type="number" min="1" value="1"></div>
-        <strong class="livePrice">${money(p.dealPrice || p.basePrice)}</strong>
-        <button class="add-btn">Add to cart</button>
+      <p class="milk-note">${p.milk || ''}</p>
+      <div class="row sticker-host" style="margin-top:auto; gap:12px; align-items:center; flex-wrap:wrap">${stickerEl}
+        <strong class="wasPrice">${money(p.value)}</strong>
+        <button class="add-btn">Add to claim</button>
       </div>
     `;
 
     initGallery(card);
 
-    /* Milk selection, keyed by which drink the row is for (default: Oatmilk).
-       A plain drink has exactly one key, so the single-milk case is just the
-       one-row version of the same thing. */
-    const picked = {};
-    milkRows.forEach(mf=> picked[mf.id] = 'Oatmilk');
-    const milkBtns = [...card.querySelectorAll('.milk-opt')];
-
-    function selectMilk(label, forId){
-      milkRows.forEach(mf=>{
-        if(forId && mf.id !== forId) return;
-        picked[mf.id] = label;
-      });
-      card.querySelectorAll('.milk-toggle').forEach(row=>{
-        const rid = row.dataset.milkFor;
-        row.querySelectorAll('.milk-opt').forEach(x=>
-          x.classList.toggle('active', x.dataset.milk === picked[rid]));
-      });
-    }
-
-    milkBtns.forEach(mb=>{
-      mb.addEventListener('click', ()=>{
-        if(mb.disabled) return;
-        selectMilk(mb.dataset.milk, mb.closest('.milk-toggle').dataset.milkFor);
-      });
-    });
-
-    const qty = card.querySelector('input[type="number"]');
     const btn = card.querySelector('.add-btn');
-    cardsByTitle.set(p.title, {
-      card, btn, qty, milkBtns, selectMilk,
-      usesMilk: milkRows.length > 0,
-      milkRows,
-      product: p,
-      getMilk: ()=> picked[milkRows.length ? milkRows[0].id : p.id] || null
-    });
-
-    /* The add-on list. One entry per milk row; a bundle names the drink each
-       milk belongs to so the cart line and the sheet stay readable. */
-    function chosenMilks(){
-      return milkRows.map(mf=>{
-        const milk = picked[mf.id];
-        const short = mf.label ? mf.label.replace(/ (Matcha|Latte)$/,'') : '';
-        return {
-          id: (mf.label ? mf.id + '-' : '') + 'milk-' + milk.toLowerCase().replace(/\s+/g,''),
-          label: mf.label ? short + ': ' + milk : milk,
-          milk: milk,           // the bare name, so sold-out checks never parse the label
-          price: 0
-        };
-      });
-    }
-
     btn.addEventListener('click', ()=>{
-      if(SOLD_OUT.has(p.title)) return;
-      const chosen = chosenMilks();
-      if(chosen.some(a=> SOLD_OUT_MILKS.has(a.label))) return;
-      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+      if(!canClaim(p.id)) return;
+      addDrink(p.id);
+      render();
       btn.textContent = 'Added ✓';
-      setTimeout(()=> {
-        btn.textContent='Add to cart';
-        qty.value = '1';
-      }, 900);
+      setTimeout(render, 900);
     });
 
-    (grids[p.category] || grids.latte).appendChild(card);
+    cardsById.set(p.id, { card, btn, product: p });
+    menuGrid.appendChild(card);
   });
 
-  // ---- Apply the sold-out state from the sheet to the menu + cart ----
-  function applySoldOut(list, milkList){
-    SOLD_OUT = new Set(Array.isArray(list) ? list : []);
-    SOLD_OUT_MILKS = new Set(Array.isArray(milkList) ? milkList : []);
+  const $menuTitle = document.getElementById('menuTitle');
+  const $menuNote  = document.getElementById('menuNote');
 
-    // No milk left at all = every milk drink is off, whatever the sheet says.
-    const allMilkGone = MILKS.every(m=> SOLD_OUT_MILKS.has(m));
+  /* Landing on a *different* rung starts the claim over: carrying picks across
+     would quietly hand someone a Lemon on a rung that does not reach one.
+     Confirming the rung they are already on leaves the claim alone, so a
+     reload (which sends them back through the gate) doesn't cost them the
+     drink they had already chosen. */
+  function setTier(t, amount, viaVoucher){
+    const moved = !tier || tier.n !== t.n;
+    tier    = t;
+    spend   = (typeof amount === 'number') ? amount : null;
+    voucher = !!viaVoucher;
+    if(moved){ picks = []; soldOutNotice = ''; }
+    normalise(); saveClaim(); render();
+  }
 
-    const fullyOut = new Set();   // drinks off the menu entirely, milk or not
+  // "Gen's Matcha", "Gen's Matcha or the Raspberry Tonic", "any drink"
+  function acceptsText(slot){
+    if(slot.accepts.length >= products.length) return 'any drink on the menu';
+    const names = slot.accepts.map(id => (productById(id) || {}).title).filter(Boolean);
+    return names.length > 1
+      ? names.slice(0, -1).join(', ') + ' or ' + names[names.length - 1]
+      : names[0];
+  }
 
-    cardsByTitle.forEach((entry, title)=>{
-      const { card, btn, qty, milkBtns, selectMilk, usesMilk, product } = entry;
-      // A bundle goes off the menu the moment any one of its drinks does.
-      const partGone = product && product.bundle &&
-        product.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
-      const out = SOLD_OUT.has(title) || partGone || (usesMilk && allMilkGone);
-      if(out) fullyOut.add(title);
+  // ---- Cart handles ----
+  const $items     = document.getElementById('cartItems');
+  const $count     = document.getElementById('cartCount');
+  const $valueRow   = document.getElementById('valueRow');
+  const $coveredRow = document.getElementById('coveredRow');
+  const $menuValue = document.getElementById('menuValue');
+  const $covered   = document.getElementById('covered');
+  const $payTotal  = document.getElementById('payTotal');
+  const $savedLine = document.getElementById('savedLine');
+  const $tierChip      = document.getElementById('tierChip');
+  const $tierChipName  = document.getElementById('tierChipName');
+  const $tierChipSpend = document.getElementById('tierChipSpend');
+  const $tierChipNudge = document.getElementById('tierChipNudge');
+  const $tierChipEdit  = document.getElementById('tierChipEdit');
+
+  function renderTiers(){
+    const slots = activeSlots();
+    $menuTitle.textContent = slots.length > 1 ? 'Claim Your Drinks' : 'Claim Your Drink';
+
+    $tierChip.hidden = !tier;
+    if(tier){
+      $tierChipName.textContent  = tier.name;
+      $tierChipSpend.textContent = voucher
+        ? 'Unlocked with a voucher'
+        : (spend != null ? money(spend) + ' spent at Natura' : '');
+
+      /* One quiet line, and only for someone genuinely within reach of the
+         next rung. Anyone further off never sees it, because at that distance
+         it stops being useful and starts being nagging. */
+      const nxt = nextTier(tier);
+      const gap = (nxt && spend != null) ? Math.round((nxt.min - spend) * 100) / 100 : 0;
+      const near = nxt && spend != null && gap > 0 && gap <= NEAR_GAP;
+      $tierChipNudge.hidden = !near;
+      if(near){
+        const gain = bestClaim(nxt);
+        $tierChipNudge.innerHTML = '<b>' + money(gap) + '</b> more at Natura unlocks '
+          + (gain.length > 1 ? 'a second drink' : 'the ' + gain[0].title) + '.';
+      }
+    }
+
+    if(!tier){
+      $menuNote.textContent = 'Tell us what you spent at Natura and the drinks it covers will open up.';
+      return;
+    }
+    $menuNote.textContent = tier.n === 4
+      ? 'Tier 4 is two drinks: one Lemon Meringue Matcha, and one of ' + acceptsText(tier.slots[1]) + '.'
+      : 'Tier ' + tier.n + ' is one drink: ' + acceptsText(tier.slots[0]) + '.';
+  }
+  $tierChipEdit.addEventListener('click', ()=> showGate(false));
+
+  function renderMenu(){
+    cardsById.forEach((entry, id)=>{
+      const { card, btn, product } = entry;
+      const out    = !available(id);
+      const locked = !!tier && !out && !inTier(id);
+      const full   = !!tier && !out && !locked && firstOpenSlot(id) === -1;
 
       card.classList.toggle('is-soldout', out);
-      btn.disabled = out;
-      btn.textContent = out ? 'Sold out' : 'Add to cart';
-      if(qty){ qty.disabled = out; }
+      card.classList.toggle('is-locked', locked);
 
-      if(!usesMilk) return;
+      const tag = card.querySelector('.lock-tag');
+      const at  = unlockedAt(id);
+      if(tag) tag.textContent = at ? 'Tier ' + at : 'Locked';
 
-      // Grey out whichever milk ran out, and move the selection off it.
-      milkBtns.forEach(mb=>{
-        const milkOut = SOLD_OUT_MILKS.has(mb.dataset.milk);
-        mb.disabled = milkOut;
-        mb.classList.toggle('is-out', milkOut);
-      });
-      const left = milkBtns.filter(mb=> !mb.disabled);
-      if(left.length === 1) selectMilk(left[0].dataset.milk);   // every row moves off the missing milk
+      btn.disabled = out || locked || full || !tier;
+      btn.textContent = out    ? 'Sold out'
+                      : !tier  ? 'Pick a tier first'
+                      : locked ? 'Tier ' + at + ' unlocks this'
+                      : full   ? 'Claim is full'
+                      : 'Add to claim';
+    });
+  }
+
+  function renderClaim(){
+    const slots = activeSlots();
+    const note  = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
+    $count.textContent = slots.length ? claimedIds().length + '/' + slots.length : '0';
+
+    if(!slots.length){
+      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="/img/Icon-cart.png" alt=""><p class="muted">Pick your tier to start</p></div>';
+      return;
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'slots';
+    slots.forEach((s, i)=>{
+      const id  = picks[i];
+      const p   = id ? productById(id) : null;
+      const row = document.createElement('div');
+      row.className = 'slot' + (p ? '' : ' is-empty');
+      if(p){
+        row.innerHTML = `
+          <div>
+            <div class="slot-label">${s.label}</div>
+            <div class="slot-name">${p.title}</div>
+            <div class="slot-sub">${p.milk ? p.milk + ' · ' : ''}${money(p.value)} value</div>
+          </div>
+          <div><button type="button" title="Remove">Remove</button></div>`;
+        row.querySelector('button').addEventListener('click', ()=> clearSlot(i));
+      } else {
+        row.innerHTML = `
+          <div>
+            <div class="slot-label">${s.label}</div>
+            <div class="slot-empty-text">Add ${acceptsText(s)} from the menu.</div>
+          </div>`;
+      }
+      wrap.appendChild(row);
+    });
+    $items.innerHTML = note;
+    $items.appendChild(wrap);
+  }
+
+  /* Two rows of zeroes say nothing, so the breakdown only appears once there
+     is something in the claim to break down. */
+  function renderValue(){
+    const val = claimValue();
+    $valueRow.style.display   = val > 0 ? 'flex' : 'none';
+    $coveredRow.style.display = val > 0 ? 'flex' : 'none';
+    $menuValue.textContent = money(val);
+    $covered.textContent   = '-' + money(val);
+    $payTotal.textContent  = money(0);
+    $savedLine.textContent = val > 0
+      ? 'You save ' + money(val) + '. Your tier covers the lot.'
+      : 'Add a drink and your saving shows up here.';
+  }
+
+  /* ================= The spend gate =================
+     The page opens onto this, and there is nothing to do behind it until it is
+     answered, so it has no way out: no close button, no Escape, no clicking
+     the backdrop. The only exits are a receipt total that reaches a tier, or a
+     code. Re-opened from the claim it behaves the same, but the amount is
+     prefilled, so getting back out is one tap. */
+  const gate     = document.getElementById('spendGate');
+  const $sgField = document.getElementById('sgField');
+  const $sgInput = document.getElementById('sgInput');
+  const $sgLadder= document.getElementById('sgLadder');
+  const $sgStatus= document.getElementById('sgStatus');
+  const $sgNext  = document.getElementById('sgNext');
+  const $sgNextLabel = document.getElementById('sgNextLabel');
+  const $sgNextGap   = document.getElementById('sgNextGap');
+  const $sgBarFill   = document.getElementById('sgBarFill');
+  const $sgNextPics  = document.getElementById('sgNextPics');
+  const $sgNextName  = document.getElementById('sgNextName');
+  const $sgNextWorth = document.getElementById('sgNextWorth');
+  const $sgNextAct   = document.getElementById('sgNextAct');
+  const $sgErr   = document.getElementById('sgErr');
+  const $sgGo    = document.getElementById('sgGo');
+  const $sgVWrap = document.getElementById('sgVoucher');
+  const $sgVCode = document.getElementById('sgVCode');
+  const $sgVGo   = document.getElementById('sgVGo');
+  const $sgVNote = document.getElementById('sgVNote');
+
+  const flat = n => money(n).replace('.00','');
+
+  // Built once; the rungs only ever light up and go dark from here on.
+  TIERS.forEach(t=>{
+    const row = document.createElement('div');
+    row.className = 'sg-rung';
+    row.dataset.tier = String(t.n);
+    row.innerHTML = `<span class="sg-tick" aria-hidden="true"></span>
+      <span class="sg-rung-name">${t.name} · ${t.perk}</span>
+      <span class="sg-rung-min">${flat(t.min)}+</span>`;
+    $sgLadder.appendChild(row);
+  });
+
+  const typedSpend = ()=>{
+    const raw = $sgInput.value.trim();
+    if(raw === '') return null;
+    const n = parseFloat(raw);
+    return isFinite(n) ? n : NaN;
+  };
+
+  /* Everything the gate shows follows from the number in the field, so it is
+     all recomputed on every keystroke rather than patched. */
+  function renderGate(){
+    const amount = typedSpend();
+    const hasAmount = amount !== null;
+    const valid = hasAmount && !isNaN(amount) && amount >= 0;
+    const shown = valid ? amount : 0;          // an empty field reads as zero
+    const reached = valid ? tierForSpend(amount) : null;
+    const next = nextTier(reached);
+
+    [...$sgLadder.children].forEach(row=>{
+      row.classList.toggle('on', !!reached && Number(row.dataset.tier) <= reached.n);
     });
 
-    // Drop anything in the cart that's no longer available, and say so.
-    const gone = x => fullyOut.has(x.title) || milksOf(x).some(m => SOLD_OUT_MILKS.has(m));
-    const dropped = [...new Set(cart.filter(gone).map(x=>
-      fullyOut.has(x.title) ? x.title : x.title + ' with ' + x.addonsLabel
-    ))];
+    $sgGo.disabled = !reached;
+    $sgErr.textContent = (hasAmount && !valid) ? 'Pop in the total from your receipt.' : '';
+
+    // What they already hold. Said in drinks and money, never in tier numbers.
+    if(reached){
+      $sgStatus.classList.remove('is-bad');
+      $sgStatus.textContent = reached.name + ' unlocked';
+    } else {
+      $sgStatus.textContent = '';
+    }
+
+    // The nudge. Hidden only at the top of the ladder, where there is nothing
+    // left to sell.
+    if(!next || !valid && hasAmount){
+      $sgNext.hidden = true;
+      if(!next && reached){
+        $sgStatus.textContent = reached.name + ' unlocked · the top rung';
+      }
+      return finish();
+    }
+
+    const gap = Math.max(0, Math.round((next.min - shown) * 100) / 100);
+    const close = gap > 0 && gap <= NEAR_GAP;
+    $sgNext.hidden = false;
+    $sgNext.classList.toggle('is-close', close);
+    $sgBarFill.style.width = Math.round(legProgress(shown) * 100) + '%';
+
+    $sgNextLabel.textContent = close ? 'So close' : 'Next up';
+    $sgNextGap.textContent   = money(gap) + ' to go';
+
+    // The drinks, not the tier. A photo of the Lemon Meringue argues better
+    // than the words "Tier 4" ever will.
+    const drinks = bestClaim(next);
+    $sgNextPics.innerHTML = drinks.map(p =>
+      `<img src="${p.img}" alt="${p.title}" loading="lazy">`).join('');
+    $sgNextName.textContent = drinks.length > 1
+      ? drinks.map(p => p.title).join(' + ')
+      : (drinks[0] ? drinks[0].title : next.name);
+
+    /* The drink's price is deliberately never shown next to the gap. Put the
+       two together and the reader does the subtraction: "$50 more to get one
+       extra dollar of matcha?" The photo and the name do the selling instead,
+       and the only line here is the one a name cannot carry on its own: that
+       the top rung is two drinks rather than one. */
+    const two = drinks.length > 1;
+    $sgNextWorth.textContent = two ? 'Two drinks instead of one' : '';
+
+    /* The one place the gap is spoken aloud, and only when it is small enough
+       that walking back to the table is an obvious thing to do. */
+    $sgNextAct.hidden = !close;
+    if(close) $sgNextAct.innerHTML = 'Just <b>' + money(gap) + '</b> more at the Natura table.';
+
+    return finish();
+
+    function finish(){
+      // A code stands in for a receipt, so the two doors are never open at once.
+      $sgVWrap.classList.toggle('is-off', hasAmount);
+      $sgField.classList.remove('is-bad');
+    }
+  }
+
+  // instant === true: no fade, no rise. The gate is painted fully open behind
+  // the splash, so the first thing anyone sees is the blurred menu with the
+  // question already sitting on it. Closing is untouched.
+  function showGate(instant){
+    if(spend != null) $sgInput.value = String(spend);
+    $sgVCode.value = '';
+    $sgVCode.classList.remove('is-bad');
+    $sgVNote.classList.remove('is-bad');
+    $sgVNote.textContent = 'Got a code from us? Leave the amount blank and redeem it here.';
+    renderGate();
+
+    gate.setAttribute('aria-hidden', 'false');
+    gate.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    if(instant){
+      gate.classList.add('no-anim');
+      gate.style.opacity = '1';
+      gate.classList.add('is-open');
+      // Flush the open state while transitions are still off, then hand them
+      // back, so nothing animates in but closing still fades.
+      void gate.offsetWidth;
+      gate.classList.remove('no-anim');
+    } else {
+      void gate.offsetWidth;
+      gate.style.opacity = '1';
+      gate.classList.add('is-open');
+    }
+    // Held until the splash has finished lifting, so the keyboard doesn't
+    // shove its way in over a screen that is still fading.
+    setTimeout(()=>{ try { $sgInput.focus(); } catch(e){} }, instant ? 520 : 320);
+  }
+
+  /* Takes the gate down whatever the state, for the one case that outranks it:
+     we are closed, so there is no menu to gate. */
+  function forceHideGate(){
+    gate.style.opacity = '0';
+    gate.classList.remove('is-open');
+    gate.setAttribute('aria-hidden', 'true');
+    gate.style.display = 'none';
+  }
+
+  /* Only ever reached from a successful unlock, which has just set a tier.
+     There is deliberately no user-facing way to call this. */
+  function hideGate(){
+    if(!tier) return;
+    gate.style.opacity = '0';
+    gate.classList.remove('is-open');
+    gate.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(gate.style.opacity === '0') gate.style.display = 'none'; }, 400);
+  }
+
+  function submitSpend(){
+    const amount = typedSpend();
+    if(amount === null || isNaN(amount)){
+      $sgField.classList.add('is-bad');
+      $sgErr.classList.remove('is-ok');
+      $sgErr.textContent = 'Pop in the total from your receipt.';
+      return;
+    }
+    const reached = tierForSpend(amount);
+    if(!reached) return;                      // the button is already disabled
+    setTier(reached, Math.round(amount * 100) / 100, false);
+    hideGate();
+  }
+
+  function redeemVoucher(){
+    const code = $sgVCode.value.trim().toUpperCase();
+    const bad = (msg)=>{
+      $sgVCode.classList.add('is-bad');
+      $sgVNote.classList.add('is-bad');
+      $sgVNote.textContent = msg;
+    };
+    $sgVCode.classList.remove('is-bad');
+    $sgVNote.classList.remove('is-bad');
+
+    if(typedSpend() !== null){
+      bad('Clear the amount first. A code is instead of a receipt, not on top of one.');
+      return;
+    }
+    if(!code){ bad('Pop the code in first.'); return; }
+    if(code !== VOUCHER.code){ bad("That code isn't one of ours."); return; }
+    if(voucherUsed()){ bad('This code has already been used on this device.'); return; }
+
+    const t = TIERS.find(x => x.n === VOUCHER.tier);
+    if(!t) return;
+    setTier(t, null, true);
+    hideGate();
+  }
+
+  $sgGo.addEventListener('click', submitSpend);
+  $sgInput.addEventListener('input', renderGate);
+  $sgInput.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); submitSpend(); }
+  });
+  $sgVGo.addEventListener('click', redeemVoucher);
+  $sgVCode.addEventListener('keydown', e=>{
+    if(e.key === 'Enter'){ e.preventDefault(); redeemVoucher(); }
+  });
+  /* No Escape handler and no backdrop-click handler on purpose: the gate is
+     answered, not dismissed. */
+
+  // ---- Sold-out sync from the sheet ----
+  function applySoldOut(list, milkList){
+    SOLD_OUT       = new Set(Array.isArray(list) ? list : []);
+    SOLD_OUT_MILKS = new Set(Array.isArray(milkList) ? milkList : []);
+
+    // Anything already claimed that just went off the menu is dropped, and said so.
+    const dropped = [...new Set(claimedIds()
+      .filter(id => !available(id))
+      .map(id => (productById(id) || {}).title))];
     if(dropped.length){
-      cart = cart.filter(x=> !gone(x));
-      saveCart(cart);
+      normalise();
+      saveClaim();
       const many = dropped.length > 1;
       soldOutNotice = dropped.join(' and ') + (many ? ' have' : ' has')
-        + ' sold out, so we removed ' + (many ? 'them' : 'it') + ' from your cart.';
+        + ' sold out, so we took ' + (many ? 'them' : 'it') + ' off your claim.';
     }
-    renderCart();
+    render();
   }
 
-  const $items = document.getElementById('cartItems');
-  const $sub = document.getElementById('subtotal');
-  const $tot = document.getElementById('total');
-  const $count = document.getElementById('cartCount');
-  const $nudge     = document.getElementById('bundleNudge');
-  const $nudgeText = document.getElementById('bundleNudgeText');
-  const $nudgeGo   = document.getElementById('bundleNudgeGo');
-  const $nudgeX    = document.getElementById('bundleNudgeX');
-  const $bRow    = document.getElementById('bundleRow');
-  const $bAmount = document.getElementById('bundleRowAmount');
-  const $eRow    = document.getElementById('eventRow');
-  const $eAmount = document.getElementById('eventRowAmount');
-  const $eYes    = document.getElementById('eventYes');
-  const $eNo     = document.getElementById('eventNo');
-  const $eNote   = document.getElementById('eventNote');
-  const $vRow    = document.getElementById('voucherRow');
-  const $vLabel  = document.getElementById('voucherRowLabel');
-  const $vAmount = document.getElementById('voucherRowAmount');
-  const $vEntry   = document.getElementById('voucherEntry');
-  const $vApplied = document.getElementById('voucherApplied');
-  const $vInput   = document.getElementById('voucherCode');
-  const $vApply   = document.getElementById('voucherApply');
-  const $vRemove  = document.getElementById('voucherRemove');
-  const $vMsg     = document.getElementById('voucherMsg');
-
-  function renderCart(){
-    const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
-    $count.textContent = totalItems;
-
-    const t = totals();
-    renderVoucher(t);
-    renderEvent();
-    renderNudge();
-
-    const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
-
-    if(cart.length===0){
-      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="/img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
-      $sub.textContent = money(0); $tot.textContent = money(0);
-      $vRow.style.display = 'none';
-      $eRow.style.display = 'none';
-      $bRow.style.display = 'none';
-      return;
-    }
-    $items.innerHTML = note;
-    cart.forEach(it=>{
-      const row = document.createElement('div');
-      row.className = 'item';
-      const tag = (t.free && t.free.key === it.key)
-        ? '<span class="free-tag"><img src="/img/star.png" alt="">1 free</span>' : '';
-      row.innerHTML = `
-        <div>
-          <div><strong>${it.title}</strong></div>
-          <div class="addons">${it.addonsLabel}</div>
-          <div class="small muted">${money(it.unitPrice)} each</div>
-          ${tag}
-        </div>
-        <div style="text-align:right">
-          <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
-          <div style="margin-top:8px"><button title="Remove">Remove</button></div>
-        </div>`;
-      const qtyInput = row.querySelector('input');
-      const rm = row.querySelector('button');
-      qtyInput.addEventListener('change', e=> setQty(it.key, parseInt(e.target.value||'1',10)) );
-      rm.addEventListener('click', ()=> removeItem(it.key) );
-      $items.appendChild(row);
-    });
-
-    $sub.textContent = money(t.sub);
-    if(t.bundleOff > 0){
-      $bRow.style.display = 'flex';
-      $bAmount.textContent = '-' + money(t.bundleOff);
-    } else {
-      $bRow.style.display = 'none';
-    }
-    if(t.free){
-      $vRow.style.display = 'flex';
-      $vLabel.textContent = VOUCHER.code + ' · ' + t.free.title;
-      $vAmount.textContent = '-' + money(t.free.price);
-    } else {
-      $vRow.style.display = 'none';
-    }
-    if(t.eventOff > 0){
-      $eRow.style.display = 'flex';
-      $eAmount.textContent = '-' + money(t.eventOff);
-    } else {
-      $eRow.style.display = 'none';
-    }
-    $tot.textContent = money(t.total);
-  }
-
-  /* ---- Voucher panel ----
-     Applied but not yet landing on anything is its own state: the code is
-     still held, and the panel says what is missing rather than silently
-     dropping it the moment the eligible cup leaves the cart. */
-  function voucherNote(text, bad){
-    $vMsg.textContent = text || '';
-    $vMsg.classList.toggle('is-bad', !!bad);
-  }
-
-  function renderVoucher(t){
-    const applied = !!voucher;
-    $vEntry.hidden = applied;
-    $vApplied.hidden = !applied;
-    if(applied){
-      $vInput.classList.remove('is-bad');
-      if(t && t.free){
-        voucherNote(VOUCHER.code + ' applied. ' + t.free.title + ' is on us.', false);
-      } else if(cartHasBundle()){
-        voucherNote("Held. The drinks inside the Event Bundle are already discounted. Add one on its own and this comes off.", true);
-      } else {
-        voucherNote("Add a Gen's Matcha or a Hojicha Latte and this comes off.", true);
-      }
-    } else if(voucherUsed()){
-      voucherNote('', false);
-    }
-  }
-
-  function applyVoucher(){
-    const code = $vInput.value.trim().toUpperCase();
-    $vInput.classList.remove('is-bad');
-    if(!code){
-      $vInput.classList.add('is-bad');
-      voucherNote('Pop the code in first.', true);
-      return;
-    }
-    if(code !== VOUCHER.code){
-      $vInput.classList.add('is-bad');
-      voucherNote("That code isn't one of ours.", true);
-      return;
-    }
-    if(voucherUsed()){
-      $vInput.classList.add('is-bad');
-      voucherNote("This voucher has already been used on this device.", true);
-      return;
-    }
-    if(!cartHasEligible()){
-      $vInput.classList.add('is-bad');
-      voucherNote(cartHasBundle()
-        ? "The drinks inside the Event Bundle are already discounted. Add a Gen's Matcha or Hojicha Latte on its own to use this."
-        : "This one's for a Gen's Matcha or a Hojicha Latte, so add one first.", true);
-      return;
-    }
-    voucher = VOUCHER.code;
-    renderCart();
-  }
-
-  function clearVoucher(quiet){
-    voucher = null;
-    $vInput.value = '';
-    $vInput.classList.remove('is-bad');
-    voucherNote(quiet ? '' : 'Voucher removed.', false);
-    renderCart();
-  }
-
-  /* ---- Bundle nudge ----
-     Shows only when the cart is 1-2 drinks short of the trio and they have not
-     waved it away. It is a line in the cart, never a pop-up: at an event with a
-     queue behind you, an interruption costs more than the two dollars it wins. */
-  const BUNDLE = products.find(x => x.bundle);
-  let nudgeDismissed = false;
-
-  // Which of the bundle's drinks are already in the cart, and which are not.
-  function nudgeSplit(){
-    const have = [], missing = [];
-    (BUNDLE ? BUNDLE.bundle : []).forEach(id=>{
-      const line = cart.find(x => x.productId === id);
-      (line ? have : missing).push({ id: id, line: line,
-        title: (productById(id) || {}).title || id });
-    });
-    return { have, missing };
-  }
-
-  function renderNudge(){
-    if(!BUNDLE || !$nudge) return;
-    const split = nudgeSplit();
-    const show = !nudgeDismissed
-      && !cartHasBundle()
-      && split.have.length > 0
-      && split.missing.length > 0
-      && !SOLD_OUT.has(BUNDLE.title)
-      && !BUNDLE.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
-    $nudge.hidden = !show;
-    if(!show) return;
-
-    const names = split.missing.map(m => m.title);
-    const list = names.length > 1
-      ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
-      : names[0];
-    $nudgeText.innerHTML = 'Add ' + list + ' to make it the Event Bundle, <b>'
-      + money(BUNDLE.dealPrice || BUNDLE.basePrice) + '</b> for all three.';
-  }
-
-  /* Swaps the loose drinks for the bundle, carrying their milk choices over so
-     nobody silently loses the Fresh milk they picked a moment ago. */
-  function takeBundle(){
-    if(!BUNDLE) return;
-    const split = nudgeSplit();
-
-    const chosen = (BUNDLE.milkFor || []).map(mf=>{
-      const line = (cart.find(x => x.productId === mf.id) || {});
-      const carried = (line.addons || []).map(a => a.milk || a.label)
-        .find(m => MILKS.indexOf(m) !== -1);
-      // Their own choice wins; otherwise Oatmilk, which is what every card
-      // defaults to — falling back to MILKS[0] would quietly hand them Fresh.
-      const fallback = !SOLD_OUT_MILKS.has('Oatmilk')
-        ? 'Oatmilk'
-        : (MILKS.find(m => !SOLD_OUT_MILKS.has(m)) || 'Oatmilk');
-      const milk = (carried && !SOLD_OUT_MILKS.has(carried)) ? carried : fallback;
-      const short = mf.label.replace(/ (Matcha|Latte)$/, '');
-      return {
-        id: mf.id + '-milk-' + milk.toLowerCase().replace(/\s+/g, ''),
-        label: short + ': ' + milk,
-        milk: milk,
-        price: 0
-      };
-    });
-
-    // One cup of each goes into the bundle; anything beyond that they keep.
-    split.have.forEach(h=>{
-      if(!h.line) return;
-      if(h.line.qty > 1){ h.line.qty -= 1; }
-      else { cart = cart.filter(x => x.key !== h.line.key); }
-    });
-
-    saveCart(cart);
-    addToCart({ productId: BUNDLE.id, qty: 1, chosen: chosen });   // saves + renders
-  }
-
-  if($nudgeGo) $nudgeGo.addEventListener('click', takeBundle);
-  if($nudgeX)  $nudgeX.addEventListener('click', ()=>{ nudgeDismissed = true; renderNudge(); });
-
-  /* ---- Event purchase ---- */
-  function renderEvent(){
-    $eYes.classList.toggle('active', eventPurchase);
-    $eNo.classList.toggle('active', !eventPurchase);
-    $eYes.setAttribute('aria-pressed', String(eventPurchase));
-    $eNo.setAttribute('aria-pressed', String(!eventPurchase));
-    if(!eventPurchase){ $eNote.textContent = ''; return; }
-    $eNote.textContent = cartHasBundle()
-      ? "we kept your bundle saving \u00A0\u2736 it's the bigger one (:"
-      : '5% off \u00A0\u2736 no proof needed, we trust ya (:';   // nbsp holds the wider gap
-  }
-  function setEventPurchase(on){
-    if(eventPurchase === on) return;
-    eventPurchase = on;
-    renderCart();
-  }
-  $eYes.addEventListener('click', ()=> setEventPurchase(true));
-  $eNo.addEventListener('click', ()=> setEventPurchase(false));
-  renderEvent();
-
-  $vApply.addEventListener('click', applyVoucher);
-  $vInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); applyVoucher(); } });
-  $vInput.addEventListener('input', ()=>{
-    if($vMsg.textContent){ voucherNote('', false); $vInput.classList.remove('is-bad'); }
-  });
-  $vRemove.addEventListener('click', ()=> clearVoucher(false));
-
-  const qrWrap     = document.getElementById('qrWrap');
-  const confirmBtn = document.getElementById('confirmBtn');
-  const clearBtn   = document.getElementById('clearBtn');
-  const teleInput  = document.getElementById('teleHandle');
-
-  const orderRefEl = document.getElementById('orderRef');
-  const copyRefBtn = document.getElementById('copyRef');
-
-  const proofInput   = document.getElementById('paymentProof');
-  const proofPreview = document.getElementById('proofPreview');
-  const submitBtn    = document.getElementById('submitProofBtn');
+  // ---- Checkout ----
+  const teleInput   = document.getElementById('teleHandle');
+  const confirmBtn  = document.getElementById('confirmBtn');
+  const clearBtn    = document.getElementById('clearBtn');
+  const btnGroup    = document.getElementById('btnGroup');
+  const confirmPnl  = document.getElementById('confirmPanel');
+  const confirmList = document.getElementById('confirmList');
+  const confirmWho  = document.getElementById('confirmWho');
+  const confirmGo   = document.getElementById('confirmGo');
+  const confirmBack = document.getElementById('confirmBack');
   const submitStatus = document.getElementById('submitStatus');
-
-  teleInput.addEventListener('input', setCheckoutDisabled);
-
-  function setCheckoutDisabled(){
-    const hasTelegram = teleInput.value.trim() !== '';
-    confirmBtn.disabled = !hasTelegram;
-  }
-  setCheckoutDisabled();
 
   let pendingOrder = null;
 
-  confirmBtn.addEventListener('click', ()=>{
-    if(cart.length===0){ alert('Cart is empty.'); return; }
-    const t = totals();
-    const orderId = 'HR-' + String(Math.floor(Math.random() * 9110) + 1).padStart(4, '0');
-    pendingOrder = {
-      order_id: orderId,
-      telegram: teleInput.value.trim(),
-      subtotal: t.sub,
-      discount: t.discount,
-      total: t.total,
-      redeem: !!t.free,
-      free_item: t.free ? (t.free.title + ' (' + t.free.addonsLabel + ')') : '',
-      voucher_code: t.free ? VOUCHER.code : '',
-      event_purchase: eventPurchase,
-      event_discount: t.eventOff,
-      items: JSON.parse(JSON.stringify(cart))
-    };
+  function renderCheckout(){
+    const slots = activeSlots();
+    const ready = claimComplete() && teleInput.value.trim() !== '';
+    confirmBtn.disabled = !ready;
+    confirmBtn.textContent = slots.length > 1 ? 'Claim my drinks' : 'Claim my drink';
+  }
+  teleInput.addEventListener('input', renderCheckout);
 
-    orderRefEl.textContent = orderId;
-    qrWrap.style.display = 'block';
-    confirmBtn.textContent = 'Order noted ✓';
-    confirmBtn.disabled = true;
-  });
-
-  copyRefBtn.addEventListener('click', async ()=>{
-    try { await navigator.clipboard.writeText(orderRefEl.textContent); copyRefBtn.textContent = 'Copied!'; setTimeout(()=>copyRefBtn.textContent='Copy', 900); } catch(e){}
-  });
-
-  clearBtn.addEventListener('click', ()=>{
-    cart = []; saveCart(cart); eventPurchase = false; nudgeDismissed = false;
-    clearVoucher(true); qrWrap.style.display='none';
-    confirmBtn.textContent='Check out'; setCheckoutDisabled();
-    pendingOrder = null;
-    submitBtn.disabled = true; proofInput.value = ''; proofPreview.textContent = ''; submitStatus.textContent='';
-  });
-
-  proofInput.addEventListener('change', ()=>{
-    const f = proofInput.files[0];
-    proofPreview.textContent = f ? `Selected: ${f.name}` : '';
-    submitBtn.disabled = !f;
-  });
-
-  async function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  function render(){
+    normalise();
+    renderTiers();
+    renderMenu();
+    renderClaim();
+    renderValue();
+    renderGate();
+    renderCheckout();
   }
 
-  async function uploadOrderWithProof(order, file){
-    const base64 = await fileToBase64(file);
+  function showConfirm(){
+    const slots = activeSlots();
+    confirmList.innerHTML = slots.map((s, i)=>{
+      const p = productById(picks[i]) || {};
+      return `<li>${p.title}<span>${p.milk ? ' · ' + p.milk : ''}</span></li>`;
+    }).join('');
+    confirmWho.innerHTML = 'Claiming as <b>' + teleInput.value.trim() + '</b> on <b>'
+      + (tier ? tier.name : '') + '</b>. Nothing to pay. Collect it at the matcha cart.';
+    submitStatus.textContent = '';
+    confirmGo.disabled = false;
+    btnGroup.hidden = true;
+    confirmPnl.hidden = false;
+  }
+  function hideConfirm(){
+    confirmPnl.hidden = true;
+    btnGroup.hidden = false;
+    submitStatus.textContent = '';
+  }
+
+  confirmBtn.addEventListener('click', ()=>{
+    if(!claimComplete()){
+      alert('Pick the drinks your tier covers first.');
+      return;
+    }
+    showConfirm();
+  });
+  confirmBack.addEventListener('click', hideConfirm);
+
+  clearBtn.addEventListener('click', ()=>{
+    /* Start over empties the claim but keeps the tier: they earned it with a
+       receipt, and making them retype the number to change their mind would be
+       a punishment for changing their mind. */
+    picks = []; soldOutNotice = '';
+    pendingOrder = null;
+    hideConfirm();
+    saveClaim(); render();
+  });
+
+  async function submitClaim(order){
     const payload = {
       action: 'submit_order',
       order_id: order.order_id,
       telegram: order.telegram,
       pickup_time: order.pickup_time,
-      subtotal: String(order.subtotal),
-      discount: String(order.discount || 0),
-      total: String(order.total),
-      redeem: order.redeem ? 'TRUE' : 'FALSE',
+      tier: String(order.tier),
+      spend: order.spend == null ? '' : String(order.spend),
+      subtotal: String(order.value),
+      discount: String(order.value),
+      total: '0',
+      redeem: order.voucher ? 'TRUE' : 'FALSE',
       free_item: order.free_item || '',
-      voucher_code: order.voucher_code || '',
-      event_purchase: order.event_purchase ? 'TRUE' : 'FALSE',
-      event_discount: String(order.event_discount || 0),
+      voucher_code: order.voucher ? VOUCHER.code : '',
+      event_purchase: 'FALSE',
+      event_discount: '0',
       items: order.items,
-      proof: base64
+      proof: ''
     };
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
@@ -1351,55 +1610,75 @@
     return await res.json();
   }
 
-  submitBtn.addEventListener('click', async ()=>{
+  confirmGo.addEventListener('click', async ()=>{
+    if(!claimComplete()){ hideConfirm(); render(); return; }
+    confirmGo.disabled = true;
+    submitStatus.textContent = 'Sending…';
+    submitStatus.className = 'small muted';
+
+    const slots = activeSlots();
+    const now = new Date();
+    const pickup = new Date(now.getTime() + 10 * 60 * 1000);
+    const hrs = pickup.getHours();
+    const ampm = hrs >= 12 ? 'PM' : 'AM';
+    const pickupTimeStr = (hrs % 12 || 12) + ':' + String(pickup.getMinutes()).padStart(2, '0') + ' ' + ampm;
+
+    pendingOrder = {
+      order_id: 'HR-' + String(Math.floor(Math.random() * 9110) + 1).padStart(4, '0'),
+      telegram: teleInput.value.trim(),
+      pickup_time: pickupTimeStr,
+      tier: tier ? tier.n : '',
+      spend: spend,
+      value: Math.round(claimValue() * 100) / 100,
+      voucher: voucher,
+      free_item: '',
+      items: slots.map((s, i)=>{
+        const p = productById(picks[i]) || {};
+        return {
+          key: p.id + '::' + i,
+          productId: p.id,
+          title: p.title,
+          addonsLabel: (p.milk || 'No add-ons'),
+          unitPrice: 0,
+          qty: 1
+        };
+      })
+    };
+
     try {
-      if(!pendingOrder){ alert('Please click Check out first.'); return; }
-      const f = proofInput.files[0];
-      if(!f){ alert('Please select a screenshot.'); return; }
-      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
-
-      // Calculate pickup time (current time + 10 minutes)
-      const now = new Date();
-      const pickupTime = new Date(now.getTime() + 10 * 60 * 1000);
-      const hours = pickupTime.getHours();
-      const minutes = pickupTime.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      const displayHours = hours % 12 || 12;
-      const displayMinutes = minutes.toString().padStart(2, '0');
-      const pickupTimeStr = `${displayHours}:${displayMinutes} ${ampm}`;
-
-      pendingOrder.pickup_time = pickupTimeStr;
-
-      const resp = await uploadOrderWithProof(pendingOrder, f);
+      const resp = await submitClaim(pendingOrder);
       if(resp.ok){
-        submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
+        submitStatus.textContent = 'Claimed ✓';
+        submitStatus.className = 'small success-text';
 
-        // Only a paid, submitted order spends the voucher.
-        if(pendingOrder.voucher_code) markVoucherUsed();
+        // Only a claim that actually went through spends the voucher.
+        if(pendingOrder.voucher) markVoucherUsed();
 
         showSuccess(pendingOrder.order_id);
 
-        cart = []; saveCart(cart); eventPurchase = false; nudgeDismissed = false; clearVoucher(true);
+        picks = []; soldOutNotice = '';
+        saveClaim();
       } else if (resp.closed) {
         submitStatus.textContent = "Sorry, we've just closed.";
         submitStatus.className = 'small muted';
-        showClosed(true);   // fade it in over the menu
+        showClosed(true);
       } else if ((resp.soldOut && resp.soldOut.length) || (resp.soldOutMilks && resp.soldOutMilks.length)) {
-        // Something sold out between loading the page and paying — sync and tell them.
+        // Something sold out between loading the page and claiming — sync and say so.
         applySoldOut(resp.soldOut || [], resp.soldOutMilks || []);
-        submitStatus.textContent = resp.error || 'An item just sold out.';
+        submitStatus.textContent = resp.error || 'One of those just sold out.';
         submitStatus.className = 'small muted';
-        submitBtn.disabled = false;
+        confirmGo.disabled = false;
       } else {
-        submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
-        submitBtn.disabled = false;
+        submitStatus.textContent = 'Something went wrong: ' + (resp.error || 'unknown error');
+        submitStatus.className = 'small muted';
+        confirmGo.disabled = false;
       }
     } catch(e){
       submitStatus.textContent = 'Network error: ' + e.message;
-      submitBtn.disabled = false;
+      submitStatus.className = 'small muted';
+      confirmGo.disabled = false;
     }
   });
-
   // ---- Order confirmation overlay ----
   const successOverlay = document.getElementById('successOverlay');
   const soRef      = document.getElementById('soRef');
@@ -1432,18 +1711,13 @@
     setTimeout(function(){ if(successOverlay.style.opacity === '0') successOverlay.style.display = 'none'; }, 450);
   }
 
-  // Done closes the overlay and resets checkout so a second order can be placed
+  // Done closes the overlay and resets checkout so a second claim can be made
   if(soDoneBtn){
     soDoneBtn.addEventListener('click', ()=>{
       hideSuccess();
-      qrWrap.style.display = 'none';
-      confirmBtn.textContent = 'Check out';
-      setCheckoutDisabled();
+      hideConfirm();
       pendingOrder = null;
-      proofInput.value = '';
-      proofPreview.textContent = '';
-      submitStatus.textContent = '';
-      submitBtn.disabled = true;
+      render();
     });
   }
 
@@ -1463,6 +1737,7 @@
   function showClosed(animate){
     var ov = document.getElementById('closedOverlay');
     if(!ov) return;
+    forceHideGate();                      // never stack the two
     ov.setAttribute('aria-hidden', 'false');
     ov.style.display = 'flex';
     document.documentElement.style.overflow = 'hidden';
@@ -1485,7 +1760,8 @@
   }
 
   // ============ Boot ============
-  renderCart();
+  loadClaim();
+  render();
 
   (function(){
     var splash = document.getElementById('loadingSplash');
@@ -1580,6 +1856,12 @@
         // grey out anything ticked in Item-Status (drinks and milks)
         applySoldOut(status.soldOut || [], status.soldOutMilks || []);
       }
+
+      /* Ask what they spent, but only when there's a menu behind the question.
+         Opened *before* the splash lifts and with no entrance animation, so the
+         blur is already in place as the splash clears — there is no moment
+         where the menu is readable and then taken away. */
+      if (status && status.open === true) showGate(true);
 
       hideSplash();
     })();
