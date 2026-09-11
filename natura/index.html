@@ -168,9 +168,12 @@
 
     /* Claim row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-    /* The retail price, struck through: the saving is the whole story now, so
-       it is shown rather than a number they are about to pay. */
-    .wasPrice{ color:var(--blue-soft); font-weight:700; font-size:15px; text-decoration:line-through; }
+    /* Where the price used to sit. Nothing on this page is for sale, so the
+       card says what the drink is worth in feelings instead of dollars. */
+    .equiv{ flex:1; min-width:120px; color:var(--blue-soft); font-weight:600;
+            font-size:13px; line-height:1.35; }
+    .equiv i{ display:block; font-style:normal; font-size:11px; letter-spacing:.04em;
+              text-transform:uppercase; opacity:.7; }
 
     button{ font-family:inherit; cursor:pointer; }
     .add-btn, #confirmBtn{
@@ -569,6 +572,23 @@
     #successOverlay .so-note-body b{ color:var(--blue-deep); }
 
 
+    /* The one house rule the cart has to enforce, said where every customer
+       is guaranteed to look: the screen holding their order number. */
+    #successOverlay .so-rule-note{
+      display:flex; align-items:flex-start; gap:9px; text-align:left;
+      background:#FBE6DF; border:1px solid var(--warn); border-radius:3px;
+      padding:12px 14px; margin:0 0 18px;
+    }
+    #successOverlay .so-rule-note span{ flex:none; font-size:15px; line-height:1.35; }
+    #successOverlay .so-rule-note p{
+      margin:0; font-size:14px; line-height:1.45; font-weight:700; color:var(--warn);
+    }
+    /* Replaces the Done button. The screen is the customer's order slip, so it
+       has no way out — it stays up until the drink is handed over. */
+    #successOverlay .so-hold{
+      font-size:13px; line-height:1.5; color:var(--blue-soft);
+      margin:0; padding-top:4px; border-top:1px solid var(--line);
+    }
     #successOverlay .so-done{ appearance:none; display:block; width:100%;
       background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
       padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
@@ -674,12 +694,17 @@
 
       <p class="so-where">Watch for it on the screen at the matcha cart.</p>
 
+      <div class="so-rule-note">
+        <span aria-hidden="true">&#9888;</span>
+        <p>Drinks are not allowed in the fitting rooms.</p>
+      </div>
+
       <div class="so-note">
         <p class="so-note-title">Your order number is a real star</p>
         <p class="so-note-body">Look up <b id="soStarName">…</b> to find yours in the sky.</p>
       </div>
 
-      <button type="button" class="so-done" id="soDone">Done</button>
+      <p class="so-hold">Keep this screen up and show it at the cart.</p>
     </div>
   </div>
 
@@ -715,11 +740,8 @@
 
         <div class="divider"></div>
 
-        <div class="row" id="valueRow"><span>Menu value</span><strong id="menuValue">$0.00</strong></div>
-        <div class="row" id="coveredRow"><span class="muted">Your tier covers</span><strong id="covered" class="success-text">-$0.00</strong></div>
         <div class="saved-section">
-          <div class="row"><span>You pay</span><strong id="payTotal">$0.00</strong></div>
-          <p class="saved-line" id="savedLine">Add a drink and your saving shows up here.</p>
+          <p class="saved-line" id="savedLine">Add a drink and it shows up here.</p>
         </div>
         <p class="small muted">Claim saved on this device.</p>
 
@@ -765,7 +787,7 @@
       value: 8.0,  milk: 'Oat milk',
       desc: 'The classic matcha latte, whisked exactly how gen likes it.' },
     { id: 'lemon-meringue', title: 'Lemon Meringue Matcha',  img: '/img/Lemmon-latte.png',
-      value: 12.0, milk: 'Oat milk',
+      value: 12.0, milk: 'Oat milk', equiv: 'a raise in salary…',
       desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.' },
     { id: 'matcha-rasp',    title: 'Raspberry Matcha Tonic', img: '/img/matcha-rasp.png',   img2: '/img/matcha-rasp-2.webp',
       value: 9.0,  milk: '',
@@ -857,6 +879,20 @@
 
   const productById = id => products.find(p => p.id === id);
   function money(n){ return '$' + (Math.round(n * 100) / 100).toFixed(2); }
+
+  /* What a drink is "worth", with no number in it. Nothing here is for sale,
+     so the card trades the price for something the value is easier to feel.
+     Shuffled once per load and handed out one per card, so no two cards say
+     the same thing; a drink can pin its own line with `equiv`. */
+  const EQUIV = [
+    'your crush likes your story',
+    'the MRT pulling in as you tap',
+    'phone at 3%, still makes it home',
+    'a reply in under an hour',
+    'package arrives a day early'
+  ];
+  const equivPool = EQUIV.slice().sort(function(){ return Math.random() - 0.5; });
+  function equivFor(p){ return p.equiv || equivPool.pop() || EQUIV[0]; }
 
   function voucherUsed(){
     try { return localStorage.getItem(VOUCHER.usedKey) === VOUCHER.code; } catch(e){ return false; }
@@ -1072,7 +1108,7 @@
       <p class="desc">${p.desc}</p>
       <p class="milk-note">${p.milk || ''}</p>
       <div class="row sticker-host" style="margin-top:auto; gap:12px; align-items:center; flex-wrap:wrap">${stickerEl}
-        <strong class="wasPrice">${money(p.value)}</strong>
+        <span class="equiv"><i>equivalent value</i>${equivFor(p)}</span>
         <button class="add-btn">Add to claim</button>
       </div>
     `;
@@ -1123,11 +1159,6 @@
   // ---- Cart handles ----
   const $items     = document.getElementById('cartItems');
   const $count     = document.getElementById('cartCount');
-  const $valueRow   = document.getElementById('valueRow');
-  const $coveredRow = document.getElementById('coveredRow');
-  const $menuValue = document.getElementById('menuValue');
-  const $covered   = document.getElementById('covered');
-  const $payTotal  = document.getElementById('payTotal');
   const $savedLine = document.getElementById('savedLine');
   const $tierChip      = document.getElementById('tierChip');
   const $tierChipName  = document.getElementById('tierChipName');
@@ -1243,7 +1274,7 @@
           <div>
             <div class="slot-label">${s.label}</div>
             <div class="slot-name">${p.title}</div>
-            <div class="slot-sub">${p.milk ? p.milk + ' · ' : ''}${money(p.value)} value</div>
+            <div class="slot-sub">${p.milk || 'No add-ons'}</div>
           </div>
           <div><button type="button" title="Remove">Remove</button></div>`;
         row.querySelector('button').addEventListener('click', ()=> clearSlot(i));
@@ -1260,18 +1291,12 @@
     $items.appendChild(wrap);
   }
 
-  /* Two rows of zeroes say nothing, so the breakdown only appears once there
-     is something in the claim to break down. */
+  /* Said in drinks, never in dollars — there is no price on this page. */
   function renderValue(){
-    const val = claimValue();
-    $valueRow.style.display   = val > 0 ? 'flex' : 'none';
-    $coveredRow.style.display = val > 0 ? 'flex' : 'none';
-    $menuValue.textContent = money(val);
-    $covered.textContent   = '-' + money(val);
-    $payTotal.textContent  = money(0);
-    $savedLine.textContent = val > 0
-      ? 'You save ' + money(val) + '. Your tier covers the lot.'
-      : 'Add a drink and your saving shows up here.';
+    const n = claimedIds().length;
+    $savedLine.textContent = n
+      ? (n === 1 ? 'One drink, on us.' : n + ' drinks, on us.')
+      : 'Add a drink and it shows up here.';
   }
 
   /* ================= The spend gate =================
@@ -1634,7 +1659,7 @@
   const successOverlay = document.getElementById('successOverlay');
   const soRef      = document.getElementById('soRef');
   const soStarName = document.getElementById('soStarName');
-  const soDoneBtn  = document.getElementById('soDone');
+
 
   function showSuccess(orderId){
     if(!successOverlay) return;
@@ -1649,28 +1674,12 @@
     void successOverlay.offsetWidth;              // reflow so the fade + rise run
     successOverlay.style.opacity = '1';
     successOverlay.classList.add('is-open');
-    if(soDoneBtn) soDoneBtn.focus();
   }
 
-  function hideSuccess(){
-    if(!successOverlay) return;
-    successOverlay.style.opacity = '0';
-    successOverlay.classList.remove('is-open');
-    successOverlay.setAttribute('aria-hidden', 'true');
-    document.documentElement.style.overflow = '';
-    document.body.style.overflow = '';
-    setTimeout(function(){ if(successOverlay.style.opacity === '0') successOverlay.style.display = 'none'; }, 450);
-  }
-
-  // Done closes the overlay and resets checkout so a second claim can be made
-  if(soDoneBtn){
-    soDoneBtn.addEventListener('click', ()=>{
-      hideSuccess();
-      pendingOrder = null;
-      submitStatus.textContent = '';
-      render();
-    });
-  }
+  /* There is deliberately no way to dismiss this. It is the customer's order
+     slip and the only place their number lives, so closing it could only ever
+     lose them something. A reload starts a fresh claim if one is really
+     wanted. */
 
 
   /* Whether a full-screen cover is up. The menu is hidden outright while one
