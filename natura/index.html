@@ -22,10 +22,14 @@
 
     :root{
       --cream:#FFFDF7; --card:#FFFFFF; --brown:#4A3324;
-      /* Blues lifted from the Natura wordmark (#8BD6EB) and darkened for type,
-         so this page and the collection board read as one system. */
-      --blue-deep:#166D85; --blue-soft:#75A7B4;
-      --line:#DBECF1; --tint:#EBF6F8;
+      /* Every blue on this page is derived from the logo star, #9CD4E9, by
+         holding each token's lightness (which carries its UI job — body type,
+         hairline, plate) and shifting only hue and saturation onto the brand
+         colour. So the page and the collection board read as one system, and
+         the system is the logo rather than something near it. */
+      --blue-logo:#9CD4E9;
+      --blue-deep:#1B6480; --blue-soft:#78A2B1;
+      --line:#DCEAF0; --tint:#ECF5F7;
       --star:#F6E17E; --radius:10px;
       --warn:#B85C3C;
     }
@@ -194,7 +198,7 @@
       transition:background .15s ease;
     }
     .add-btn{ flex:1; min-width:120px; }
-    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
+    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled){ background:#16566F; border-color:#16566F; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
     /* A claim button that can't be pressed — sold out, locked, or the claim is
        already full — steps back to a hairline rather than sitting there as a
@@ -393,7 +397,7 @@
       padding:14px 14px 14px 5px; font-family:inherit; font-size:18px; font-weight:700;
       color:var(--blue-deep); }
     #spendGate .sg-input:focus{ outline:none; }
-    #spendGate .sg-input::placeholder{ font-weight:400; color:#B2D8E2; }
+    #spendGate .sg-input::placeholder{ font-weight:400; color:#B4D4E0; }
     /* Chrome and Firefox both draw spinners that are useless on a phone. */
     #spendGate .sg-input::-webkit-outer-spin-button,
     #spendGate .sg-input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
@@ -489,7 +493,7 @@
       background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
       padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
       cursor:pointer; transition:background .15s ease; }
-    #spendGate .sg-go:hover:not(:disabled){ background:#115E74; border-color:#115E74; }
+    #spendGate .sg-go:hover:not(:disabled){ background:#16566F; border-color:#16566F; }
     #spendGate .sg-go:disabled{ opacity:.45; cursor:not-allowed; }
     #spendGate .sg-go:focus{ outline:none; }
     #spendGate .sg-go:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
@@ -511,7 +515,7 @@
       letter-spacing:.06em; text-transform:uppercase;
       color:var(--blue-deep); background:#fff; border:1px solid var(--line); border-radius:3px;
     }
-    #spendGate .sg-vinput::placeholder{ letter-spacing:.06em; color:#B2D8E2; text-transform:none; }
+    #spendGate .sg-vinput::placeholder{ letter-spacing:.06em; color:#B4D4E0; text-transform:none; }
     #spendGate .sg-vinput:focus{ outline:none; border-color:var(--blue-deep); }
     #spendGate .sg-vinput.is-bad{ border-color:var(--warn); }
     #spendGate .sg-vgo{
@@ -604,7 +608,7 @@
       background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
       padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
       cursor:pointer; transition:background .15s ease; }
-    #successOverlay .so-done:hover{ background:#115E74; border-color:#115E74; }
+    #successOverlay .so-done:hover{ background:#16566F; border-color:#16566F; }
     #successOverlay .so-done:focus{ outline:none; }
     #successOverlay .so-done:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
 
@@ -706,7 +710,7 @@
       <p class="so-where">Watch for it on the screen at the matcha cart.</p>
 
       <div class="so-rule-note">
-        <p>One small thing &mdash; please keep drinks out of the fitting rooms.</p>
+        <p>One small thing. Please keep drinks out of the fitting rooms.</p>
       </div>
 
       <div class="so-note">
@@ -1749,7 +1753,7 @@
       waitNote = document.createElement('div');
       waitNote.textContent = 'just a moment…';
       waitNote.style.cssText = 'position:absolute;left:0;right:0;bottom:22%;text-align:center;'
-        + 'font-size:14px;color:#609AAA;opacity:0;transition:opacity .4s ease;';
+        + 'font-size:14px;color:#6494A6;opacity:0;transition:opacity .4s ease;';
       splash.appendChild(waitNote);
       void waitNote.offsetWidth;
       waitNote.style.opacity = '1';
