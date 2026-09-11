@@ -169,11 +169,24 @@
     /* Claim row */
     .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
     /* Where the price used to sit. Nothing on this page is for sale, so the
-       card says what the drink is worth in feelings instead of dollars. */
-    .equiv{ flex:1; min-width:120px; color:var(--blue-soft); font-weight:600;
-            font-size:13px; line-height:1.35; }
-    .equiv i{ display:block; font-style:normal; font-size:11px; letter-spacing:.04em;
-              text-transform:uppercase; opacity:.7; }
+       card says what the drink is worth in feelings instead of dollars — but
+       it has to READ as a value, not as another line of copy. It gets its own
+       tinted plate, a notation mark, and the weight the price used to carry. */
+    .equiv{
+      margin-top:auto; display:block; align-self:stretch;
+      background:var(--tint); border:1px solid var(--line); border-radius:8px;
+      padding:9px 12px;
+    }
+    .equiv i{
+      display:block; font-style:normal; font-size:10px; font-weight:700;
+      letter-spacing:.12em; text-transform:uppercase; color:var(--blue-soft);
+      opacity:.85; margin-bottom:3px;
+    }
+    .equiv b{
+      display:block; font-size:15px; font-weight:700; line-height:1.3;
+      color:var(--blue-deep);
+    }
+    .card.is-soldout .equiv, .card.is-locked .equiv{ opacity:.5; }
 
     button{ font-family:inherit; cursor:pointer; }
     .add-btn, #confirmBtn{
@@ -1105,8 +1118,8 @@
       <div class="title">${p.title}</div>
       <p class="desc">${p.desc}</p>
       <p class="milk-note">${p.milk || ''}</p>
-      <div class="row sticker-host" style="margin-top:auto; gap:12px; align-items:center; flex-wrap:wrap">${stickerEl}
-        <span class="equiv"><i>equivalent value</i>${equivFor(p)}</span>
+      <div class="equiv"><i>equivalent value</i><b>&#8776; ${equivFor(p)}</b></div>
+      <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${stickerEl}
         <button class="add-btn">Add to claim</button>
       </div>
     `;
