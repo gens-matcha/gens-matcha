@@ -26,11 +26,11 @@
     :root{
       --cream:#FFFDF7;
       --blue-logo:#8BD6EB;
-      --blue-deep:#1D6C89;
-      --blue-mid:#4A9FBE;
-      --blue-soft:#93BCCC;
-      --line:#DCECF3;
-      --tint:#EFF8FC;
+      --blue-deep:#166D85;
+      --blue-mid:#37A1BE;
+      --blue-soft:#91BDCA;
+      --line:#DBECF1;
+      --tint:#EBF6F8;
     }
 
     *,*::before,*::after{ box-sizing:border-box }
@@ -120,6 +120,15 @@
     }
     .stale{ color:#B85C3C }
 
+    /* Browsers refuse to play audio until someone has touched the page, so the
+       board asks once. Removed for good the moment the tablet is tapped. */
+    .sound-hint{
+      position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
+      background:#166D85; color:#FFFDF7; border-radius:999px;
+      padding:9px 18px; font-size:14px; font-weight:700; letter-spacing:.01em;
+      box-shadow:0 2px 10px rgba(0,0,0,.12); z-index:50;
+    }
+
     @keyframes rise{ from{ opacity:0; transform:translateY(5px) } }
     @media (prefers-reduced-motion:reduce){ .num{ animation:none } }
 
@@ -180,6 +189,15 @@
   var STALE_MS     = 45 * 1000;         // no answer for this long = say so
   var SEEN_KEY     = 'gm_counter_ready_seen';
 
+  /* Your own chime. Drop the file into /img alongside the pictures and name it
+     here. Keep it short (1-3s) and use a format the tablet can read: .mp3,
+     .m4a, .wav and .ogg are all safe. Set this to '' to use the built-in chime
+     instead. If the file is missing, the wrong format, or fails to load for any
+     reason, the board falls back to the built-in chime rather than going
+     silent. */
+  var SOUND_URL    = '/img/ready.mp3';
+  var SOUND_VOLUME = 1;                 // 0 to 1, scales whichever sound plays
+
   var prepNums   = document.getElementById('prepNums');
   var readyNums  = document.getElementById('readyNums');
   var prepCount  = document.getElementById('prepCount');
@@ -189,6 +207,104 @@
   var statusEl   = document.getElementById('status');
 
   var lastOk = 0;
+
+  /* ---- The ready chime ----------------------------------------------------
+     Synthesised rather than loaded, so there is no audio file to host, no
+     second request to fail, and nothing to go missing if the tablet is on a
+     bad connection. Three rising notes, short and soft enough to live under
+     shop noise without becoming a fire alarm. */
+  var actx = null;
+  var soundBytes = null;   // the custom file, downloaded but not yet decoded
+  var soundBuf   = null;   // ...and decoded, once there is a context to do it
+
+  /* The bytes can be fetched straight away — only DECODING and playing need a
+     context, and that waits on the first tap. So by the time anyone touches
+     the tablet the file is already here. */
+  if (SOUND_URL){
+    fetch(SOUND_URL, { cache:'force-cache' })
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then(function(b){ soundBytes = b; })
+      .catch(function(){ soundBytes = null; });   // fall back to the built-in
+  }
+
+  function decodeSound(){
+    if (!actx || !soundBytes || soundBuf) return;
+    try {
+      // Safari wants the callback form, everyone else returns a promise.
+      var p = actx.decodeAudioData(
+        soundBytes.slice(0),
+        function(buf){ soundBuf = buf; },
+        function(){}
+      );
+      if (p && p.then) p.then(function(buf){ soundBuf = buf; }).catch(function(){});
+    } catch(e){}
+  }
+
+  function playFile(){
+    var src  = actx.createBufferSource();
+    var gain = actx.createGain();
+    gain.gain.value = SOUND_VOLUME;
+    src.buffer = soundBuf;
+    src.connect(gain).connect(actx.destination);
+    src.start();
+  }
+
+  // Three rising notes, short and soft enough to live under shop noise
+  // without becoming a fire alarm. Used whenever there is no custom file.
+  function playBuiltIn(){
+    var t0 = actx.currentTime;
+    [1046.5, 1318.5, 1568.0].forEach(function(freq, i){
+      var at   = t0 + i * 0.09;
+      var osc  = actx.createOscillator();
+      var gain = actx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, at);
+      gain.gain.exponentialRampToValueAtTime(0.28 * SOUND_VOLUME, at + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.42);
+      osc.connect(gain).connect(actx.destination);
+      osc.start(at);
+      osc.stop(at + 0.45);
+    });
+  }
+
+  function chime(){
+    if (!actx) return;
+    if (actx.state === 'suspended') actx.resume();
+    if (soundBuf) playFile();
+    else playBuiltIn();
+  }
+
+  /* Audio is blocked until the page has been touched, so the board says so and
+     arms itself on the first tap. One listener, removed once it has fired. */
+  var hint = document.createElement('div');
+  hint.className = 'sound-hint';
+  hint.textContent = 'Tap anywhere to turn on the ready chime';
+  document.body.appendChild(hint);
+
+  function armSound(){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC && !actx) actx = new AC();
+      if (actx && actx.state === 'suspended') actx.resume();
+      decodeSound();
+    } catch(e){}
+    if (hint){ hint.remove(); hint = null; }
+    document.removeEventListener('pointerdown', armSound);
+    document.removeEventListener('keydown', armSound);
+  }
+  document.addEventListener('pointerdown', armSound);
+  document.addEventListener('keydown', armSound);
+
+  /* Numbers that went ready on THIS poll. holdReady already knows which ones
+     it has never seen before, so the chime rides on that rather than keeping a
+     second list that could drift out of step with it. */
+  var freshlyReady = [];
+
+  /* The first answer after a reload seeds the board silently. Without this a
+     tablet that refreshes mid-service would chime for every drink already
+     sitting on the counter. */
+  var soundArmed = false;
 
   // When each ready number was first seen ready, so it can drop off by itself.
   // Kept in the tablet rather than the sheet — the barista ticks once and the
@@ -206,9 +322,10 @@
     var seen = loadSeen();
     var live = {};
 
+    freshlyReady = [];
     ready.forEach(function(n){
       live[n] = true;
-      if (!seen[n]) seen[n] = now;
+      if (!seen[n]){ seen[n] = now; freshlyReady.push(n); }
     });
     // Forget anything the barista has un-ticked, or that is long gone.
     Object.keys(seen).forEach(function(n){
@@ -276,6 +393,9 @@
       if (data && data.ok){
         render(data.preparing || [], holdReady(data.ready || []));
         lastOk = Date.now();
+        // One chime per poll, however many numbers turned ready at once.
+        if (soundArmed && freshlyReady.length) chime();
+        soundArmed = true;
       }
     } catch(e){
       // Leave the last good board up; a blank screen would read as "all done".
