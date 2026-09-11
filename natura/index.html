@@ -749,7 +749,7 @@
 
   <script>
   // ============= CONFIG =============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSTqh727GFR6FdpR6gB-Ri7tm77ii6HN5rtLmQvLaL2w5E1Txu8r_q88lhT1sILB6Zbg/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyYM0PQ5VocCmTCpSvFmcao0DnqiUfZy5DFWDlQVJwVkLKNBlaDHb2Iadr4Z9Sb5bjLDw/exec';
 
   // ==================================
 
@@ -1543,24 +1543,18 @@
     saveClaim(); render();
   });
 
+  /* Exactly the fields doPost reads, and nothing else. Nothing is sold at the
+     pop-up, so there is no subtotal, discount, total or payment proof to send,
+     and there is no pickup slot. What the giveaway cost is worked out on the
+     server from MENU, so no price leaves this page. */
   async function submitClaim(order){
     const payload = {
-      action: 'submit_order',
       order_id: order.order_id,
       telegram: order.telegram,
-      pickup_time: order.pickup_time,
       tier: String(order.tier),
       spend: order.spend == null ? '' : String(order.spend),
-      subtotal: String(order.value),
-      discount: String(order.value),
-      total: '0',
-      redeem: order.voucher ? 'TRUE' : 'FALSE',
-      free_item: order.free_item || '',
       voucher_code: order.voucher ? VOUCHER.code : '',
-      event_purchase: 'FALSE',
-      event_discount: '0',
-      items: order.items,
-      proof: ''
+      items: order.items
     };
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
@@ -1590,29 +1584,20 @@
     };
 
     const slots = activeSlots();
-    const now = new Date();
-    const pickup = new Date(now.getTime() + 10 * 60 * 1000);
-    const hrs = pickup.getHours();
-    const ampm = hrs >= 12 ? 'PM' : 'AM';
-    const pickupTimeStr = (hrs % 12 || 12) + ':' + String(pickup.getMinutes()).padStart(2, '0') + ' ' + ampm;
 
     pendingOrder = {
       order_id: 'HR-' + String(Math.floor(Math.random() * 9110) + 1).padStart(4, '0'),
       telegram: teleInput.value.trim(),
-      pickup_time: pickupTimeStr,
       tier: tier ? tier.n : '',
       spend: spend,
-      value: Math.round(claimValue() * 100) / 100,
       voucher: voucher,
-      free_item: '',
+      // validateOrder reads title, qty and addonsLabel. It prices the drink
+      // itself from MENU, so sending a price would only be something to ignore.
       items: slots.map((s, i)=>{
         const p = productById(picks[i]) || {};
         return {
-          key: p.id + '::' + i,
-          productId: p.id,
           title: p.title,
           addonsLabel: (p.milk || 'No add-ons'),
-          unitPrice: 0,
           qty: 1
         };
       })
