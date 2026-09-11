@@ -27,7 +27,7 @@
          #8CD5EA rather than as a family of related blues. Lightness is the
          job: 28 is type, 44 is secondary type, 73 is the brand colour itself,
          85 is a hairline, 94 is a plate. */
-      --blue-logo:#8CD5EA; --blue-btn:#8BD6EB; --blue-btn-hover:#71CDE6;
+      --blue-logo:#8CD5EA;
       --blue-deep:#156379; --blue-soft:#418A9F;
       --line:#C0E7F2; --tint:#E6F5F9;
       --star:#F6E17E; --radius:10px;
@@ -192,15 +192,13 @@
     .card.is-soldout .equiv, .card.is-locked .equiv{ opacity:.5; }
 
     button{ font-family:inherit; cursor:pointer; }
-    /* The brand blue is too light to carry cream text (1.6:1), so a filled
-       button flips: brand fill, deep-blue type. */
     .add-btn, #confirmBtn{
-      appearance:none; border:1px solid var(--blue-btn); border-radius:8px;
-      background:var(--blue-btn); color:var(--blue-deep); font-weight:700; padding:10px 14px; font-size:14px;
+      appearance:none; border:1px solid var(--blue-deep); border-radius:8px;
+      background:var(--blue-deep); color:var(--cream); font-weight:700; padding:10px 14px; font-size:14px;
       transition:background .15s ease;
     }
     .add-btn{ flex:1; min-width:120px; }
-    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled){ background:var(--blue-btn-hover); border-color:var(--blue-btn-hover); }
+    .add-btn:hover:not(:disabled), #confirmBtn:hover:not(:disabled){ background:#105265; border-color:#105265; }
     button:disabled{ opacity:.45; cursor:not-allowed; }
     /* A claim button that can't be pressed — sold out, locked, or the claim is
        already full — steps back to a hairline rather than sitting there as a
@@ -492,10 +490,10 @@
     #spendGate .sg-err:empty{ display:none; }
 
     #spendGate .sg-go{ appearance:none; display:block; width:100%;
-      background:var(--blue-btn); border:1px solid var(--blue-btn); border-radius:3px;
-      padding:14px 20px; color:var(--blue-deep); font-family:inherit; font-weight:700; font-size:16px;
+      background:var(--blue-deep); border:1px solid var(--blue-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
       cursor:pointer; transition:background .15s ease; }
-    #spendGate .sg-go:hover:not(:disabled){ background:var(--blue-btn-hover); border-color:var(--blue-btn-hover); }
+    #spendGate .sg-go:hover:not(:disabled){ background:#105265; border-color:#105265; }
     #spendGate .sg-go:disabled{ opacity:.45; cursor:not-allowed; }
     #spendGate .sg-go:focus{ outline:none; }
     #spendGate .sg-go:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
