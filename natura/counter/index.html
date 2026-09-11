@@ -8,6 +8,14 @@
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" href="/img/star.png" />
   <meta name="theme-color" content="#FFFDF7" />
+  <!-- Added to the home screen, the board launches with no browser chrome at
+       all. This is the dependable route on an iPad, where the Fullscreen API
+       is unreliable, and it survives a reboot. -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Collection" />
+  <link rel="apple-touch-icon" href="/img/star.png" />
   <meta name="robots" content="noindex" />
 
   <style>
@@ -122,6 +130,21 @@
 
     /* Browsers refuse to play audio until someone has touched the page, so the
        board asks once. Removed for good the moment the tablet is tapped. */
+    /* Always available, deliberately faint: the board is a display, not a
+       control panel, and nobody should notice this from across the shop. */
+    .fs-btn{
+      position:fixed; top:10px; right:12px; z-index:60;
+      appearance:none; border:1px solid var(--line); background:transparent;
+      color:#166D85; opacity:.35; border-radius:999px;
+      padding:6px 13px; font:inherit; font-size:13px; font-weight:700;
+      cursor:pointer; transition:opacity .15s ease;
+    }
+    .fs-btn:hover, .fs-btn:focus-visible{ opacity:1; }
+    /* Once the board fills the screen there is nothing to escape from, and a
+       stray control in the corner only invites a mis-tap. */
+    :fullscreen .fs-btn{ display:none; }
+    :-webkit-full-screen .fs-btn{ display:none; }
+
     .sound-hint{
       position:fixed; left:50%; bottom:16px; transform:translateX(-50%);
       background:#166D85; color:#FFFDF7; border-radius:999px;
@@ -277,11 +300,45 @@
 
   /* Audio is blocked until the page has been touched, so the board says so and
      arms itself on the first tap. One listener, removed once it has fired. */
+  /* ---- Full screen ----
+     Both the browser chrome and the audio unlock need a real user gesture, so
+     the first tap does both at once and the board is set up in one action. */
+  var root = document.documentElement;
+
+  function isFull(){
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+  function goFull(){
+    try {
+      var fn = root.requestFullscreen || root.webkitRequestFullscreen;
+      if (fn) fn.call(root);
+    } catch(e){}   // iPhone Safari has no Fullscreen API; home-screen launch covers it
+  }
+  function exitFull(){
+    try {
+      var fn = document.exitFullscreen || document.webkitExitFullscreen;
+      if (fn) fn.call(document);
+    } catch(e){}
+  }
+
+  var fsBtn = document.createElement('button');
+  fsBtn.className = 'fs-btn';
+  fsBtn.type = 'button';
+  fsBtn.textContent = 'Full screen';
+  fsBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (isFull()) exitFull(); else goFull();
+  });
+  document.body.appendChild(fsBtn);
+
   var hint = document.createElement('div');
   hint.className = 'sound-hint';
-  hint.textContent = 'Tap anywhere to turn on the ready chime';
+  hint.textContent = 'Tap anywhere to start the board';
   document.body.appendChild(hint);
 
+  /* The one setup tap: unlocks audio, hides the browser chrome, and takes the
+     prompt away. Runs once, then removes itself so a later stray tap on the
+     board does nothing. */
   function armSound(){
     try {
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -289,6 +346,7 @@
       if (actx && actx.state === 'suspended') actx.resume();
       decodeSound();
     } catch(e){}
+    goFull();
     if (hint){ hint.remove(); hint = null; }
     document.removeEventListener('pointerdown', armSound);
     document.removeEventListener('keydown', armSound);
