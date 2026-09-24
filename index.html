@@ -198,6 +198,9 @@
       text-transform:uppercase; color:var(--green-deep);
     }
     .free-tag img{ width:12px; height:12px; object-fit:contain; }
+    /* Under a cart line the free cup can't land on, shown only to someone
+       whose card is full, so nobody wonders why it didn't come off. */
+    .nofree-note{ margin-top:5px; font-size:11px; font-style:italic; color:var(--green-soft); }
     .total-section{
       background:var(--tint); border:1px solid var(--line); border-radius:8px;
       padding:12px 14px; margin:14px 0;
@@ -217,6 +220,24 @@
     .item button{ padding:6px 10px; font-size:12px; }
 
     .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+
+    /* The bundle card. Same shape as a drink, with a quiet accent so it reads
+       as an offer rather than another flavour. */
+    .card.is-bundle{ border-color:var(--green-deep); }
+
+    /* The cart nudge. Never blocks, always dismissible. */
+    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--green-deep);
+      border-radius:8px; padding:12px 34px 12px 13px; margin:0 0 12px; }
+    .bundle-nudge[hidden]{ display:none; }
+    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--green-deep); }
+    .bundle-nudge b{ font-weight:700; }
+    .bundle-nudge-go{ appearance:none; border:1px solid var(--green-deep); border-radius:8px;
+      background:var(--green-deep); color:var(--cream); font-family:inherit; font-weight:700;
+      font-size:13px; padding:8px 14px; cursor:pointer; transition:background .15s ease; }
+    .bundle-nudge-go:hover{ background:#2c6644; }
+    .bundle-nudge-x{ position:absolute; top:6px; right:7px; appearance:none; background:none;
+      border:0; font-size:17px; line-height:1; color:var(--green-soft); cursor:pointer; padding:4px 6px; }
+    .bundle-nudge-x:hover{ color:var(--green-deep); }
 
     /* Progress */
     .progress-wrap{
@@ -481,6 +502,8 @@
 
     #handleOverlay .ho-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 10px; }
     #handleOverlay .ho-sub{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0 0 20px; }
+    #handleOverlay .ho-sub + .ho-fine{ margin-top:-16px; }
+    #handleOverlay .ho-fine{ font-size:11px; line-height:1.4; color:var(--green-soft); opacity:.8; margin:0 0 20px; }
     #handleOverlay .ho-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
 
     /* @ sits inside the field so nobody types a second one */
@@ -631,6 +654,7 @@
 
       <p class="ho-head" id="hoHead">Enter tele handle to claim rewards</p>
       <p class="ho-sub">Claim a free drink on your 6th order!</p>
+      <p class="ho-fine">Excludes Seasonal Specials</p>
 
       <hr class="ho-rule">
 
@@ -746,6 +770,9 @@
     <div class="layout">
       <main>
         <section class="menu-section">
+          <div class="grid" id="bundleGrid"></div>
+        </section>
+        <section class="menu-section">
           <h2 class="section-title">Lattes</h2>
           <div class="grid" id="latteGrid"></div>
         </section>
@@ -758,6 +785,14 @@
       <aside class="cart" id="cart">
         <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
         <div id="cartItems"></div>
+
+        <!-- Bundle nudge. Appears only when they are 1-2 drinks short of the
+             trio, and only until they dismiss it. Deliberately not a pop-up. -->
+        <div class="bundle-nudge" id="bundleNudge" hidden>
+          <button type="button" class="bundle-nudge-x" id="bundleNudgeX" aria-label="No thanks">&times;</button>
+          <p id="bundleNudgeText"></p>
+          <button type="button" class="bundle-nudge-go" id="bundleNudgeGo">Make it the bundle</button>
+        </div>
 
         <div class="divider"></div>
 
@@ -830,22 +865,51 @@
 
 
   const products = [
+    /* The bundle is a single cart line at one price. Its `bundle` list is what
+       the nudge and the sold-out check read; `milkFor` gives it one milk toggle
+       per milk drink inside it. dealPrice is what they pay, and it goes into
+       the subtotal as is, with no separate discount line. The free loyalty cup never lands on a bundle. */
+    { id: 'ppg-bundle', title: 'Power Puff Girls!', img: 'img/bundle.png', basePrice: 0, dealPrice: 14.5,
+      desc: 'Unsure what to get? Try a bit of everything: our classic Gen\'s Matcha, a cozy Hojicha Latte and a bright Raspberry Matcha Tonic.',
+      bundle: ['matcha-rasp', 'gens-matcha', 'hojicha-latte'],
+      milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
+      milk: false, category: 'bundle' },
     { id: 'gens-matcha',   title: "Gen's Matcha",           img: 'img/matcha-latte.png',  img2: 'img/matcha-latte-2.webp', sticker: 'img/bestseller-card.png', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
     { id: 'hojicha-latte', title: 'Hojicha Latte',          img: 'img/hojicha-latte.png', basePrice: 4.8, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
     { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: 'img/mango-matcha.png',  basePrice: 6.0, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
-    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', img: 'img/Lemmon-latte.png',  img2: 'img/lemon-matcha-2.png', basePrice: 8.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
-    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   img2: 'img/matcha-rasp-2.webp', basePrice: 5.5, desc: 'Sparkling tonic, tart raspberry, and a matcha float. Bright, fizzy, refreshing.', milk: false, category: 'tonic' },
-    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   sticker: 'img/bestseller-card.png', basePrice: 5.5, desc: 'Bright yuzu citrus under a matcha float. Sharp, sparkling, sunny.', milk: false, category: 'tonic' }
+    { id: 'lemon-meringue', title: 'Lemon Meringue Matcha', noFree: true, img: 'img/Lemmon-latte.png',  img2: 'img/lemon-matcha-2.png', basePrice: 8.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
+    { id: 'matcha-rasp',   title: 'Raspberry Matcha Tonic', img: 'img/matcha-rasp.png',   img2: 'img/matcha-rasp-2.webp', sticker: 'img/bestseller-card.png', basePrice: 5.5, desc: 'Our most refreshing drink yet! Tart raspberry and sparkling tonic with a matcha float on top.', milk: false, category: 'tonic' },
+    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: 'img/matcha-yuzu.png',   basePrice: 5.5, desc: 'If you like citrus, this is the one. Yuzu and tonic with a matcha float on top.', milk: false, category: 'tonic' }
   ];
+  const productById = id => products.find(x => x.id === id);
+  products.forEach(p=>{
+    if(p.bundle) p.basePrice = Math.round(p.bundle.reduce((s,id)=> s + productById(id).basePrice, 0) * 100) / 100;
+  });
+  const isBundle = x => { const p = productById(x.productId); return !!(p && p.bundle); };
+  function cartHasBundle(){ return cart.some(isBundle); }
+  // Lines the free cup is allowed to land on: not a bundle, and not a drink
+  // marked noFree (the Lemon Meringue). Same list as NO_FREE in code.gs.
+  function freeEligible(x){ const p = productById(x.productId); return !!p && !p.bundle && !p.noFree; }
+  function cartHasLoose(){ return cart.some(freeEligible); }
+
   const CART_KEY = 'whisk_matcha_cart_v1';
   const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
   const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
   let cart = loadCart();
+  /* A saved cart remembers the price each line was added at. Re-price every
+     line from today's menu on load, so a price change (or the bundle's price)
+     never leaves an old figure sitting in someone's cart. */
+  cart.forEach(x=>{
+    const p = productById(x.productId);
+    if(p) x.unitPrice = itemPrice(p, x.addons || []);
+  });
+  saveCart(cart);
 
   function money(n){ return '$' + (Math.round(n*100)/100).toFixed(2); }
   function itemPrice(p, chosen){
     const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
-    return p.basePrice + addSum;
+    // A bundle is charged at its deal price, straight into the subtotal.
+    return (p.dealPrice || p.basePrice) + addSum;
   }
 
   /* Asks the sheet how many paid orders this handle has behind them. The
@@ -881,8 +945,9 @@
   function validHandle(v){ return /^[a-z0-9_]{5,32}$/.test(normHandle(v)); }
 
   // Reward is live once they have REWARD_AFTER completed orders behind them
-  // and something in the cart for it to land on.
-  function rewardReady(){ return rewards.known && rewards.pastOrders >= REWARD_AFTER && cart.length > 0; }
+  // and something in the cart for it to land on. A bundle is already a deal,
+  // so it does not count as somewhere for the free cup to land.
+  function rewardReady(){ return rewards.known && rewards.pastOrders >= REWARD_AFTER && cartHasLoose(); }
 
   // The line printed on the confirmation, telling them where the order they
   // just placed left their card.
@@ -903,11 +968,15 @@
   const cardsByTitle = new Map();   // filled in as the menu renders
   let soldOutNotice = '';           // shown in the cart when we drop an item
 
+  // Every milk an item depends on, whether it is one drink or a bundle of them.
+  const milksOf = x => (x.addons || []).map(a => a.milk || a.label).filter(Boolean);
+
   function addToCart({productId, qty, chosen}){
     const p = products.find(x=>x.id===productId);
     if(!p) return;
     if(SOLD_OUT.has(p.title)) return;
-    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.label))) return;
+    if(p.bundle && p.bundle.some(id => SOLD_OUT.has((productById(id)||{}).title))) return;
+    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk || a.label))) return;
     const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
     const title = p.title;
     const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
@@ -922,22 +991,26 @@
   function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
   function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
 
-  /* One free cup per order, and it is always the dearest one in the cart —
+  /* One free cup per order, and it is always the cheapest one in the cart —
      ties go to whatever was added first, which is the only tie-break nobody
      can argue with. */
   function freeLine(){
     if(!rewardReady()) return null;
     let best = null;
-    cart.forEach(x=>{ if(!best || x.unitPrice > best.unitPrice) best = x; });
+    cart.forEach(x=>{
+      if(!freeEligible(x)) return;   // not the bundle, not the Lemon Meringue
+      if(!best || x.unitPrice < best.unitPrice) best = x;
+    });
     return best ? { key: best.key, title: best.title, addonsLabel: best.addonsLabel, price: best.unitPrice } : null;
   }
 
   function totals(){
     const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
     const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
+    // A bundle is already at its deal price in the subtotal; no separate line.
     const free = freeLine();
     const discount = free ? free.price : 0;
-    return { sub, total: sub - discount, discount, totalCups, free };
+    return { sub, total: Math.round((sub - discount) * 100) / 100, discount, totalCups, free };
   }
 
   /* Swipe between a drink's photos. Mobile first: the gesture only takes over
@@ -1007,22 +1080,28 @@
   }
 
   const grids = {
+    bundle: document.getElementById('bundleGrid'),
     latte: document.getElementById('latteGrid'),
     tonic: document.getElementById('tonicGrid')
   };
   products.forEach(p=>{
     const card = document.createElement('article');
-    card.className = 'card';
+    card.className = 'card' + (p.bundle ? ' is-bundle' : '');
     const stickerEl = p.sticker
       ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
-    const milkBlock = p.milk ? `
-      <p class="milk-label">Choose your milk</p>
-      <div class="milk-toggle sticker-host">${stickerEl}
+    /* One toggle per milk drink. A plain drink has a single unlabelled one;
+       the bundle gets one per drink inside it, each labelled. */
+    const milkRows = p.milkFor
+      ? p.milkFor
+      : (p.milk ? [{ id: p.id, label: '' }] : []);
+    const milkBlock = milkRows.map((mf, i) => `
+      <p class="milk-label">${mf.label ? 'Milk for ' + mf.label : 'Choose your milk'}</p>
+      <div class="milk-toggle${i === 0 ? ' sticker-host' : ''}" data-milk-for="${mf.id}">${i === 0 ? stickerEl : ''}
         <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
         <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
-      </div>` : '';
+      </div>`).join('');
     /* No milk row to hang it off, so the tonics get it on the buy row instead. */
-    const rowSticker = (p.sticker && !p.milk) ? stickerEl : '';
+    const rowSticker = (p.sticker && !milkRows.length) ? stickerEl : '';
     /* One photo stays a plain img. A second one turns it into a swipe track,
        so nothing changes for the other four drinks. */
     const photos = p.img2 ? `
@@ -1047,27 +1126,36 @@
       ${milkBlock}
       <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${rowSticker}
         <div class="qty small">Qty <input type="number" min="1" value="1"></div>
-        <strong class="livePrice">${money(p.basePrice)}</strong>
+        <strong class="livePrice">${money(p.dealPrice || p.basePrice)}</strong>
         <button class="add-btn">Add to cart</button>
       </div>
     `;
 
     initGallery(card);
 
-    // Milk selection (default: Oatmilk)
-    let selectedMilk = p.milk ? 'Oatmilk' : null;
-    const milkBtns = p.milk ? [...card.querySelectorAll('.milk-opt')] : [];
+    /* Milk selection, keyed by which drink the row is for (default: Oatmilk).
+       A plain drink has exactly one key, so the single-milk case is just the
+       one-row version of the same thing. */
+    const picked = {};
+    milkRows.forEach(mf=> picked[mf.id] = 'Oatmilk');
+    const milkBtns = [...card.querySelectorAll('.milk-opt')];
 
-    function selectMilk(label){
-      if(!p.milk) return;
-      selectedMilk = label;
-      milkBtns.forEach(x=> x.classList.toggle('active', x.dataset.milk === label));
+    function selectMilk(label, forId){
+      milkRows.forEach(mf=>{
+        if(forId && mf.id !== forId) return;
+        picked[mf.id] = label;
+      });
+      card.querySelectorAll('.milk-toggle').forEach(row=>{
+        const rid = row.dataset.milkFor;
+        row.querySelectorAll('.milk-opt').forEach(x=>
+          x.classList.toggle('active', x.dataset.milk === picked[rid]));
+      });
     }
 
     milkBtns.forEach(mb=>{
       mb.addEventListener('click', ()=>{
         if(mb.disabled) return;
-        selectMilk(mb.dataset.milk);
+        selectMilk(mb.dataset.milk, mb.closest('.milk-toggle').dataset.milkFor);
       });
     });
 
@@ -1075,15 +1163,31 @@
     const btn = card.querySelector('.add-btn');
     cardsByTitle.set(p.title, {
       card, btn, qty, milkBtns, selectMilk,
-      usesMilk: !!p.milk,
-      getMilk: ()=> selectedMilk
+      usesMilk: milkRows.length > 0,
+      product: p,
+      getMilk: ()=> picked[milkRows.length ? milkRows[0].id : p.id] || null
     });
+
+    /* The add-on list. One entry per milk row. A plain drink keeps the exact
+       shape it always had (label = the milk), so the sheet reads it as before;
+       a bundle names the drink each milk belongs to. */
+    function chosenMilks(){
+      return milkRows.map(mf=>{
+        const milk = picked[mf.id];
+        const short = mf.label ? mf.label.replace(/ (Matcha|Latte)$/,'') : '';
+        return {
+          id: (mf.label ? mf.id + '-' : '') + 'milk-' + milk.toLowerCase().replace(/\s+/g,''),
+          label: mf.label ? short + ': ' + milk : milk,
+          milk: milk,           // the bare name, so sold-out checks never parse the label
+          price: 0
+        };
+      });
+    }
+
     btn.addEventListener('click', ()=>{
       if(SOLD_OUT.has(p.title)) return;
-      if(selectedMilk && SOLD_OUT_MILKS.has(selectedMilk)) return;
-      const chosen = selectedMilk
-        ? [{ id: 'milk-' + selectedMilk.toLowerCase().replace(/\s+/g,''), label: selectedMilk, price: 0 }]
-        : [];
+      const chosen = chosenMilks();
+      if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk))) return;
       addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
       btn.textContent = 'Added ✓';
       setTimeout(()=> {
@@ -1106,8 +1210,11 @@
     const fullyOut = new Set();   // drinks off the menu entirely, milk or not
 
     cardsByTitle.forEach((entry, title)=>{
-      const { card, btn, qty, milkBtns, selectMilk, usesMilk } = entry;
-      const out = SOLD_OUT.has(title) || (usesMilk && allMilkGone);
+      const { card, btn, qty, milkBtns, selectMilk, usesMilk, product } = entry;
+      // A bundle goes off the menu the moment any one of its drinks does.
+      const partGone = product && product.bundle &&
+        product.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+      const out = SOLD_OUT.has(title) || partGone || (usesMilk && allMilkGone);
       if(out) fullyOut.add(title);
 
       card.classList.toggle('is-soldout', out);
@@ -1124,11 +1231,11 @@
         mb.classList.toggle('is-out', milkOut);
       });
       const left = milkBtns.filter(mb=> !mb.disabled);
-      if(left.length === 1) selectMilk(left[0].dataset.milk);
+      if(left.length === 1) selectMilk(left[0].dataset.milk);   // every row moves off the missing milk
     });
 
     // Drop anything in the cart that's no longer available, and say so.
-    const gone = x => fullyOut.has(x.title) || SOLD_OUT_MILKS.has(x.addonsLabel);
+    const gone = x => fullyOut.has(x.title) || milksOf(x).some(m => SOLD_OUT_MILKS.has(m));
     const dropped = [...new Set(cart.filter(gone).map(x=>
       fullyOut.has(x.title) ? x.title : x.title + ' with ' + x.addonsLabel
     ))];
@@ -1147,6 +1254,12 @@
   const $tot = document.getElementById('total');
   const $count = document.getElementById('cartCount');
   const $freeRow = document.getElementById('freeRow');
+  const $nudge     = document.getElementById('bundleNudge');
+  const $nudgeText = document.getElementById('bundleNudgeText');
+  const $nudgeGo   = document.getElementById('bundleNudgeGo');
+  const $nudgeX    = document.getElementById('bundleNudgeX');
+  const BUNDLE = products.find(x => x.bundle);
+  let nudgeDismissed = false;
   const $freeLabel = document.getElementById('freeLabel');
   const $freeAmount = document.getElementById('freeAmount');
   const $progressStatus = document.getElementById('progressStatus');
@@ -1234,20 +1347,27 @@
 
     if(complete){
       // No drink named here on purpose. It would change under them the moment
-      // they add something dearer, and the cart already says which cup it is,
+      // they add something cheaper, and the cart already says which cup it is,
       // twice: a FREE badge on the item and a named line above the total.
-      $progressHint.innerHTML = '<span class="unlocked">free drink unlocked!! the priciest cup is on us :)</span>';
+      $progressHint.innerHTML = '<span class="unlocked">a free cup! on us :)</span>';
       if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
         stickyProgressState.hasReachedThreshold = true;
         if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
         stickyProgressState.hideTimeout = setTimeout(() => { hideStickyProgressBar(); }, 1500);
       }
     } else {
-      if(earned >= REWARD_AFTER){
+      if(earned >= REWARD_AFTER && cart.length){
+        // Card is full but nothing in the cart can take the free cup (only the
+        // bundle and/or Lemon Meringue). Say so rather than leave them guessing.
+        const why = cartHasBundle() && cart.some(x => (productById(x.productId)||{}).noFree)
+          ? 'the bundle or Lemon Meringue'
+          : cartHasBundle() ? 'a bundle' : 'the Lemon Meringue';
+        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> the free cup can\'t go on ' + why + ', add another drink :)';
+      } else if(earned >= REWARD_AFTER){
         // Card is full, they just haven't put anything in the cart yet.
         // Pays off "4 to go till we owe you a drink" from earlier on the card.
         // This is the one state where the debt is real: card full, cart empty.
-        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> add one and we\'ll take the priciest off :)';
+        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> add one and it\'s on us :)';
       } else if(cart.length){
         // An order is being built, so it mustn't be counted twice.
         const left = REWARD_AFTER - earned - 1;
@@ -1284,6 +1404,7 @@
 
     const t = totals();
     updateProgressBar();
+    renderNudge();
 
     const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
 
@@ -1298,7 +1419,9 @@
       const row = document.createElement('div');
       row.className = 'item';
       const tag = (t.free && t.free.key === it.key)
-        ? '<span class="free-tag"><img src="img/star.png" alt="">1 free</span>' : '';
+        ? '<span class="free-tag"><img src="img/star.png" alt="">1 free</span>'
+        : (rewards.known && rewards.pastOrders >= REWARD_AFTER && !freeEligible(it))
+          ? '<div class="nofree-note">Seasonal special, not eligible for the free cup</div>' : '';
       row.innerHTML = `
         <div>
           <div><strong>${it.title}</strong></div>
@@ -1327,6 +1450,83 @@
     }
     $tot.textContent = money(t.total);
   }
+
+  /* ---- Bundle nudge ----
+     Shows only when the cart is 1-2 drinks short of the trio and they have not
+     waved it away. It is a line in the cart, never a pop-up. */
+  // Which of the bundle's drinks are already in the cart, and which are not.
+  function nudgeSplit(){
+    const have = [], missing = [];
+    (BUNDLE ? BUNDLE.bundle : []).forEach(id=>{
+      const line = cart.find(x => x.productId === id);
+      (line ? have : missing).push({ id: id, line: line,
+        title: (productById(id) || {}).title || id });
+    });
+    return { have, missing };
+  }
+
+  function renderNudge(){
+    if(!BUNDLE || !$nudge) return;
+    const split = nudgeSplit();
+    // Someone with a full card gets a free cup on loose drinks but never on a
+    // bundle, so for them the bundle costs more. Don't nudge them into it.
+    const cardFull = rewards.known && rewards.pastOrders >= REWARD_AFTER;
+    const show = !nudgeDismissed
+      && !cardFull
+      && !cartHasBundle()
+      && split.have.length > 0
+      && split.missing.length > 0
+      && !SOLD_OUT.has(BUNDLE.title)
+      && !BUNDLE.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+    $nudge.hidden = !show;
+    if(!show) return;
+
+    const names = split.missing.map(m => m.title);
+    const list = names.length > 1
+      ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+      : names[0];
+    $nudgeText.innerHTML = 'Add ' + list + ' to make it the ' + BUNDLE.title + ' bundle, <b>'
+      + money(BUNDLE.dealPrice || BUNDLE.basePrice) + '</b> for all three.';
+  }
+
+  /* Swaps the loose drinks for the bundle, carrying their milk choices over so
+     nobody silently loses the Fresh milk they picked a moment ago. */
+  function takeBundle(){
+    if(!BUNDLE) return;
+    const split = nudgeSplit();
+
+    const chosen = (BUNDLE.milkFor || []).map(mf=>{
+      const line = (cart.find(x => x.productId === mf.id) || {});
+      const carried = (line.addons || []).map(a => a.milk || a.label)
+        .find(m => MILKS.indexOf(m) !== -1);
+      // Their own choice wins; otherwise Oatmilk, which is what every card
+      // defaults to.
+      const fallback = !SOLD_OUT_MILKS.has('Oatmilk')
+        ? 'Oatmilk'
+        : (MILKS.find(m => !SOLD_OUT_MILKS.has(m)) || 'Oatmilk');
+      const milk = (carried && !SOLD_OUT_MILKS.has(carried)) ? carried : fallback;
+      const short = mf.label.replace(/ (Matcha|Latte)$/, '');
+      return {
+        id: mf.id + '-milk-' + milk.toLowerCase().replace(/\s+/g, ''),
+        label: short + ': ' + milk,
+        milk: milk,
+        price: 0
+      };
+    });
+
+    // One cup of each goes into the bundle; anything beyond that they keep.
+    split.have.forEach(h=>{
+      if(!h.line) return;
+      if(h.line.qty > 1){ h.line.qty -= 1; }
+      else { cart = cart.filter(x => x.key !== h.line.key); }
+    });
+
+    saveCart(cart);
+    addToCart({ productId: BUNDLE.id, qty: 1, chosen: chosen });   // saves + renders
+  }
+
+  if($nudgeGo) $nudgeGo.addEventListener('click', takeBundle);
+  if($nudgeX)  $nudgeX.addEventListener('click', ()=>{ nudgeDismissed = true; renderNudge(); });
 
   if(window.innerWidth <= 900){
     let scrollTimeout;
