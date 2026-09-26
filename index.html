@@ -459,6 +459,8 @@
       function go(){
         if(!chosen) return;
         try { localStorage.setItem(LAST_KEY, chosen); } catch(e){}
+        // Hand the status we just fetched to the outlet page so it can skip its splash.
+        try { sessionStorage.setItem('gm_status_handoff_v1', JSON.stringify({ at: Date.now(), st: st })); } catch(e){}
         location.href = GM.href(GM.OUTLETS[chosen].path);
       }
       enter.addEventListener('click', go);
