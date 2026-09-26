@@ -277,10 +277,24 @@
     #pkDates .cal-opt svg{ width:15px; height:15px; color:var(--green-soft); flex:none; }
 
 </style>
+  <style>
+    /* Splash: "just a moment" with the same hopping stars as the dates loader, shown from the start */
+    .splash-wait{ display:flex; align-items:center; justify-content:center; gap:9px; font-size:14px; color:#7E9B85;
+      font-family:inherit; animation:schedFade .4s ease both; }
+    .splash-wait .dots{ display:inline-flex; gap:5px; }
+    .splash-wait .dots i{ width:10px; height:10px; display:inline-block;
+      clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      animation:schedStar 1s infinite ease-in-out both; }
+    .splash-wait .dots i:nth-child(1){ background:#E58AB0; }
+    .splash-wait .dots i:nth-child(2){ background:#6FA96B; animation-delay:.15s; }
+    .splash-wait .dots i:nth-child(3){ background:#6FA5C9; animation-delay:.30s; }
+    @media (prefers-reduced-motion: reduce){ .splash-wait{ animation:none; } .splash-wait .dots i{ animation-duration:1.6s; } }
+  </style>
 </head>
 <body>
-  <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
+  <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
     <img src="../img/Logo-Open.png" alt="Gens Matcha" style="width:60%;max-width:240px;height:auto;opacity:.9;">
+    <div class="splash-wait" role="status">just a moment<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
   </div>
 
   <div class="bg-confetti" aria-hidden="true"></div>
