@@ -1,0 +1,2170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gens Matcha · Punggol</title>
+
+  <link rel="icon" href="../../favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="../../img/star.png" />
+  <meta name="theme-color" content="#FFFDF7" />
+  <style>
+    @font-face{
+      font-family:'Brandon Grotesque';
+      src:url("../../fonts/Gen's Matcha Regular.woff2") format('woff2');
+      font-weight:400; font-style:normal; font-display:swap;
+    }
+    @font-face{
+      font-family:'Brandon Grotesque';
+      src:url("../../fonts/Gen's Matcha Bold.woff2") format('woff2');
+      font-weight:700; font-style:normal; font-display:swap;
+    }
+
+    :root{
+      --cream:#FFFDF7; --card:#FFFFFF; --brown:#4A3324;
+      --green-deep:#357A52; --green-soft:#8FA894;
+      --line:#E7ECE3; --tint:#F1F7F1;
+      --star:#F6E17E; --radius:10px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    body{
+      margin:0; background:var(--cream); color:var(--green-deep);
+      font:16px/1.55 'Brandon Grotesque', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    }
+    .wrap{max-width:1080px; margin:auto; padding:32px 28px; position:relative; z-index:1}
+
+    header{ text-align:center; margin-bottom:26px; }
+    .site-logo{ width:100%; max-width:300px; height:auto; display:block; margin:0 auto 8px; }
+    .tagline{ color:var(--green-soft); font-style:italic; font-size:16px; margin:0; }
+
+    /* Which outlet this is, with a way back to the picker */
+    .outlet-bar{ display:inline-flex; align-items:center; gap:10px; margin:12px 0 0;
+      font-size:14px; color:var(--green-soft); }
+    .outlet-bar .outlet-name{ display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--green-deep);
+      background:var(--tint); border:1px solid var(--line); border-radius:999px; padding:4px 12px; }
+    .outlet-bar .outlet-name svg{ width:14px; height:14px; color:var(--green-soft); }
+    .outlet-bar a{ color:var(--green-soft); text-decoration:underline; text-underline-offset:3px; }
+    .outlet-bar a:hover{ color:var(--green-deep); }
+
+    .star-mark{ display:inline-block; vertical-align:middle; }
+
+    /* Menu sections */
+    .menu-section{ margin-bottom:34px; }
+    .section-title{
+      font-weight:700; text-transform:uppercase; letter-spacing:.14em;
+      font-size:22px; color:var(--green-deep); margin:0 0 18px;
+      padding-bottom:8px; border-bottom:1px solid var(--line);
+    }
+
+    .layout{ display:grid; grid-template-columns:1fr 340px; gap:32px; align-items:start; }
+    @media (max-width:900px){ .layout{grid-template-columns:1fr} }
+
+    .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:16px; display:flex; flex-direction:column;
+      animation:fadeUp .35s ease backwards;
+    }
+    .img-wrap{ position:relative; }
+    .img{
+      display:block; /* kills the inline baseline gap under the picture */
+      width:100%; aspect-ratio:1/1; object-fit:contain; background:var(--cream);
+      border-radius:8px; margin-bottom:12px;
+    }
+
+    /* Swipeable photos. touch-action:pan-y hands vertical scrolling back to the
+       browser so the page still scrolls normally through the picture; only the
+       sideways gesture is ours. */
+    .gal{
+      position:relative; overflow:hidden; border-radius:8px; margin-bottom:12px;
+      touch-action:pan-y; -webkit-user-select:none; user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .gal-track{ display:flex; will-change:transform; transition:transform .34s cubic-bezier(.22,.61,.36,1); }
+    .gal-track.dragging{ transition:none; }
+    .gal .img{
+      flex:0 0 100%; width:100%; margin-bottom:0; border-radius:0;
+      pointer-events:none; -webkit-user-drag:none;
+    }
+    /* Sat on the picture rather than under it, so this card stays exactly the
+       same height as the other four. */
+    .gal-dots{
+      position:absolute; left:0; right:0; bottom:20px;
+      display:flex; justify-content:center; gap:7px;
+    }
+    .gal-dots button{
+      width:6px; height:6px; padding:0; border-radius:50%; cursor:pointer;
+      background:transparent; border:1px solid var(--green-soft);
+      box-shadow:0 0 0 1.5px rgba(255,253,247,.85);
+      transition:background .2s ease, border-color .2s ease;
+    }
+    .gal-dots button.on{ background:var(--green-deep); border-color:var(--green-deep); }
+    .card.is-soldout .gal-dots{ opacity:.45; }
+    @media (prefers-reduced-motion:reduce){ .gal-track{ transition:none; } }
+
+    /* Sold out: dim the card, hairline tag over the image, controls disabled.
+       No accent colours, no badge fills — same restraint as the rest of the menu. */
+    .soldout-tag{
+      display:none; position:absolute; top:8px; left:8px;
+      background:var(--cream); border:1px solid var(--line); border-radius:8px;
+      color:var(--green-soft); font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:.12em; padding:4px 9px;
+    }
+    .card.is-soldout .soldout-tag{ display:block; }
+    .card.is-soldout .img{ filter:grayscale(.9); opacity:.45; }
+    .card.is-soldout .title,
+    .card.is-soldout .desc,
+    .card.is-soldout .livePrice{ opacity:.5; }
+    .card.is-soldout .milk-label,
+    .card.is-soldout .milk-toggle,
+    .card.is-soldout .qty{ display:none; }
+    .card.is-soldout .add-btn{ opacity:1; background:transparent; color:var(--green-soft); border-color:var(--line); }
+    .cart-note{
+      font-size:13px; color:var(--green-soft); line-height:1.45;
+      border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:12px;
+    }
+    .title{
+      font-weight:700; text-transform:uppercase; letter-spacing:.02em;
+      font-size:17px; color:var(--green-deep); margin:2px 0 4px;
+    }
+    .desc{ color:var(--green-soft); font-size:14px; line-height:1.45; margin:0 0 12px; }
+
+    .muted{ color:var(--green-soft); }
+    .small{ font-size:12px; }
+
+    /* Milk toggle */
+    .milk-label{ color:var(--green-soft); font-size:12px; margin:2px 0 6px; }
+    .milk-toggle{ display:flex; gap:8px; margin-bottom:6px; position:relative; }
+    /* Stuck on by hand, so it sits off the grid: rotated, overhanging the
+       button's corner, and never in the way of the tap. Drinks with a milk
+       choice hang it off that row; the rest hang it off the add-to-cart row. */
+    .sticker-host{ position:relative; }
+    .sticker{
+      position:absolute; z-index:3; pointer-events:none;
+      width:15%; height:auto; right:-9px; top:-14px;
+      transform:rotate(14deg); transform-origin:center;
+    }
+    .card.is-soldout .sticker{ display:none; }
+    .milk-opt{
+      flex:1; display:inline-flex; align-items:center; justify-content:center; gap:5px;
+      background:var(--cream); color:var(--green-deep); border:1px solid var(--line);
+      border-radius:8px; padding:9px 8px; font-family:inherit; font-weight:700; font-size:13px;
+      cursor:pointer; transition:border-color .15s ease, background .15s ease;
+    }
+    .milk-opt.active{ background:var(--tint); border-color:var(--green-deep); }
+    /* A milk that's run out: struck through and dimmed, never selectable. */
+    .milk-opt.is-out{
+      background:var(--cream); border-color:var(--line); color:var(--green-soft);
+      text-decoration:line-through; opacity:.55; cursor:not-allowed;
+    }
+
+    /* Qty + add row */
+    .row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .qty{ display:flex; align-items:center; gap:8px; color:var(--green-soft); }
+    .qty input{
+      width:54px; padding:7px 8px; border:1px solid var(--line); border-radius:8px;
+      text-align:center; font-family:inherit; font-weight:700; color:var(--green-deep); background:#fff;
+    }
+    .qty input:focus{ outline:none; border-color:var(--green-deep); }
+    .livePrice{ color:var(--green-deep); font-weight:700; font-size:18px; }
+
+    button{ font-family:inherit; cursor:pointer; }
+    .add-btn, #confirmBtn{
+      appearance:none; border:1px solid var(--green-deep); border-radius:8px;
+      background:var(--green-deep); color:var(--cream); font-weight:700; padding:10px 14px; font-size:14px;
+      transition:background .15s ease;
+    }
+    .add-btn{ flex:1; min-width:120px; }
+    .add-btn:hover, #confirmBtn:hover:not(:disabled){ background:#2c6644; border-color:#2c6644; }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+    /* Cart */
+    .cart{
+      position:sticky; top:16px; background:var(--card);
+      border:1px solid var(--line); border-radius:var(--radius); padding:20px;
+    }
+    .cart h3{
+      margin:0 0 14px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+      font-size:17px; color:var(--green-deep); display:flex; align-items:center; gap:8px;
+    }
+    .cart-badge{
+      background:var(--green-deep); color:var(--cream); font-size:12px; font-weight:700;
+      padding:1px 9px; border-radius:999px;
+    }
+    .divider{ height:1px; background:var(--line); margin:14px 0; }
+    .item{
+      display:grid; grid-template-columns:1fr auto; gap:10px;
+      padding:12px 0; border-bottom:1px solid var(--line);
+    }
+    .addons{ font-size:13px; color:var(--green-soft); margin-top:2px; }
+    /* The one cup the reward is being spent on */
+    .free-tag{
+      display:inline-flex; align-items:center; gap:5px; margin-top:5px;
+      background:var(--tint); border:1px solid var(--green-deep); border-radius:999px;
+      padding:2px 9px; font-size:11px; font-weight:700; letter-spacing:.06em;
+      text-transform:uppercase; color:var(--green-deep);
+    }
+    .free-tag img{ width:12px; height:12px; object-fit:contain; }
+    /* Under a cart line the free cup can't land on, shown only to someone
+       whose card is full, so nobody wonders why it didn't come off. */
+    .nofree-note{ margin-top:5px; font-size:11px; font-style:italic; color:var(--green-soft); }
+    .total-section{
+      background:var(--tint); border:1px solid var(--line); border-radius:8px;
+      padding:12px 14px; margin:14px 0;
+    }
+    .total-section .row{ font-size:17px; }
+    .total-section strong{ color:var(--green-deep); font-size:20px; }
+    .success-text{ color:var(--green-deep); font-weight:700; }
+
+    /* Secondary buttons (clear / remove) */
+    #clearBtn, .item button{
+      appearance:none; border:1px solid var(--line); border-radius:8px;
+      background:var(--cream); color:var(--green-soft); font-family:inherit; font-weight:700;
+      transition:border-color .15s ease, color .15s ease;
+    }
+    #clearBtn{ padding:10px 14px; font-size:14px; }
+    #clearBtn:hover, .item button:hover{ border-color:var(--green-soft); color:var(--green-deep); }
+    .item button{ padding:6px 10px; font-size:12px; }
+
+    .btn-group{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
+
+    /* The bundle card. Same shape as a drink, with a quiet accent so it reads
+       as an offer rather than another flavour. */
+    .card.is-bundle{ border-color:var(--green-deep); }
+
+    /* The cart nudge. Never blocks, always dismissible. */
+    .bundle-nudge{ position:relative; background:var(--tint); border:1px solid var(--green-deep);
+      border-radius:8px; padding:12px 34px 12px 13px; margin:0 0 12px; }
+    .bundle-nudge[hidden]{ display:none; }
+    .bundle-nudge p{ margin:0 0 9px; font-size:13px; line-height:1.45; color:var(--green-deep); }
+    .bundle-nudge b{ font-weight:700; }
+    .bundle-nudge-go{ appearance:none; border:1px solid var(--green-deep); border-radius:8px;
+      background:var(--green-deep); color:var(--cream); font-family:inherit; font-weight:700;
+      font-size:13px; padding:8px 14px; cursor:pointer; transition:background .15s ease; }
+    .bundle-nudge-go:hover{ background:#2c6644; }
+    .bundle-nudge-x{ position:absolute; top:6px; right:7px; appearance:none; background:none;
+      border:0; font-size:17px; line-height:1; color:var(--green-soft); cursor:pointer; padding:4px 6px; }
+    .bundle-nudge-x:hover{ color:var(--green-deep); }
+
+    /* Progress */
+    .progress-wrap{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:16px 18px; margin-bottom:26px;
+    }
+    .progress-header{
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      margin-bottom:10px; flex-wrap:wrap;
+    }
+    .progress-title{ font-weight:700; color:var(--green-deep); font-size:15px; display:inline-flex; align-items:center; gap:6px; }
+    .progress-status{ font-weight:700; color:var(--green-soft); font-size:14px; }
+    .progress-bar-bg{ background:var(--line); border-radius:999px; height:10px; overflow:hidden; }
+    .progress-bar-fill{ background:var(--star); height:100%; border-radius:999px; transition:width .4s ease; }
+    .progress-hint{ color:var(--green-soft); font-size:13px; margin:14px 0 0; text-align:center; }
+
+    /* One checkpoint per slot on the card, cut straight out of the bar — no
+       ring, no gap, so the fill runs through them uninterrupted. */
+    .progress-dot{
+      position:absolute; top:50%; width:16px; height:16px; margin-top:-8px;
+      transform:translateX(-50%); z-index:1;
+      background:#BCCBBB;
+      clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transition:background .3s ease, opacity .25s ease;
+    }
+    /* Each slot has its own colour off the confetti palette and its own fixed
+       tilt, so a filled card looks stuck on by hand rather than printed. The
+       tilt never moves; only the colour changes as slots are earned. */
+    .progress-dot.on{ background:var(--dot-color, var(--green-deep)); }
+    /* The hand-drawn star rides this exact spot, and its early frames are
+       outlines you can see straight through. Two stars in one place looked
+       like a printing error, so the checkpoint underneath steps aside. */
+    .progress-dot.under-star{ opacity:0; }
+    /* the last star is the free one, so it gets to be a little bigger */
+    .progress-dot.last{ width:21px; height:21px; margin-top:-10.5px; }
+    .unlocked{ color:var(--green-deep); font-weight:700; }
+    /* whose card this is — quiet, but visible enough to catch a typo'd handle */
+    .progress-who{ font-size:12px; color:var(--green-soft); margin:6px 0 0; text-align:center; }
+    .progress-who b{ color:var(--green-deep); font-weight:700; }
+
+    /* Animated star riding the tip of the progress bar */
+    .progress-bar-track{ position:relative; }
+    .progress-tip-star{
+      position:absolute; top:50%; left:0%; width:34px; height:34px;
+      margin:-17px 0 0 -17px; pointer-events:none; z-index:2;
+      transform-origin:50% 65%;
+      transition:left .4s ease;               /* slides with the fill */
+      animation:tipStarSway 3.2s ease-in-out infinite;
+    }
+    .progress-tip-star.is-complete{ animation:tipStarCheer 2s ease-in-out infinite; }
+    @keyframes tipStarSway{
+      0%,100%{ transform:rotate(-1.3deg); }
+      50%    { transform:rotate(1.3deg); }
+    }
+    @keyframes tipStarCheer{
+      0%,100%{ transform:rotate(-2.2deg) scale(1); }
+      50%    { transform:rotate(2.2deg)  scale(1.06); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      .progress-tip-star{ animation:none; }
+    }
+
+    /* Forms */
+    .teleGroup{ margin:6px 0 12px; }
+    .teleLabel{ display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:var(--green-deep); margin-bottom:8px; }
+    #teleHandle{
+      width:100%; padding:12px 14px; font-family:inherit; font-size:15px;
+      color:var(--green-deep); background:#fff; border:1px solid var(--line); border-radius:8px;
+    }
+    #teleHandle:focus{ outline:none; border-color:var(--green-deep); }
+    input[type="file"]{
+      width:100%; padding:12px; border:1px dashed var(--green-soft); border-radius:8px;
+      background:var(--cream); font-family:inherit; color:var(--green-soft); cursor:pointer;
+    }
+
+    /* QR */
+    .qrWrap{
+      display:none; background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
+      padding:18px; margin-top:18px; text-align:center;
+    }
+    .qrWrap img{ max-width:230px; width:100%; border-radius:10px; border:1px solid var(--line); margin:10px 0; background:#fff; }
+    .qrHeader .title{ font-weight:700; font-size:16px; color:var(--green-deep); margin-bottom:6px; }
+    .qrHeader .hint{ color:var(--green-soft); font-size:13px; margin:0 0 10px; }
+    .orderRefBlock{
+      display:inline-flex; align-items:center; gap:10px; background:#fff;
+      border:1px solid var(--green-deep); border-radius:999px; padding:7px 12px;
+      font-weight:700; font-size:14px; color:var(--green-deep);
+    }
+    .copyBtn{ background:var(--green-deep); color:var(--cream); border:0; border-radius:6px; padding:5px 10px; font-family:inherit; font-weight:700; font-size:12px; }
+
+    /* Recommended hand-drawn star */
+    .progress-star{ width:19px; height:19px; object-fit:contain; position:relative; top:-3px; }
+
+    /* Empty cart */
+    .empty-cart{ text-align:center; padding:24px 12px; color:var(--green-soft); }
+    .empty-cart-img{ width:110px; height:auto; display:block; margin:0 auto 10px; opacity:.9; }
+
+    @keyframes fadeUp{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+    /* Sticky progress on mobile */
+    @media (max-width:900px){
+      .progress-wrap{
+        position:sticky; top:0; z-index:100; border-radius:0 0 10px 10px;
+        transition:opacity .3s ease, transform .3s ease;
+      }
+      .progress-wrap.hidden{ opacity:0; pointer-events:none; transform:translateY(-8px); }
+    }
+
+    @media (max-width:600px){
+      .wrap{ padding:18px 20px; }
+      .site-logo{ max-width:240px; }
+      .grid{ grid-template-columns:1fr; gap:14px; }
+      .section-title{ font-size:19px; letter-spacing:.1em; }
+      .layout{ gap:22px; }
+      .cart{ position:static; }
+    }
+  </style>
+
+<style id="closedOverlayStyle">
+    #closedOverlay{ position:fixed; inset:0; z-index:9998; display:none; opacity:0;
+      transition:opacity .5s ease; background:var(--cream); overflow:auto;
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:flex-start; justify-content:center; padding:56px 24px 96px; text-align:center; }
+    #closedOverlay .co-container{ max-width:600px; width:100%; position:relative; z-index:1; }
+    #closedOverlay .co-icon{ width:210px; max-width:60vw; height:auto; display:block; margin:0 auto 28px; }
+    #closedOverlay .co-message{ font-size:19px; color:var(--green-soft); line-height:1.6; margin:0 auto 12px; max-width:44ch; }
+    #closedOverlay .co-logo{ position:fixed; bottom:22px; left:26px; width:120px; height:auto; z-index:2; }
+
+    /* which outlet is closed, and where else they can go */
+    #closedOverlay .co-outlet{ display:inline-block; font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+      font-size:13px; color:var(--green-deep); background:var(--tint); border:1px solid var(--line);
+      border-radius:999px; padding:5px 14px; margin:0 0 14px; }
+    #closedOverlay .co-other{ margin:22px auto 0; max-width:420px; background:var(--tint); border:1px solid var(--green-deep);
+      border-radius:var(--radius); padding:16px 18px; }
+    #closedOverlay .co-other[hidden]{ display:none; }
+    #closedOverlay .co-other p{ margin:0 0 10px; font-size:15px; color:var(--green-deep); }
+    #closedOverlay .co-other a{ display:inline-block; background:var(--green-deep); color:var(--cream); text-decoration:none;
+      font-weight:700; font-size:15px; border-radius:3px; padding:10px 20px; }
+    #closedOverlay .co-other a:hover{ background:#2c6644; }
+    #closedOverlay .co-back{ display:inline-block; margin-top:26px; font-size:14px; color:var(--green-soft);
+      text-decoration:underline; text-underline-offset:3px; }
+    #closedOverlay .co-back:hover{ color:var(--green-deep); }
+
+    /* schedule */
+    #closedOverlay .schedule{ position:relative; margin:44px auto 0; text-align:center; }
+    #closedOverlay .sched-head{ display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:12px; margin:0 0 4px; }
+    #closedOverlay .sched-title{ font-weight:700; text-transform:uppercase; letter-spacing:.12em; font-size:15px; color:var(--green-deep); margin:0; }
+    #closedOverlay .sched-rule{ height:1px; background:var(--line); margin:0 0 10px; border:0; }
+    #closedOverlay .sched-note{ font-size:14px; color:var(--green-soft); margin:0 0 22px; }
+    #closedOverlay #coGroups{ display:flex; flex-direction:column; align-items:center; gap:12px; }
+    #closedOverlay .dates{ position:relative; display:flex; flex-wrap:wrap; justify-content:center; gap:10px 18px; animation:schedFade .45s ease both; }   /* one week per row */
+
+    /* loading state */
+    #closedOverlay .schedule.loading .sched-note{ display:none; }
+    #closedOverlay .schedule:not(.loading) .sched-note{ animation:schedFade .4s ease both; }
+    #closedOverlay .sched-loading{ display:flex; align-items:center; justify-content:center; gap:9px;
+      color:var(--green-soft); font-size:14px; padding:20px 0 4px; animation:schedFade .4s ease both; }
+    #closedOverlay .sched-loading .dots{ display:inline-flex; gap:5px; }
+    #closedOverlay .sched-loading .dots i{ width:10px; height:10px; display:inline-block;
+      clip-path:polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      animation:schedStar 1s infinite ease-in-out both; }
+    #closedOverlay .sched-loading .dots i:nth-child(1){ background:#E58AB0; }
+    #closedOverlay .sched-loading .dots i:nth-child(2){ background:#6FA96B; animation-delay:.15s; }
+    #closedOverlay .sched-loading .dots i:nth-child(3){ background:#6FA5C9; animation-delay:.30s; }
+    @keyframes schedStar{ 0%,80%,100%{ opacity:.3; transform:translateY(0) rotate(0deg); } 40%{ opacity:1; transform:translateY(-5px) rotate(12deg); } }
+    @keyframes schedFade{ from{ opacity:0; transform:translateY(7px); } to{ opacity:1; transform:translateY(0); } }
+    @media (prefers-reduced-motion: reduce){
+      #closedOverlay .dates, #closedOverlay .sched-loading{ animation:none; }
+      #closedOverlay .sched-loading .dots i{ animation-duration:1.6s; }
+    }
+
+    #closedOverlay .date{ display:inline-flex; align-items:center; gap:8px; appearance:none; cursor:pointer;
+      background:none; color:var(--green-deep); border:0; border-bottom:2px solid transparent; border-radius:0;
+      padding:6px 4px; font-family:inherit; font-size:15px; font-weight:700; transition:border-color .15s ease, color .15s ease; }
+    @media (hover:hover) and (pointer:fine){ #closedOverlay .date:hover{ border-bottom-color:var(--green-soft); } }
+    #closedOverlay .date:focus{ outline:none; }
+    #closedOverlay .date:focus-visible{ outline:2px solid var(--green-deep); outline-offset:3px; border-radius:4px; }
+    #closedOverlay .date .cal-ico{ width:18px; height:18px; object-fit:contain; flex:none; }
+    #closedOverlay .date[aria-expanded="true"]{ border-bottom-color:var(--green-deep); }
+    #closedOverlay .date.next{ border-bottom-color:var(--green-deep); }
+    #closedOverlay .date.past{ color:var(--green-soft); opacity:.5; cursor:default; text-decoration:line-through; }
+    #closedOverlay .date.past .cal-ico{ opacity:.6; }
+
+    #closedOverlay .cal-menu{ position:absolute; top:calc(100% + 6px); left:0; z-index:20; min-width:200px;
+      background:var(--cream); border:1px solid var(--line); border-radius:var(--radius);
+      box-shadow:0 6px 18px rgba(74,51,36,.10); padding:6px; display:none; text-align:left; }
+    #closedOverlay .cal-menu.open{ display:block; }
+    #closedOverlay .cal-menu-title{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--green-soft); padding:6px 8px 4px; }
+    #closedOverlay .cal-opt{ display:flex; align-items:center; gap:9px; width:100%; background:none; border:0; border-radius:2px;
+      padding:9px 8px; font-family:inherit; font-size:14px; font-weight:400; color:var(--green-deep); text-align:left; cursor:pointer; text-decoration:none; }
+    @media (hover:hover) and (pointer:fine){ #closedOverlay .cal-opt:hover{ background:#F0F4EC; } }
+    #closedOverlay .cal-opt svg{ width:15px; height:15px; color:var(--green-soft); flex:none; }
+
+    /* tele */
+    #closedOverlay .tele-wrap{ margin:40px 0 0; }
+    #closedOverlay .tele-lead{ font-size:15px; color:var(--green-deep); margin:0 0 4px; }
+    #closedOverlay .tele-psst{ font-size:13px; font-style:italic; color:var(--green-soft); margin:0 0 16px; }
+    #closedOverlay .co-tele{ display:inline-flex; align-items:center; gap:10px; border:1px solid var(--green-deep);
+      border-radius:3px; padding:14px 28px; background:var(--green-deep); color:var(--cream);
+      font-family:inherit; font-weight:700; font-size:17px; cursor:pointer; text-decoration:none; transition:background .15s ease; }
+    #closedOverlay .co-tele:hover{ background:#2c6644; border-color:#2c6644; }
+    #closedOverlay .co-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+
+    /* star confetti (shared) */
+    .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-confetti svg, #closedOverlay .co-confetti svg{ position:absolute; opacity:.5; }
+
+    @media (max-width:600px){
+      #closedOverlay{ padding:40px 20px 88px; }
+      #closedOverlay .co-icon{ width:170px; margin-bottom:24px; }
+      #closedOverlay .co-message{ font-size:17px; }
+      #closedOverlay .co-logo{ width:88px; bottom:14px; left:20px; }
+      #closedOverlay .schedule{ margin-top:34px; }
+      #closedOverlay .sched-note{ margin-bottom:28px; }
+      #closedOverlay #coGroups{ gap:20px; }
+      #closedOverlay .dates{ gap:10px 16px; }
+      #closedOverlay .date{ padding:8px 6px; font-size:16px; }
+      #closedOverlay .tele-wrap{ margin-top:44px; }
+      .bg-confetti svg, #closedOverlay .co-confetti svg{ opacity:.42; }
+    }
+  </style>
+  <style id="handleOverlayStyle">
+    /* The handle prompt. Deliberately the same window as the order
+       confirmation, so the two read as one family — the only difference is
+       that this one can be dismissed. */
+    /* Frosted, not tinted. A brown scrim over a cream page turns pink, which
+       is nobody's idea of cute — so this just blurs the menu behind it. */
+    #handleOverlay{ position:fixed; inset:0; z-index:9996; display:none; opacity:0;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:center; justify-content:center; padding:24px; }
+    /* Anything too old for backdrop-filter gets a plain cream veil instead. */
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #handleOverlay{ background:rgba(255,253,247,.86); }
+    }
+    #handleOverlay .ho-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #handleOverlay.is-open .ho-modal{ transform:none; }
+    /* Used for one frame when the prompt opens with the page rather than after
+       it: kills both transitions so the blur and the window are simply there,
+       already settled, when the splash lifts. Removed straight after, so
+       closing still fades out the way it always did. */
+    #handleOverlay.no-anim, #handleOverlay.no-anim .ho-modal{ transition:none; }
+    @media (prefers-reduced-motion:reduce){
+      #handleOverlay .ho-modal{ transform:none; transition:none; }
+    }
+
+    /* Close. Uses img/button-7.png; if that file isn't there yet it falls back
+       to a drawn cross so the dialog is never a trap. */
+    #handleOverlay .ho-close{ position:absolute; top:10px; right:10px; z-index:2;
+      appearance:none; border:0; background:none; padding:6px; line-height:0;
+      border-radius:999px; cursor:pointer; transition:opacity .15s ease, transform .15s ease; }
+    #handleOverlay .ho-close img{ width:26px; height:26px; object-fit:contain; display:block; }
+    #handleOverlay .ho-close:hover{ opacity:.72; transform:scale(1.06); }
+    #handleOverlay .ho-close:focus{ outline:none; }
+    #handleOverlay .ho-close:focus-visible{ outline:2px solid var(--green-deep); outline-offset:2px; }
+    #handleOverlay .ho-close.no-img::after{
+      content:'\00d7'; display:block; width:26px; height:26px; line-height:24px;
+      font-size:20px; font-weight:700; color:var(--green-soft);
+      border:1px solid var(--line); border-radius:999px; background:#fff;
+    }
+
+    #handleOverlay .ho-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 22px; }
+    #handleOverlay .ho-stars img{ object-fit:contain; flex:none; }
+    #handleOverlay .ho-hero{ width:52px; height:52px; transform-origin:50% 65%;
+      animation:soSway 3.4s ease-in-out infinite; }
+    #handleOverlay .ho-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #handleOverlay .ho-sat.a{ animation-delay:.6s; }
+    #handleOverlay .ho-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
+    @media (prefers-reduced-motion:reduce){
+      #handleOverlay .ho-hero, #handleOverlay .ho-sat{ animation:none; opacity:1; }
+    }
+
+    #handleOverlay .ho-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 10px; }
+    #handleOverlay .ho-sub{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0 0 20px; }
+    #handleOverlay .ho-sub + .ho-fine{ margin-top:-16px; }
+    #handleOverlay .ho-fine{ font-size:11px; line-height:1.4; color:var(--green-soft); opacity:.8; margin:0 0 20px; }
+    #handleOverlay .ho-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
+
+    /* @ sits inside the field so nobody types a second one */
+    #handleOverlay .ho-field{ display:flex; align-items:center; gap:0; background:#fff;
+      border:1px solid var(--line); border-radius:3px; overflow:hidden; margin:0 0 8px;
+      transition:border-color .15s ease; }
+    #handleOverlay .ho-field:focus-within{ border-color:var(--green-deep); }
+    #handleOverlay .ho-field.is-bad{ border-color:#C98A6B; }
+    #handleOverlay .ho-at{ padding:0 2px 0 14px; font-weight:700; font-size:16px; color:var(--green-soft); }
+    #handleOverlay .ho-input{ flex:1; min-width:0; appearance:none; border:0; background:none;
+      padding:14px 14px 14px 4px; font-family:inherit; font-size:16px; font-weight:700;
+      color:var(--green-deep); }
+    #handleOverlay .ho-input:focus{ outline:none; }
+    #handleOverlay .ho-input::placeholder{ font-weight:400; color:var(--green-soft); }
+
+    #handleOverlay .ho-err{ font-size:13px; color:#C98A6B; margin:0 0 14px; min-height:19px; text-align:left; }
+
+    #handleOverlay .ho-go{ appearance:none; display:block; width:100%;
+      background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      cursor:pointer; transition:background .15s ease; }
+    #handleOverlay .ho-go:hover:not(:disabled){ background:#2c6644; border-color:#2c6644; }
+    #handleOverlay .ho-go:focus{ outline:none; }
+    #handleOverlay .ho-go:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
+
+    #handleOverlay .ho-foot{ font-size:12px; color:var(--green-soft); margin:14px 0 0; line-height:1.5; }
+
+    /* star confetti (shared) */
+    .bg-confetti{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+    .bg-confetti svg{ position:absolute; opacity:.5; }
+    @media (max-width:600px){
+      .bg-confetti svg{ opacity:.42; }
+      #handleOverlay{ padding:18px 20px; }
+      #handleOverlay .ho-modal{ padding:28px 22px 24px; }
+      #handleOverlay .ho-head{ font-size:20px; }
+      #handleOverlay .ho-hero{ width:46px; height:46px; }
+      #handleOverlay .ho-sat{ width:21px; height:21px; }
+    }
+  </style>
+
+  <style id="successOverlayStyle">
+    /* scrim */
+    #successOverlay{ position:fixed; inset:0; z-index:9997; display:none; opacity:0;
+      transition:opacity .3s ease; overflow:auto;
+      background:rgba(255,253,247,.45);
+      -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+      overscroll-behavior:contain; -webkit-overflow-scrolling:touch;
+      align-items:center; justify-content:center; padding:24px; }
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+      #successOverlay{ background:rgba(255,253,247,.86); }
+    }
+    /* the window itself */
+    #successOverlay .so-modal{ background:var(--cream); border:1px solid var(--line); border-radius:4px;
+      box-shadow:0 12px 36px rgba(74,51,36,.20); width:100%; max-width:380px; margin:auto;
+      padding:32px 28px 28px; text-align:center; position:relative;
+      transform:translateY(12px) scale(.98); transition:transform .3s ease; }
+    #successOverlay.is-open .so-modal{ transform:none; }
+    @media (prefers-reduced-motion:reduce){
+      #successOverlay .so-modal{ transform:none; transition:none; }
+    }
+
+    /* hero star sways, satellites twinkle out of sync -- deliberately not a loading rhythm */
+    #successOverlay .so-stars{ display:inline-flex; align-items:center; justify-content:center; gap:14px; margin:2px 0 22px; }
+    #successOverlay .so-stars img{ object-fit:contain; flex:none; }
+    #successOverlay .so-hero{ width:52px; height:52px; transform-origin:50% 65%;
+      animation:soSway 3.4s ease-in-out infinite; }
+    #successOverlay .so-sat{ width:24px; height:24px; animation:soTwinkle 2.9s ease-in-out infinite; }
+    #successOverlay .so-sat.a{ animation-delay:.6s; }
+    #successOverlay .so-sat.b{ animation-duration:2.4s; animation-delay:1.3s; }
+    @keyframes soSway{
+      0%,100%{ transform:rotate(-7deg) translateY(0); }
+      50%    { transform:rotate(7deg) translateY(-3px); }
+    }
+    @keyframes soTwinkle{
+      0%,100%{ opacity:.55; transform:scale(.82) rotate(-6deg); }
+      50%    { opacity:1;   transform:scale(1.1) rotate(6deg); }
+    }
+    @media (prefers-reduced-motion:reduce){
+      #successOverlay .so-hero, #successOverlay .so-sat{ animation:none; opacity:1; }
+    }
+
+    #successOverlay .so-head{ font-size:22px; line-height:1.3; font-weight:700; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-rule{ height:1px; background:var(--line); border:0; margin:0 0 20px; }
+    #successOverlay .so-label{ font-size:14px; color:var(--green-soft); margin:0 0 4px; }
+    #successOverlay .so-time{ font-size:38px; line-height:1.1; font-weight:700; color:var(--green-deep); letter-spacing:-.01em; margin:0 0 18px; }
+    /* block-level flex, not inline-flex -- inline-flex let the ref pill sit beside it */
+    #successOverlay .so-place{ display:flex; align-items:center; justify-content:center; gap:8px;
+      font-size:24px; line-height:1.2; font-weight:700; color:var(--brown); margin:0 0 22px; }
+    #successOverlay .so-place svg{ width:19px; height:19px; color:var(--green-soft); flex:none; }
+
+    #successOverlay .so-ref{ display:inline-flex; align-items:center; gap:10px; background:#fff;
+      border:1px solid var(--green-deep); border-radius:3px; padding:8px 14px;
+      font-weight:700; font-size:15px; color:var(--green-deep); margin:0 0 22px; }
+    #successOverlay .so-ref-tag{ font-size:12px; color:var(--green-soft); letter-spacing:.08em; text-transform:uppercase; }
+    #successOverlay .so-ref-div{ width:1px; height:15px; background:var(--line); display:inline-block; }
+    #successOverlay .so-copy{ appearance:none; border:0; background:none; font-family:inherit;
+      font-size:12px; font-weight:700; color:var(--green-soft); cursor:pointer; padding:0; transition:color .15s ease; }
+    #successOverlay .so-copy:hover{ color:var(--green-deep); }
+
+    #successOverlay .so-note{ background:var(--tint); border:1px solid var(--line); border-radius:3px;
+      padding:14px 16px; margin:0 0 24px; }
+    #successOverlay .so-note-title{ font-size:15px; font-weight:700; color:var(--brown); margin:0 0 4px; }
+    #successOverlay .so-note-body{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0; }
+    #successOverlay .so-note-body b{ color:var(--green-deep); }
+
+    /* Stamp-card line on the receipt: where they are after this order */
+    #successOverlay .so-stamp{ font-size:14px; line-height:1.5; color:var(--green-soft); margin:0 0 22px; }
+    #successOverlay .so-stamp b{ color:var(--green-deep); }
+    #successOverlay .so-stamp[hidden]{ display:none; }
+
+    #successOverlay .so-done{ appearance:none; display:block; width:100%;
+      background:var(--green-deep); border:1px solid var(--green-deep); border-radius:3px;
+      padding:14px 20px; color:var(--cream); font-family:inherit; font-weight:700; font-size:16px;
+      cursor:pointer; transition:background .15s ease; }
+    #successOverlay .so-done:hover{ background:#2c6644; border-color:#2c6644; }
+    #successOverlay .so-done:focus{ outline:none; }
+    #successOverlay .so-done:focus-visible{ outline:2px solid var(--brown); outline-offset:2px; }
+
+    @media (max-width:600px){
+      #successOverlay{ padding:18px; }
+      #successOverlay .so-modal{ padding:28px 22px 24px; }
+      #successOverlay .so-head{ font-size:20px; }
+      #successOverlay .so-time{ font-size:34px; }
+      #successOverlay .so-place{ font-size:21px; }
+      #successOverlay .so-hero{ width:46px; height:46px; }
+      #successOverlay .so-sat{ width:21px; height:21px; }
+    }
+  </style>
+
+</head>
+<body>
+  <div id="loadingSplash" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#FFFDF7;opacity:1;transition:opacity .45s ease;">
+    <img src="../../img/Logo-Open.png" alt="Gens Matcha" style="width:60%;max-width:240px;height:auto;opacity:.9;">
+  </div>
+
+  <!-- ============ Telegram handle prompt (rewards identity) ============ -->
+  <div id="handleOverlay" aria-hidden="true">
+    <div class="ho-modal" role="dialog" aria-modal="true" aria-labelledby="hoHead">
+      <button type="button" class="ho-close" id="hoClose" aria-label="Skip for now">
+        <img src="../../img/button-7.png" alt="">
+      </button>
+
+      <div class="ho-stars" aria-hidden="true">
+        <img class="ho-sat a" src="../../img/star-loading-1.png" alt="">
+        <img class="ho-hero" src="../../img/star-loading-2.png" alt="">
+        <img class="ho-sat b" src="../../img/star-loading-3.png" alt="">
+      </div>
+
+      <p class="ho-head" id="hoHead">Enter tele handle to claim rewards</p>
+      <p class="ho-sub">Claim a free drink on your 6th order!</p>
+      <p class="ho-fine">Excludes Seasonal Specials</p>
+
+      <hr class="ho-rule">
+
+      <label class="ho-field" id="hoField" for="hoInput">
+        <span class="ho-at" aria-hidden="true">@</span>
+        <input type="text" class="ho-input" id="hoInput" placeholder="yourhandle"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+               inputmode="text" aria-describedby="hoErr">
+      </label>
+      <p class="ho-err" id="hoErr" role="status" aria-live="polite"></p>
+
+      <button type="button" class="ho-go" id="hoGo">Claim rewards</button>
+    </div>
+  </div>
+
+  <div id="closedOverlay" aria-hidden="true">
+    <img src="../../img/Logo-Open.png" alt="Gens Matcha" class="co-logo">
+    <div class="co-confetti" aria-hidden="true"></div>
+    <div class="co-container">
+      <img src="../../img/Icon-Closed.png" alt="Store closed" class="co-icon">
+      <p class="co-outlet">Punggol</p>
+      <p class="co-message">Sorry you couldn't get your matcha fix from us today ):</p>
+      <div class="co-other" id="coOther" hidden>
+        <p id="coOtherText"></p>
+        <a id="coOtherLink" href="#">Order from there</a>
+      </div>
+
+      <section class="schedule loading" aria-label="Opening dates">
+        <div class="sched-head">
+          <h2 class="sched-title">Opening dates</h2>
+        </div>
+        <hr class="sched-rule">
+        <p class="sched-note">Whisked with care, on the dates below.</p>
+        <div id="coGroups">
+          <div class="sched-loading">Loading this month's dates<span class="dots"><i></i><i></i><i></i></span></div>
+        </div>
+      </section>
+
+      <div class="tele-wrap">
+        <p class="tele-lead">Join our tele channel to stay updated! 🫶🏻</p>
+        <p class="tele-psst">psst&hellip; there might be a secret discount in there :)</p>
+        <a href="https://t.me/gensmatcha" class="co-tele" target="_blank" rel="noopener noreferrer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z"/>
+        </svg>
+          <span>Join now</span>
+        </a>
+      </div>
+      <a class="co-back" href="../">See both outlets</a>
+    </div>
+  </div>
+
+  <div id="successOverlay" aria-hidden="true">
+    <div class="so-modal" role="dialog" aria-modal="true" aria-labelledby="soHead">
+      <div class="so-stars" aria-hidden="true">
+        <img class="so-sat a" src="../../img/star-loading-1.png" alt="">
+        <img class="so-hero" src="../../img/star-loading-2.png" alt="">
+        <img class="so-sat b" src="../../img/star-loading-3.png" alt="">
+      </div>
+
+      <p class="so-head" id="soHead">Your order is on its way</p>
+
+      <hr class="so-rule">
+
+      <p class="so-label">Ready around</p>
+      <p class="so-time" id="soTime">&mdash;</p>
+
+      <p class="so-label">Please collect your order at</p>
+      <p class="so-place">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span id="soPlace">&mdash;</span>
+      </p>
+
+      <div class="so-ref">
+        <span class="so-ref-tag">Ref</span>
+        <span id="soRef">&mdash;</span>
+        <span class="so-ref-div"></span>
+        <button type="button" class="so-copy" id="soCopy">Copy</button>
+      </div>
+
+      <p class="so-stamp" id="soStamp" hidden></p>
+
+      <div class="so-note">
+        <p class="so-note-title">Your order number is a real star</p>
+        <p class="so-note-body">Look up <b id="soStarName">&mdash;</b> to find yours in the sky.</p>
+      </div>
+
+      <button type="button" class="so-done" id="soDone">Done</button>
+    </div>
+  </div>
+
+  <div class="bg-confetti" aria-hidden="true"></div>
+  <div class="wrap">
+    <header>
+      <img class="site-logo" src="../../img/Logo-Open.png" alt="Gens Matcha">
+      <p class="tagline">whisked by hand · made with care</p>
+      <div class="outlet-bar">
+        <span class="outlet-name"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Punggol</span>
+        <a href="../">switch outlet</a>
+      </div>
+    </header>
+
+    <!-- Progress toward the free drink. Always on: with no handle it sits at
+         zero and reads as an invitation rather than disappearing. -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span class="progress-title">
+          <img class="progress-star" src="../../img/star.png" alt="">
+          Every 6th order, a drink on us :)
+        </span>
+        <span class="progress-status" id="progressStatus">0/6 orders</span>
+      </div>
+      <div class="progress-bar-track" id="progressTrack">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <img class="progress-tip-star" id="progressTipStar" src="../../img/star-ani-1.png" alt="">
+      </div>
+      <p class="progress-hint" id="progressHint">&nbsp;</p>
+      <p class="progress-who" id="progressWho"></p>
+    </div>
+
+    <div class="layout">
+      <main>
+        <section class="menu-section">
+          <div class="grid" id="bundleGrid"></div>
+        </section>
+        <section class="menu-section">
+          <h2 class="section-title">Lattes</h2>
+          <div class="grid" id="latteGrid"></div>
+        </section>
+        <section class="menu-section">
+          <h2 class="section-title">Tonics</h2>
+          <div class="grid" id="tonicGrid"></div>
+        </section>
+      </main>
+
+      <aside class="cart" id="cart">
+        <h3>Your Cart <span class="cart-badge" id="cartCount">0</span></h3>
+        <div id="cartItems"></div>
+
+        <!-- Bundle nudge. Appears only when they are 1-2 drinks short of the
+             trio, and only until they dismiss it. Deliberately not a pop-up. -->
+        <div class="bundle-nudge" id="bundleNudge" hidden>
+          <button type="button" class="bundle-nudge-x" id="bundleNudgeX" aria-label="No thanks">&times;</button>
+          <p id="bundleNudgeText"></p>
+          <button type="button" class="bundle-nudge-go" id="bundleNudgeGo">Make it the bundle</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row"><span>Subtotal</span><strong id="subtotal">$0.00</strong></div>
+        <div class="row" id="freeRow" style="display:none;"><span class="muted" id="freeLabel">Free drink</span><strong id="freeAmount" class="success-text">-$0.00</strong></div>
+        <div class="total-section">
+          <div class="row"><span>Total</span><strong id="total">$0.00</strong></div>
+        </div>
+        <p class="small muted">Prices exclude delivery. Cart saved on this device.</p>
+
+        <div class="divider"></div>
+
+        <!-- Telegram handle. Prefilled from the pop-up; editable if they got it wrong. -->
+        <div class="teleGroup">
+          <label class="teleLabel" for="teleHandle">
+            <svg style="width:15px; height:15px;" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.38 15.84 14.22 15.51 15.99C15.37 16.74 15.09 16.99 14.83 17.02C14.25 17.07 13.81 16.64 13.25 16.27C12.37 15.69 11.87 15.33 11.02 14.77C10.03 14.12 10.67 13.76 11.24 13.18C11.39 13.03 13.95 10.7 14 10.49C14.0069 10.4582 14.006 10.4252 13.9973 10.3938C13.9886 10.3624 13.9724 10.3337 13.95 10.31C13.89 10.26 13.81 10.28 13.74 10.29C13.65 10.31 12.25 11.24 9.52 13.08C9.12 13.35 8.76 13.49 8.44 13.48C8.08 13.47 7.4 13.28 6.89 13.11C6.26 12.91 5.77 12.8 5.81 12.45C5.83 12.27 6.08 12.09 6.55 11.9C9.47 10.63 11.41 9.79 12.38 9.39C15.16 8.23 15.73 8.03 16.11 8.03C16.19 8.03 16.38 8.05 16.5 8.15C16.6 8.23 16.63 8.34 16.64 8.42C16.63 8.48 16.65 8.66 16.64 8.8Z"/>
+            </svg>
+            Telegram handle
+          </label>
+          <input type="text" id="teleHandle" placeholder="@yourhandle" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        </div>
+
+        <div class="btn-group">
+          <button id="confirmBtn">Check out</button>
+          <button id="clearBtn">Clear cart</button>
+        </div>
+
+        <!-- QR + Proof upload -->
+        <div class="qrWrap" id="qrWrap">
+          <div class="qrHeader">
+            <div class="title">PayNow to complete order</div>
+            <p class="hint">Enter this reference in your banking app:</p>
+            <div class="orderRefBlock">
+              <span id="orderRef">—</span>
+              <button id="copyRef" class="copyBtn">Copy</button>
+            </div>
+          </div>
+
+          <img id="paynowQR" src="../../img/paynow-qr.webp" alt="PayNow QR">
+
+          <p class="small muted" style="margin:12px 0">
+            Scan the QR, pay the exact amount shown, and include the reference above.
+          </p>
+
+          <div class="teleGroup" style="text-align:left; margin-bottom:0">
+            <label class="teleLabel" for="paymentProof">Upload payment proof</label>
+            <input type="file" id="paymentProof" name="proof" accept="image/*">
+            <div id="proofPreview" class="small muted" style="margin-top:8px"></div>
+            <div class="row" style="margin-top:14px; flex-wrap:wrap">
+              <button id="submitProofBtn" disabled>Submit proof</button>
+              <span id="submitStatus" class="small"></span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+
+  <script src="../outlets.js"></script>
+  <script>
+  // ============= OUTLET =============
+  const OUTLET_ID = 'punggol';
+  const OUTLET = GM.OUTLETS[OUTLET_ID];
+
+  // ============= CONFIG =============
+  const APPS_SCRIPT_URL = GM.SCRIPT_URL;   // set in outlets.js
+
+  // The loyalty rule, in one place. REWARD_AFTER completed orders earns a free
+  // drink on the next one, so the card has REWARD_AFTER + 1 slots.
+  const REWARD_AFTER = 5;
+  const CARD_SLOTS   = REWARD_AFTER + 1;
+  // ==================================
+
+
+  /* Every drink either outlet sells. No `outlets` field = a base drink sold at
+     both. `outlets: [...]` = only at those outlets. */
+  const ALL_PRODUCTS = [
+    /* The bundle is a single cart line at one price. Its `bundle` list is what
+       the nudge and the sold-out check read; `milkFor` gives it one milk toggle
+       per milk drink inside it. dealPrice is what they pay, and it goes into
+       the subtotal as is, with no separate discount line. The free loyalty cup never lands on a bundle. */
+    { id: 'ppg-bundle', outlets: ['punggol'], title: 'Power Puff Girls!', img: '../../img/bundle.png', basePrice: 0, dealPrice: 14.5,
+      desc: 'Unsure what to get? Try a bit of everything: our classic Gen\'s Matcha, a cozy Hojicha Latte and a bright Raspberry Matcha Tonic.',
+      bundle: ['matcha-rasp', 'gens-matcha', 'hojicha-latte'],
+      milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
+      milk: false, category: 'bundle' },
+    // Holland's version swaps the Raspberry tonic for Yuzu. Same name, same price.
+    { id: 'ppg-bundle-holland', outlets: ['holland'], title: 'Power Puff Girls!', img: '../../img/bundle.png', basePrice: 0, dealPrice: 14.5,
+      desc: 'Unsure what to get? Try a bit of everything: our classic Gen\'s Matcha, a cozy Hojicha Latte and a zesty Yuzu Matcha Tonic.',
+      bundle: ['matcha-yuzu', 'gens-matcha', 'hojicha-latte'],
+      milkFor: [{ id: 'gens-matcha', label: "Gen's Matcha" }, { id: 'hojicha-latte', label: 'Hojicha Latte' }],
+      milk: false, category: 'bundle' },
+    { id: 'gens-matcha',   title: "Gen's Matcha",           img: '../../img/matcha-latte.png',  img2: '../../img/matcha-latte-2.webp', sticker: '../../img/bestseller-card.png', basePrice: 4.8, desc: 'The classic matcha latte, whisked exactly how gen likes it.', milk: true, category: 'latte' },
+    { id: 'hojicha-latte', title: 'Hojicha Latte',          img: '../../img/hojicha-latte.png', basePrice: 4.8, desc: 'Slow-roasted hojicha, toasty and caramel-like. Cozy in a cup.', milk: true, category: 'latte' },
+    { id: 'mango-matcha',  title: 'Mango Matcha Latte',     img: '../../img/mango-matcha.png',  basePrice: 6.0, desc: 'Sweet mango meets earthy matcha. Sunshine in a cup.', milk: true, category: 'latte' },
+    { id: 'lemon-meringue', outlets: ['punggol'], title: 'Lemon Meringue Matcha', noFree: true, img: '../../img/Lemmon-latte.png',  img2: '../../img/lemon-matcha-2.png', basePrice: 8.0, desc: 'Bright lemon curd and torched meringue over matcha. Sweet, tangy, a little bit dessert.', milk: true, category: 'latte' },
+    { id: 'matcha-rasp',   outlets: ['punggol'], title: 'Raspberry Matcha Tonic', img: '../../img/matcha-rasp.png',   img2: '../../img/matcha-rasp-2.webp', sticker: '../../img/bestseller-card.png', basePrice: 5.5, desc: 'Our most refreshing drink yet! Tart raspberry and sparkling tonic with a matcha float on top.', milk: false, category: 'tonic' },
+    { id: 'matcha-yuzu',   title: 'Yuzu Matcha Tonic',      img: '../../img/matcha-yuzu.png',   basePrice: 5.5, desc: 'If you like citrus, this is the one. Yuzu and tonic with a matcha float on top.', milk: false, category: 'tonic' }
+  ];
+  const products = ALL_PRODUCTS.filter(p => !p.outlets || p.outlets.indexOf(OUTLET_ID) !== -1);
+  const productById = id => products.find(x => x.id === id);
+  products.forEach(p=>{
+    if(p.bundle) p.basePrice = Math.round(p.bundle.reduce((s,id)=> s + productById(id).basePrice, 0) * 100) / 100;
+  });
+  const isBundle = x => { const p = productById(x.productId); return !!(p && p.bundle); };
+  function cartHasBundle(){ return cart.some(isBundle); }
+  // Lines the free cup is allowed to land on: not a bundle, and not a drink
+  // marked noFree (the Lemon Meringue). Same list as NO_FREE in code.gs.
+  function freeEligible(x){ const p = productById(x.productId); return !!p && !p.bundle && !p.noFree; }
+  function cartHasLoose(){ return cart.some(freeEligible); }
+
+  const CART_KEY = 'gm_cart_' + OUTLET_ID + '_v1';
+  const loadCart = () => JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+  const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
+  let cart = loadCart();
+  /* A saved cart remembers the price each line was added at. Re-price every
+     line from today's menu on load, so a price change (or the bundle's price)
+     never leaves an old figure sitting in someone's cart. */
+  cart.forEach(x=>{
+    const p = productById(x.productId);
+    if(p) x.unitPrice = itemPrice(p, x.addons || []);
+  });
+  saveCart(cart);
+
+  function money(n){ return '$' + (Math.round(n*100)/100).toFixed(2); }
+  function itemPrice(p, chosen){
+    const addSum = chosen.reduce((s,a)=> s + (a.price||0), 0);
+    // A bundle is charged at its deal price, straight into the subtotal.
+    return (p.dealPrice || p.basePrice) + addSum;
+  }
+
+  /* Asks the sheet how many paid orders this handle has behind them. The
+     balance is never kept on the device: only the handle is, so a stale or
+     edited localStorage can claim to be someone else but can never claim a
+     free drink that person has not earned.
+
+     A lookup that fails returns 0, which means no reward is offered. That is
+     deliberate rather than unlucky: the customer pays whatever the cart showed
+     them, and the server refuses to discount an order the page did not ask to
+     discount, so the two figures can never drift apart. Their stamps are
+     untouched and they claim on the next visit. */
+  async function fetchOrderCount(handle){
+    try {
+      const res = await fetch(
+        APPS_SCRIPT_URL + '?action=stamps&telegram=' + encodeURIComponent(handle) + '&t=' + Date.now(),
+        { method: 'GET', cache: 'no-store' }
+      );
+      const data = await res.json();
+      return Number(data && data.orders) || 0;
+    } catch(e){
+      return 0;
+    }
+  }
+
+
+  // ---- Who we think this is, and where they are on the card ----
+  const HANDLE_KEY = 'gm_handle_v1';
+  const rewards = { handle: '', pastOrders: 0, known: false };
+
+  // Telegram usernames: 5–32 chars, letters, digits and underscore.
+  function normHandle(v){ return String(v || '').trim().replace(/^@+/, '').toLowerCase(); }
+  function validHandle(v){ return /^[a-z0-9_]{5,32}$/.test(normHandle(v)); }
+
+  // Reward is live once they have REWARD_AFTER completed orders behind them
+  // and something in the cart for it to land on. A bundle is already a deal,
+  // so it does not count as somewhere for the free cup to land.
+  function rewardReady(){ return rewards.known && rewards.pastOrders >= REWARD_AFTER && cartHasLoose(); }
+
+  // The line printed on the confirmation, telling them where the order they
+  // just placed left their card.
+  function stampLineFor(pastCount, redeemed){
+    if(redeemed) return 'That’s your free drink claimed. Fresh card starts on your next order.';
+    const done = Math.min(pastCount, REWARD_AFTER);
+    const tail = done >= REWARD_AFTER
+      ? 'Your next drink is on us.'
+      : (REWARD_AFTER - done) + ' to go until a free drink.';
+    return 'Order <b>' + done + ' of ' + REWARD_AFTER + '</b>. ' + tail;
+  }
+
+  // Ticked "sold out" in the Item-Status sheet: whole drinks, and milks.
+  // A milk running out hits every latte at once, so it's tracked separately.
+  const MILKS = ['Fresh milk', 'Oatmilk'];
+  let SOLD_OUT = new Set();
+  let SOLD_OUT_MILKS = new Set();
+  const cardsByTitle = new Map();   // filled in as the menu renders
+  let soldOutNotice = '';           // shown in the cart when we drop an item
+
+  // Every milk an item depends on, whether it is one drink or a bundle of them.
+  const milksOf = x => (x.addons || []).map(a => a.milk || a.label).filter(Boolean);
+
+  function addToCart({productId, qty, chosen}){
+    const p = products.find(x=>x.id===productId);
+    if(!p) return;
+    if(SOLD_OUT.has(p.title)) return;
+    if(p.bundle && p.bundle.some(id => SOLD_OUT.has((productById(id)||{}).title))) return;
+    if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk || a.label))) return;
+    const key = productId + '::' + chosen.map(a=>a.id).sort().join('+');
+    const title = p.title;
+    const addonsLabel = chosen.length ? chosen.map(a=>a.label).join(', ') : 'No add-ons';
+    const unitPrice = itemPrice(p, chosen);
+
+    const existing = cart.find(x=>x.key===key);
+    if(existing){ existing.qty += qty; }
+    else { cart.push({ key, productId, title, addons: chosen, addonsLabel, unitPrice, qty }); }
+    saveCart(cart); renderCart();
+  }
+
+  function removeItem(key){ cart = cart.filter(x=>x.key!==key); saveCart(cart); renderCart(); }
+  function setQty(key, q){ const it = cart.find(x=>x.key===key); if(it){ it.qty = Math.max(1, q|0); saveCart(cart); renderCart(); } }
+
+  /* One free cup per order, and it is always the cheapest one in the cart —
+     ties go to whatever was added first, which is the only tie-break nobody
+     can argue with. */
+  function freeLine(){
+    if(!rewardReady()) return null;
+    let best = null;
+    cart.forEach(x=>{
+      if(!freeEligible(x)) return;   // not the bundle, not the Lemon Meringue
+      if(!best || x.unitPrice < best.unitPrice) best = x;
+    });
+    return best ? { key: best.key, title: best.title, addonsLabel: best.addonsLabel, price: best.unitPrice } : null;
+  }
+
+  function totals(){
+    const sub = cart.reduce((s,x)=> s + x.unitPrice * x.qty, 0);
+    const totalCups = cart.reduce((sum, x) => sum + x.qty, 0);
+    // A bundle is already at its deal price in the subtotal; no separate line.
+    const free = freeLine();
+    const discount = free ? free.price : 0;
+    return { sub, total: Math.round((sub - discount) * 100) / 100, discount, totalCups, free };
+  }
+
+  /* Swipe between a drink's photos. Mobile first: the gesture only takes over
+     once it is clearly sideways, so a vertical flick still scrolls the page. */
+  function initGallery(card){
+    const gal = card.querySelector('.gal');
+    if(!gal) return;
+    const track = gal.querySelector('.gal-track');
+    const dots  = [...card.querySelectorAll('.gal-dots button')];
+    const n     = track.children.length;
+    let idx = 0, x0 = 0, y0 = 0, dx = 0, axis = null, live = false, w = 0;
+
+    function place(px){
+      track.style.transform = px == null
+        ? `translate3d(${-idx*100}%,0,0)`
+        : `translate3d(calc(${-idx*100}% + ${px}px),0,0)`;
+    }
+    function go(i, animate){
+      idx = Math.max(0, Math.min(n-1, i));
+      if(animate === false) track.classList.add('dragging');
+      else track.classList.remove('dragging');
+      place(null);
+      dots.forEach((d,k)=> d.classList.toggle('on', k === idx));
+    }
+    function start(x,y){
+      x0 = x; y0 = y; dx = 0; axis = null; live = true; w = gal.clientWidth || 1;
+      track.classList.add('dragging');
+    }
+    function move(x,y){
+      if(!live) return false;
+      const ddx = x - x0, ddy = y - y0;
+      if(axis === null){
+        if(Math.abs(ddx) < 5 && Math.abs(ddy) < 5) return false;
+        axis = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y';
+        if(axis === 'y'){ live = false; go(idx); return false; }   // let the page scroll
+      }
+      dx = ddx;
+      // resist at the two ends instead of pulling into empty space
+      let d = dx;
+      if((idx === 0 && d > 0) || (idx === n-1 && d < 0)) d *= 0.32;
+      place(d);
+      return true;
+    }
+    function end(){
+      if(!live) return;
+      live = false;
+      const threshold = Math.max(34, w * 0.18);
+      if(dx <= -threshold) go(idx+1);
+      else if(dx >= threshold) go(idx-1);
+      else go(idx);
+    }
+
+    gal.addEventListener('touchstart', e=>{ const t=e.touches[0]; start(t.clientX,t.clientY); }, {passive:true});
+    gal.addEventListener('touchmove',  e=>{ const t=e.touches[0];
+      if(move(t.clientX,t.clientY)) e.preventDefault();
+    }, {passive:false});
+    gal.addEventListener('touchend', end);
+    gal.addEventListener('touchcancel', end);
+
+    gal.addEventListener('mousedown', e=>{ e.preventDefault(); start(e.clientX,e.clientY); });
+    window.addEventListener('mousemove', e=>{ if(live) move(e.clientX,e.clientY); });
+    window.addEventListener('mouseup', end);
+
+    dots.forEach((d,k)=> d.addEventListener('click', ()=> go(k)));
+    go(0, false);
+    requestAnimationFrame(()=> track.classList.remove('dragging'));
+  }
+
+  const grids = {
+    bundle: document.getElementById('bundleGrid'),
+    latte: document.getElementById('latteGrid'),
+    tonic: document.getElementById('tonicGrid')
+  };
+  products.forEach(p=>{
+    const card = document.createElement('article');
+    card.className = 'card' + (p.bundle ? ' is-bundle' : '');
+    const stickerEl = p.sticker
+      ? `<img class="sticker" src="${p.sticker}" alt="Best seller" aria-hidden="true">` : '';
+    /* One toggle per milk drink. A plain drink has a single unlabelled one;
+       the bundle gets one per drink inside it, each labelled. */
+    const milkRows = p.milkFor
+      ? p.milkFor
+      : (p.milk ? [{ id: p.id, label: '' }] : []);
+    const milkBlock = milkRows.map((mf, i) => `
+      <p class="milk-label">${mf.label ? 'Milk for ' + mf.label : 'Choose your milk'}</p>
+      <div class="milk-toggle${i === 0 ? ' sticker-host' : ''}" data-milk-for="${mf.id}">${i === 0 ? stickerEl : ''}
+        <button type="button" class="milk-opt" data-milk="Fresh milk">Fresh milk</button>
+        <button type="button" class="milk-opt active" data-milk="Oatmilk">Oatmilk</button>
+      </div>`).join('');
+    /* No milk row to hang it off, so the tonics get it on the buy row instead. */
+    const rowSticker = (p.sticker && !milkRows.length) ? stickerEl : '';
+    /* One photo stays a plain img. A second one turns it into a swipe track,
+       so nothing changes for the other four drinks. */
+    const photos = p.img2 ? `
+        <div class="gal">
+          <div class="gal-track">
+            <img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>
+            <img class="img" src="${p.img2}" alt="${p.title}, made up in the shop" loading="lazy" decoding="async"/>
+          </div>
+        </div>
+        <div class="gal-dots">
+          <button type="button" class="on" aria-label="Photo 1 of 2"></button>
+          <button type="button" aria-label="Photo 2 of 2"></button>
+        </div>`
+      : `<img class="img" src="${p.img}" alt="${p.title}" loading="lazy"/>`;
+    card.innerHTML = `
+      <div class="img-wrap">
+        ${photos}
+        <span class="soldout-tag">Sold out</span>
+      </div>
+      <div class="title">${p.title}</div>
+      <p class="desc">${p.desc}</p>
+      ${milkBlock}
+      <div class="row sticker-host" style="margin-top:12px; gap:12px; align-items:center; flex-wrap:wrap">${rowSticker}
+        <div class="qty small">Qty <input type="number" min="1" value="1"></div>
+        <strong class="livePrice">${money(p.dealPrice || p.basePrice)}</strong>
+        <button class="add-btn">Add to cart</button>
+      </div>
+    `;
+
+    initGallery(card);
+
+    /* Milk selection, keyed by which drink the row is for (default: Oatmilk).
+       A plain drink has exactly one key, so the single-milk case is just the
+       one-row version of the same thing. */
+    const picked = {};
+    milkRows.forEach(mf=> picked[mf.id] = 'Oatmilk');
+    const milkBtns = [...card.querySelectorAll('.milk-opt')];
+
+    function selectMilk(label, forId){
+      milkRows.forEach(mf=>{
+        if(forId && mf.id !== forId) return;
+        picked[mf.id] = label;
+      });
+      card.querySelectorAll('.milk-toggle').forEach(row=>{
+        const rid = row.dataset.milkFor;
+        row.querySelectorAll('.milk-opt').forEach(x=>
+          x.classList.toggle('active', x.dataset.milk === picked[rid]));
+      });
+    }
+
+    milkBtns.forEach(mb=>{
+      mb.addEventListener('click', ()=>{
+        if(mb.disabled) return;
+        selectMilk(mb.dataset.milk, mb.closest('.milk-toggle').dataset.milkFor);
+      });
+    });
+
+    const qty = card.querySelector('input[type="number"]');
+    const btn = card.querySelector('.add-btn');
+    cardsByTitle.set(p.title, {
+      card, btn, qty, milkBtns, selectMilk,
+      usesMilk: milkRows.length > 0,
+      product: p,
+      getMilk: ()=> picked[milkRows.length ? milkRows[0].id : p.id] || null
+    });
+
+    /* The add-on list. One entry per milk row. A plain drink keeps the exact
+       shape it always had (label = the milk), so the sheet reads it as before;
+       a bundle names the drink each milk belongs to. */
+    function chosenMilks(){
+      return milkRows.map(mf=>{
+        const milk = picked[mf.id];
+        const short = mf.label ? mf.label.replace(/ (Matcha|Latte)$/,'') : '';
+        return {
+          id: (mf.label ? mf.id + '-' : '') + 'milk-' + milk.toLowerCase().replace(/\s+/g,''),
+          label: mf.label ? short + ': ' + milk : milk,
+          milk: milk,           // the bare name, so sold-out checks never parse the label
+          price: 0
+        };
+      });
+    }
+
+    btn.addEventListener('click', ()=>{
+      if(SOLD_OUT.has(p.title)) return;
+      const chosen = chosenMilks();
+      if(chosen.some(a=> SOLD_OUT_MILKS.has(a.milk))) return;
+      addToCart({ productId: p.id, qty: parseInt(qty.value||'1',10), chosen });
+      btn.textContent = 'Added ✓';
+      setTimeout(()=> {
+        btn.textContent='Add to cart';
+        qty.value = '1';
+      }, 900);
+    });
+
+    (grids[p.category] || grids.latte).appendChild(card);
+  });
+
+  // ---- Apply the sold-out state from the sheet to the menu + cart ----
+  function applySoldOut(list, milkList){
+    SOLD_OUT = new Set(Array.isArray(list) ? list : []);
+    SOLD_OUT_MILKS = new Set(Array.isArray(milkList) ? milkList : []);
+
+    // No milk left at all = every milk drink is off, whatever the sheet says.
+    const allMilkGone = MILKS.every(m=> SOLD_OUT_MILKS.has(m));
+
+    const fullyOut = new Set();   // drinks off the menu entirely, milk or not
+
+    cardsByTitle.forEach((entry, title)=>{
+      const { card, btn, qty, milkBtns, selectMilk, usesMilk, product } = entry;
+      // A bundle goes off the menu the moment any one of its drinks does.
+      const partGone = product && product.bundle &&
+        product.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+      const out = SOLD_OUT.has(title) || partGone || (usesMilk && allMilkGone);
+      if(out) fullyOut.add(title);
+
+      card.classList.toggle('is-soldout', out);
+      btn.disabled = out;
+      btn.textContent = out ? 'Sold out' : 'Add to cart';
+      if(qty){ qty.disabled = out; }
+
+      if(!usesMilk) return;
+
+      // Grey out whichever milk ran out, and move the selection off it.
+      milkBtns.forEach(mb=>{
+        const milkOut = SOLD_OUT_MILKS.has(mb.dataset.milk);
+        mb.disabled = milkOut;
+        mb.classList.toggle('is-out', milkOut);
+      });
+      const left = milkBtns.filter(mb=> !mb.disabled);
+      if(left.length === 1) selectMilk(left[0].dataset.milk);   // every row moves off the missing milk
+    });
+
+    // Drop anything in the cart that's no longer available, and say so.
+    const gone = x => fullyOut.has(x.title) || milksOf(x).some(m => SOLD_OUT_MILKS.has(m));
+    const dropped = [...new Set(cart.filter(gone).map(x=>
+      fullyOut.has(x.title) ? x.title : x.title + ' with ' + x.addonsLabel
+    ))];
+    if(dropped.length){
+      cart = cart.filter(x=> !gone(x));
+      saveCart(cart);
+      const many = dropped.length > 1;
+      soldOutNotice = dropped.join(' and ') + (many ? ' have' : ' has')
+        + ' sold out, so we removed ' + (many ? 'them' : 'it') + ' from your cart.';
+    }
+    renderCart();
+  }
+
+  const $items = document.getElementById('cartItems');
+  const $sub = document.getElementById('subtotal');
+  const $tot = document.getElementById('total');
+  const $count = document.getElementById('cartCount');
+  const $freeRow = document.getElementById('freeRow');
+  const $nudge     = document.getElementById('bundleNudge');
+  const $nudgeText = document.getElementById('bundleNudgeText');
+  const $nudgeGo   = document.getElementById('bundleNudgeGo');
+  const $nudgeX    = document.getElementById('bundleNudgeX');
+  const BUNDLE = products.find(x => x.bundle);
+  let nudgeDismissed = false;
+  const $freeLabel = document.getElementById('freeLabel');
+  const $freeAmount = document.getElementById('freeAmount');
+  const $progressStatus = document.getElementById('progressStatus');
+  const $progressFill = document.getElementById('progressFill');
+  const $progressHint = document.getElementById('progressHint');
+  const $progressWho = document.getElementById('progressWho');
+  const $progressWrap = document.getElementById('progressWrap');
+  const $progressTrack = document.getElementById('progressTrack');
+  const $progressTipStar = document.getElementById('progressTipStar');
+
+  /* One star per slot, sitting where that slot's fill ends. Colours come off
+     the same palette as the background confetti; the tilts are hand-picked and
+     fixed, so the row never reads as evenly spaced clip art. */
+  const DOT_COLOURS = ['#E58AB0', '#6FA5C9', '#F0A04B', '#6FA96B', '#E8734A', '#C3D46A'];
+  const DOT_TILTS   = [-13, 7, -6, 14, -9, 5];
+  const progressDots = [];
+  for(let i = 1; i <= CARD_SLOTS; i++){
+    const dot = document.createElement('span');
+    dot.className = 'progress-dot' + (i === CARD_SLOTS ? ' last' : '');
+    dot.style.left = (i / CARD_SLOTS * 100) + '%';
+    dot.style.transform = 'translateX(-50%) rotate(' + DOT_TILTS[(i - 1) % DOT_TILTS.length] + 'deg)';
+    dot.style.setProperty('--dot-color', DOT_COLOURS[(i - 1) % DOT_COLOURS.length]);
+    $progressTrack.appendChild(dot);
+    progressDots.push(dot);
+  }
+  // One frame per slot on the card: dull at the start, glowing at the end.
+  const STAR_FRAMES = [
+    '../../img/star-ani-1.png','../../img/star-ani-2.png','../../img/star-ani-3.png',
+    '../../img/star-ani-4.png','../../img/star-ani-5.png','../../img/star-ani-6.png'
+  ];
+
+  let stickyProgressState = {
+    isInCheckout: false,
+    hasReachedThreshold: false,
+    hideTimeout: null
+  };
+
+  /* A line of its own for every state, rather than one sentence with the
+     number swapped out, so something new appears each time they move up a slot.
+     Deliberately not shuffled on load: this sits above a count that has to stay
+     readable, and words that change while nothing else has makes the whole bar
+     feel untrustworthy. Indexed by how many orders are still to go. */
+  const HINTS_IDLE = [
+    null,                                              // 0 never reaches here
+    'one more order!! so so close :)',
+    '2 more! getting close now :)',
+    "3 more orders and the next one's on us!",
+    '4 to go till we owe you a drink :)',
+    'a fresh card :) 5 orders till a free drink!'
+  ];
+  // Same idea, but an order is already in the cart holding the next slot, so
+  // these count what is left after it rather than including it.
+  const HINTS_IN_CART = [
+    "after this one, your next drink's on us! ⭐",
+    'just one more after this one!!',
+    'nice :) 2 more after this one!',
+    "that's 2 down! 3 more after this one :)",
+    'this one counts :) 4 more after it!'
+  ];
+
+  /* Slots fill from orders already completed, and the order being built right
+     now claims the next one the moment anything lands in the cart, at every
+     step, not just the last. Empty the cart and it gives the slot back. */
+  function updateProgressBar(){
+    // No handle yet just means an empty card, not a hidden one.
+    const earned = rewards.known ? Math.min(REWARD_AFTER, rewards.pastOrders) : 0;
+    const filled = Math.min(CARD_SLOTS, earned + (cart.length ? 1 : 0));
+    const progress = Math.min((filled / CARD_SLOTS) * 100, 100);
+    const complete = rewardReady();
+
+    $progressStatus.textContent = `${filled}/${CARD_SLOTS} orders`;
+    $progressFill.style.width = progress + '%';
+    progressDots.forEach((d, i)=>{
+      d.classList.toggle('on', i < filled);
+      d.classList.toggle('under-star', i === filled - 1);   // the one the tip star is parked on
+    });
+
+    if($progressTipStar){
+      const starIdx = Math.min(STAR_FRAMES.length - 1, Math.max(0, filled - 1));
+      $progressTipStar.style.left = progress + '%';
+      const nextSrc = STAR_FRAMES[starIdx];
+      if(!$progressTipStar.src.endsWith(nextSrc)) $progressTipStar.src = nextSrc;
+      $progressTipStar.classList.toggle('is-complete', complete);
+    }
+
+    if(complete){
+      // No drink named here on purpose. It would change under them the moment
+      // they add something cheaper, and the cart already says which cup it is,
+      // twice: a FREE badge on the item and a named line above the total.
+      $progressHint.innerHTML = '<span class="unlocked">a free cup! on us :)</span>';
+      if(window.innerWidth <= 900 && !stickyProgressState.hasReachedThreshold){
+        stickyProgressState.hasReachedThreshold = true;
+        if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); }
+        stickyProgressState.hideTimeout = setTimeout(() => { hideStickyProgressBar(); }, 1500);
+      }
+    } else {
+      if(earned >= REWARD_AFTER && cart.length){
+        // Card is full but nothing in the cart can take the free cup (only the
+        // bundle and/or Lemon Meringue). Say so rather than leave them guessing.
+        const why = cartHasBundle() && cart.some(x => (productById(x.productId)||{}).noFree)
+          ? 'the bundle or Lemon Meringue'
+          : cartHasBundle() ? 'a bundle' : 'the Lemon Meringue';
+        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> the free cup can\'t go on ' + why + ', add another drink :)';
+      } else if(earned >= REWARD_AFTER){
+        // Card is full, they just haven't put anything in the cart yet.
+        // Pays off "4 to go till we owe you a drink" from earlier on the card.
+        // This is the one state where the debt is real: card full, cart empty.
+        $progressHint.innerHTML = '<span class="unlocked">Gen owes you a matcha! ⭐</span> add one and it\'s on us :)';
+      } else if(cart.length){
+        // An order is being built, so it mustn't be counted twice.
+        const left = REWARD_AFTER - earned - 1;
+        $progressHint.textContent = HINTS_IN_CART[left]
+          || `${left} more after this one and your next drink's free!`;
+      } else {
+        const left = REWARD_AFTER - earned;
+        $progressHint.textContent = HINTS_IDLE[left]
+          || `${left} more orders till a free drink!`;
+      }
+      stickyProgressState.hasReachedThreshold = false;
+      if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+      if(window.innerWidth <= 900 && !stickyProgressState.isInCheckout){ showStickyProgressBar(); }
+    }
+
+    $progressWho.innerHTML = rewards.known
+      ? 'Counting for <b>@' + rewards.handle + '</b>'
+      : '';
+  }
+
+  function hideStickyProgressBar(){
+    if(window.innerWidth <= 900){
+      const rect = $progressWrap.getBoundingClientRect();
+      if(rect.top < 0){ $progressWrap.classList.add('hidden'); }
+    }
+  }
+  function showStickyProgressBar(){
+    if(window.innerWidth <= 900){ $progressWrap.classList.remove('hidden'); }
+  }
+
+  function renderCart(){
+    const totalItems = cart.reduce((sum, it) => sum + it.qty, 0);
+    $count.textContent = totalItems;
+
+    const t = totals();
+    updateProgressBar();
+    renderNudge();
+
+    const note = soldOutNotice ? `<div class="cart-note">${soldOutNotice}</div>` : '';
+
+    if(cart.length===0){
+      $items.innerHTML = note + '<div class="empty-cart"><img class="empty-cart-img" src="../../img/Icon-cart.png" alt=""><p class="muted">Your cart is empty</p></div>';
+      $sub.textContent = money(0); $tot.textContent = money(0);
+      $freeRow.style.display = 'none';
+      return;
+    }
+    $items.innerHTML = note;
+    cart.forEach(it=>{
+      const row = document.createElement('div');
+      row.className = 'item';
+      const tag = (t.free && t.free.key === it.key)
+        ? '<span class="free-tag"><img src="../../img/star.png" alt="">1 free</span>'
+        : (rewards.known && rewards.pastOrders >= REWARD_AFTER && !freeEligible(it))
+          ? '<div class="nofree-note">Seasonal special, not eligible for the free cup</div>' : '';
+      row.innerHTML = `
+        <div>
+          <div><strong>${it.title}</strong></div>
+          <div class="addons">${it.addonsLabel}</div>
+          <div class="small muted">${money(it.unitPrice)} each</div>
+          ${tag}
+        </div>
+        <div style="text-align:right">
+          <div class="qty small">Qty <input type="number" min="1" value="${it.qty}"></div>
+          <div style="margin-top:8px"><button title="Remove">Remove</button></div>
+        </div>`;
+      const qtyInput = row.querySelector('input');
+      const rm = row.querySelector('button');
+      qtyInput.addEventListener('change', e=> setQty(it.key, parseInt(e.target.value||'1',10)) );
+      rm.addEventListener('click', ()=> removeItem(it.key) );
+      $items.appendChild(row);
+    });
+
+    $sub.textContent = money(t.sub);
+    if(t.free){
+      $freeRow.style.display = 'flex';
+      $freeLabel.textContent = 'Free drink · ' + t.free.title;
+      $freeAmount.textContent = '-' + money(t.free.price);
+    } else {
+      $freeRow.style.display = 'none';
+    }
+    $tot.textContent = money(t.total);
+  }
+
+  /* ---- Bundle nudge ----
+     Shows only when the cart is 1-2 drinks short of the trio and they have not
+     waved it away. It is a line in the cart, never a pop-up. */
+  // Which of the bundle's drinks are already in the cart, and which are not.
+  function nudgeSplit(){
+    const have = [], missing = [];
+    (BUNDLE ? BUNDLE.bundle : []).forEach(id=>{
+      const line = cart.find(x => x.productId === id);
+      (line ? have : missing).push({ id: id, line: line,
+        title: (productById(id) || {}).title || id });
+    });
+    return { have, missing };
+  }
+
+  function renderNudge(){
+    if(!BUNDLE || !$nudge) return;
+    const split = nudgeSplit();
+    // Someone with a full card gets a free cup on loose drinks but never on a
+    // bundle, so for them the bundle costs more. Don't nudge them into it.
+    const cardFull = rewards.known && rewards.pastOrders >= REWARD_AFTER;
+    const show = !nudgeDismissed
+      && !cardFull
+      && !cartHasBundle()
+      && split.have.length > 0
+      && split.missing.length > 0
+      && !SOLD_OUT.has(BUNDLE.title)
+      && !BUNDLE.bundle.some(id => SOLD_OUT.has((productById(id) || {}).title));
+    $nudge.hidden = !show;
+    if(!show) return;
+
+    const names = split.missing.map(m => m.title);
+    const list = names.length > 1
+      ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+      : names[0];
+    $nudgeText.innerHTML = 'Add ' + list + ' to make it the ' + BUNDLE.title + ' bundle, <b>'
+      + money(BUNDLE.dealPrice || BUNDLE.basePrice) + '</b> for all three.';
+  }
+
+  /* Swaps the loose drinks for the bundle, carrying their milk choices over so
+     nobody silently loses the Fresh milk they picked a moment ago. */
+  function takeBundle(){
+    if(!BUNDLE) return;
+    const split = nudgeSplit();
+
+    const chosen = (BUNDLE.milkFor || []).map(mf=>{
+      const line = (cart.find(x => x.productId === mf.id) || {});
+      const carried = (line.addons || []).map(a => a.milk || a.label)
+        .find(m => MILKS.indexOf(m) !== -1);
+      // Their own choice wins; otherwise Oatmilk, which is what every card
+      // defaults to.
+      const fallback = !SOLD_OUT_MILKS.has('Oatmilk')
+        ? 'Oatmilk'
+        : (MILKS.find(m => !SOLD_OUT_MILKS.has(m)) || 'Oatmilk');
+      const milk = (carried && !SOLD_OUT_MILKS.has(carried)) ? carried : fallback;
+      const short = mf.label.replace(/ (Matcha|Latte)$/, '');
+      return {
+        id: mf.id + '-milk-' + milk.toLowerCase().replace(/\s+/g, ''),
+        label: short + ': ' + milk,
+        milk: milk,
+        price: 0
+      };
+    });
+
+    // One cup of each goes into the bundle; anything beyond that they keep.
+    split.have.forEach(h=>{
+      if(!h.line) return;
+      if(h.line.qty > 1){ h.line.qty -= 1; }
+      else { cart = cart.filter(x => x.key !== h.line.key); }
+    });
+
+    saveCart(cart);
+    addToCart({ productId: BUNDLE.id, qty: 1, chosen: chosen });   // saves + renders
+  }
+
+  if($nudgeGo) $nudgeGo.addEventListener('click', takeBundle);
+  if($nudgeX)  $nudgeX.addEventListener('click', ()=>{ nudgeDismissed = true; renderNudge(); });
+
+  if(window.innerWidth <= 900){
+    let scrollTimeout;
+    window.addEventListener('scroll', () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        const rect = $progressWrap.getBoundingClientRect();
+        if(rect.top >= 0 && rect.bottom <= window.innerHeight){
+          showStickyProgressBar();
+        } else if(rect.top < 0){
+          if(stickyProgressState.isInCheckout || stickyProgressState.hasReachedThreshold){
+            hideStickyProgressBar();
+          } else {
+            showStickyProgressBar();
+          }
+        }
+      }, 50);
+    });
+  }
+
+  const qrWrap     = document.getElementById('qrWrap');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const clearBtn   = document.getElementById('clearBtn');
+  const teleInput  = document.getElementById('teleHandle');
+
+  const orderRefEl = document.getElementById('orderRef');
+  const copyRefBtn = document.getElementById('copyRef');
+
+  const proofInput   = document.getElementById('paymentProof');
+  const proofPreview = document.getElementById('proofPreview');
+  const submitBtn    = document.getElementById('submitProofBtn');
+  const submitStatus = document.getElementById('submitStatus');
+
+  /* ---- Adopt a handle: light up their card and fill the cart field ----
+     Nothing about who they are is written to the device. A handle remembered
+     across visits sounds friendly right up until someone fumbles it: the wrong
+     name then sticks forever, a refresh brings back the same wrong name, and
+     there is no obvious way out. Asking every visit costs one line of typing
+     and is always correctable. */
+  function applyHandle(h, count, fillInput){
+    rewards.handle = h;
+    rewards.pastOrders = Number(count) || 0;
+    rewards.known = true;
+    if(fillInput !== false) teleInput.value = '@' + h;
+    setCheckoutDisabled();
+    renderCart();
+  }
+
+  /* Every lookup takes a ticket. Typing in the cart field fires one lookup per
+     pause, and replies do not necessarily come back in the order they were
+     asked for: type "qiju" then "qijun__" and the slower first answer can land
+     last and paint a stranger's card over theirs. Only the newest ticket is
+     allowed to write anything. */
+  let lookupSeq = 0;
+
+  function forgetHandle(){
+    lookupSeq++;                 // cancels anything still in the air
+    rewards.known = false; rewards.handle = ''; rewards.pastOrders = 0;
+    renderCart();
+  }
+
+  async function adoptHandle(raw, opts){
+    const h = normHandle(raw);
+    if(!validHandle(h)){ forgetHandle(); return false; }
+    const ticket = ++lookupSeq;
+    const count = await fetchOrderCount(h);
+    if(ticket !== lookupSeq) return false;      // a newer lookup won; drop this
+    applyHandle(h, count, !opts || opts.fillInput !== false);
+    return true;
+  }
+
+  // ---- The handle pop-up ----
+  const handleOverlay = document.getElementById('handleOverlay');
+  const hoInput  = document.getElementById('hoInput');
+  const hoField  = document.getElementById('hoField');
+  const hoErr    = document.getElementById('hoErr');
+  const hoGo     = document.getElementById('hoGo');
+  const hoClose  = document.getElementById('hoClose');
+  const hoCloseImg = hoClose ? hoClose.querySelector('img') : null;
+
+  // If button-7.png isn't in /img yet, fall back to a drawn cross rather than
+  // leaving a dialog with no visible way out.
+  if(hoCloseImg){
+    hoCloseImg.addEventListener('error', function(){
+      this.style.display = 'none';
+      hoClose.classList.add('no-img');
+    });
+    if(hoCloseImg.complete && hoCloseImg.naturalWidth === 0){
+      hoCloseImg.style.display = 'none';
+      hoClose.classList.add('no-img');
+    }
+  }
+
+  // instant === true: no fade, no rise. The overlay is painted fully open
+  // behind the splash, so the first thing anyone sees is the blurred menu with
+  // the question already sitting on it. Closing is untouched.
+  function showHandlePrompt(instant){
+    handleOverlay.setAttribute('aria-hidden','false');
+    handleOverlay.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    if(instant){
+      handleOverlay.classList.add('no-anim');
+      handleOverlay.style.opacity = '1';
+      handleOverlay.classList.add('is-open');
+      // Flush the open state while transitions are still off, then hand them
+      // back. Nothing animates on the way in; hideHandlePrompt still fades.
+      void handleOverlay.offsetWidth;
+      handleOverlay.classList.remove('no-anim');
+    } else {
+      void handleOverlay.offsetWidth;
+      handleOverlay.style.opacity = '1';
+      handleOverlay.classList.add('is-open');
+    }
+    // Held until the splash has finished lifting, so the keyboard doesn't
+    // shove its way in over a screen that's still fading.
+    setTimeout(()=>{ try { hoInput.focus(); } catch(e){} }, instant ? 520 : 320);
+  }
+  function hideHandlePrompt(){
+    handleOverlay.style.opacity = '0';
+    handleOverlay.classList.remove('is-open');
+    handleOverlay.setAttribute('aria-hidden','true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(handleOverlay.style.opacity === '0') handleOverlay.style.display = 'none'; }, 400);
+  }
+
+  async function submitHandle(){
+    const raw = hoInput.value;
+    const h = normHandle(raw);
+    if(!h){
+      hoField.classList.add('is-bad');
+      hoErr.textContent = 'Pop your Telegram username in first.';
+      return;
+    }
+    if(!validHandle(h)){
+      hoField.classList.add('is-bad');
+      hoErr.textContent = 'That doesn’t look like a Telegram username. Letters, numbers and underscores, 5 characters or more.';
+      return;
+    }
+    hoField.classList.remove('is-bad');
+    hoErr.textContent = '';
+    hoGo.disabled = true; hoGo.textContent = 'Checking…';
+    await adoptHandle(h);
+    hoGo.disabled = false; hoGo.textContent = 'Claim rewards';
+    hideHandlePrompt();
+  }
+
+  hoGo.addEventListener('click', submitHandle);
+  hoInput.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); submitHandle(); } });
+  hoInput.addEventListener('input', ()=>{
+    // strip an @ if they typed one anyway, and clear the error as they fix it
+    if(hoInput.value.startsWith('@')) hoInput.value = hoInput.value.slice(1);
+    if(hoErr.textContent){ hoErr.textContent = ''; hoField.classList.remove('is-bad'); }
+  });
+
+  // Dismissed means dismissed: no rewards this visit, and the bar stays hidden.
+  // They can still order exactly as before by typing a handle in the cart.
+  hoClose.addEventListener('click', hideHandlePrompt);
+  handleOverlay.addEventListener('click', e=>{ if(e.target === handleOverlay) hideHandlePrompt(); });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape' && handleOverlay.style.display === 'flex') hideHandlePrompt();
+  });
+
+  // Typing a different handle in the cart re-points the card at that person.
+  let teleDebounce = null;
+  teleInput.addEventListener('input', ()=>{
+    setCheckoutDisabled();
+    clearTimeout(teleDebounce);
+    teleDebounce = setTimeout(()=>{
+      const h = normHandle(teleInput.value);
+      if(h === rewards.handle) return;
+      if(validHandle(h)) adoptHandle(h, { fillInput:false });
+      else forgetHandle();
+    }, 450);
+  });
+
+  function setCheckoutDisabled(){
+    const hasTelegram = teleInput.value.trim() !== '';
+    confirmBtn.disabled = !hasTelegram;
+  }
+  setCheckoutDisabled();
+
+  let pendingOrder = null;
+
+  confirmBtn.addEventListener('click', ()=>{
+    if(cart.length===0){ alert('Cart is empty.'); return; }
+    const t = totals();
+    const orderId = 'HR-' + String(Math.floor(Math.random() * 9110) + 1).padStart(4, '0');
+    pendingOrder = {
+      order_id: orderId,
+      telegram: teleInput.value.trim(),
+      subtotal: t.sub,
+      discount: t.discount,
+      total: t.total,
+      // The server must re-check the count and decide this for itself. These
+      // two fields are the browser asking, not the browser deciding.
+      outlet: OUTLET_ID,
+      redeem: !!t.free,
+      free_item: t.free ? (t.free.title + ' (' + t.free.addonsLabel + ')') : '',
+      items: JSON.parse(JSON.stringify(cart))
+    };
+
+    orderRefEl.textContent = orderId;
+    qrWrap.style.display = 'block';
+    confirmBtn.textContent = 'Order noted ✓';
+    confirmBtn.disabled = true;
+
+    stickyProgressState.isInCheckout = true;
+    if(window.innerWidth <= 900){ hideStickyProgressBar(); }
+  });
+
+  copyRefBtn.addEventListener('click', async ()=>{
+    try { await navigator.clipboard.writeText(orderRefEl.textContent); copyRefBtn.textContent = 'Copied!'; setTimeout(()=>copyRefBtn.textContent='Copy', 900); } catch(e){}
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    cart = []; saveCart(cart); renderCart(); qrWrap.style.display='none';
+    confirmBtn.textContent='Check out'; setCheckoutDisabled();
+    pendingOrder = null;
+    submitBtn.disabled = true; proofInput.value = ''; proofPreview.textContent = ''; submitStatus.textContent='';
+
+    stickyProgressState.isInCheckout = false;
+    stickyProgressState.hasReachedThreshold = false;
+    if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+    if(window.innerWidth <= 900){ showStickyProgressBar(); }
+  });
+
+  proofInput.addEventListener('change', ()=>{
+    const f = proofInput.files[0];
+    proofPreview.textContent = f ? `Selected: ${f.name}` : '';
+    submitBtn.disabled = !f;
+  });
+
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadOrderWithProof(order, file){
+    const base64 = await fileToBase64(file);
+    const payload = {
+      action: 'submit_order',
+      outlet: OUTLET_ID,          // which Orders tab this goes into
+      order_id: order.order_id,
+      telegram: order.telegram,
+      pickup_time: order.pickup_time,
+      subtotal: String(order.subtotal),
+      discount: String(order.discount || 0),
+      total: String(order.total),
+      redeem: order.redeem ? 'TRUE' : 'FALSE',
+      free_item: order.free_item || '',
+      items: order.items,
+      proof: base64
+    };
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    try {
+      if(!pendingOrder){ alert('Please click Check out first.'); return; }
+      const f = proofInput.files[0];
+      if(!f){ alert('Please select a screenshot.'); return; }
+      submitBtn.disabled = true; submitStatus.textContent = 'Uploading…'; submitStatus.className = 'small muted';
+
+      // Calculate pickup time (current time + 10 minutes)
+      const now = new Date();
+      const pickupTime = new Date(now.getTime() + 10 * 60 * 1000);
+      const hours = pickupTime.getHours();
+      const minutes = pickupTime.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const displayMinutes = minutes.toString().padStart(2, '0');
+      const pickupTimeStr = `${displayHours}:${displayMinutes} ${ampm}`;
+
+      pendingOrder.pickup_time = pickupTimeStr;
+
+      const resp = await uploadOrderWithProof(pendingOrder, f);
+      if(resp.ok){
+        submitStatus.textContent = 'Submitted ✓'; submitStatus.className = 'small success-text';
+
+        // Where their card sits now comes back with the order, so the receipt
+        // needs no second lookup. The server moved it; we only report it.
+        let stampLine = '';
+        if(rewards.known && resp.orders != null){
+          rewards.pastOrders = Number(resp.orders) || 0;
+          stampLine = stampLineFor(rewards.pastOrders, !!resp.redeemed);
+        }
+
+        showSuccess(pendingOrder.order_id, pickupTimeStr, stampLine);
+
+        cart = []; saveCart(cart); renderCart();
+
+        stickyProgressState.isInCheckout = false;
+        stickyProgressState.hasReachedThreshold = false;
+        if(stickyProgressState.hideTimeout){ clearTimeout(stickyProgressState.hideTimeout); stickyProgressState.hideTimeout = null; }
+        if(window.innerWidth <= 900){ showStickyProgressBar(); }
+      } else if (resp.closed) {
+        submitStatus.textContent = "Sorry, we've just closed.";
+        submitStatus.className = 'small muted';
+        showClosed(true);   // fade the closed overlay in over the menu
+      } else if ((resp.soldOut && resp.soldOut.length) || (resp.soldOutMilks && resp.soldOutMilks.length)) {
+        // Something sold out between loading the page and paying — sync and tell them.
+        applySoldOut(resp.soldOut || [], resp.soldOutMilks || []);
+        submitStatus.textContent = resp.error || 'An item just sold out.';
+        submitStatus.className = 'small muted';
+        submitBtn.disabled = false;
+      } else {
+        submitStatus.textContent = 'Upload failed: ' + (resp.error || 'unknown error');
+        submitBtn.disabled = false;
+      }
+    } catch(e){
+      submitStatus.textContent = 'Network error: ' + e.message;
+      submitBtn.disabled = false;
+    }
+  });
+
+  // ---- Order confirmation overlay ----
+  const successOverlay = document.getElementById('successOverlay');
+  const soTime     = document.getElementById('soTime');
+  const soRef      = document.getElementById('soRef');
+  const soStarName = document.getElementById('soStarName');
+  const soStamp    = document.getElementById('soStamp');
+  const soCopyBtn  = document.getElementById('soCopy');
+  const soDoneBtn  = document.getElementById('soDone');
+
+  function showSuccess(orderId, pickupTimeStr, stampLine){
+    if(!successOverlay) return;
+    const starNum = orderId.replace('HR-', '').replace(/^0+/, '');
+    soTime.textContent     = pickupTimeStr;
+    soRef.textContent      = orderId;
+    soStarName.textContent = '"HR ' + starNum + ' star"';
+
+    if(stampLine){ soStamp.innerHTML = stampLine; soStamp.hidden = false; }
+    else { soStamp.hidden = true; }
+
+    successOverlay.setAttribute('aria-hidden', 'false');
+    successOverlay.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    void successOverlay.offsetWidth;              // reflow so the fade + rise run
+    successOverlay.style.opacity = '1';
+    successOverlay.classList.add('is-open');
+    if(soDoneBtn) soDoneBtn.focus();
+  }
+
+  function hideSuccess(){
+    if(!successOverlay) return;
+    successOverlay.style.opacity = '0';
+    successOverlay.classList.remove('is-open');
+    successOverlay.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(successOverlay.style.opacity === '0') successOverlay.style.display = 'none'; }, 450);
+  }
+
+  if(soCopyBtn){
+    soCopyBtn.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(soRef.textContent);
+        soCopyBtn.textContent = 'Copied!';
+        setTimeout(()=> soCopyBtn.textContent = 'Copy', 900);
+      } catch(e){}
+    });
+  }
+
+  // Done closes the overlay and resets checkout so a second order can be placed
+  if(soDoneBtn){
+    soDoneBtn.addEventListener('click', ()=>{
+      hideSuccess();
+      qrWrap.style.display = 'none';
+      confirmBtn.textContent = 'Check out';
+      setCheckoutDisabled();
+      pendingOrder = null;
+      proofInput.value = '';
+      proofPreview.textContent = '';
+      submitStatus.textContent = '';
+      submitBtn.disabled = true;
+    });
+  }
+
+
+  // ---- Show the in-page closed overlay ----
+  function showClosed(animate){
+    window.__gmLeaving = true;
+    try { localStorage.setItem('gm_last_outlet_v1', OUTLET_ID); } catch(e){}
+    location.replace(GM.href('../'));
+    return;
+    var ov = document.getElementById('closedOverlay');
+    if(!ov) return;
+    hideHandlePrompt();                                  // never stack the two
+    ov.style.display = 'flex';
+    document.documentElement.style.overflow = 'hidden';  // lock the page behind the overlay
+    document.body.style.overflow = 'hidden';
+    if(animate){ void ov.offsetWidth; }   // reflow so the fade runs
+    ov.style.opacity = '1';
+  }
+  // ---- Hide the closed overlay (used when we confirm the shop is open) ----
+  function hideClosed(){
+    var ov = document.getElementById('closedOverlay');
+    if(!ov) return;
+    ov.style.opacity = '0';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    setTimeout(function(){ if(ov.style.opacity === '0') ov.style.display = 'none'; }, 500);
+  }
+
+  // ============ Boot ============
+  renderCart();
+  document.getElementById('soPlace').textContent = OUTLET.pickup;
+  const schedule = GM.makeSchedule(OUTLET, {
+    groupsEl:  document.getElementById('coGroups'),
+    titleEl:   document.querySelector('#closedOverlay .sched-title'),
+    noteEl:    document.querySelector('#closedOverlay .sched-note'),
+    sectionEl: document.querySelector('#closedOverlay .schedule')
+  });
+
+  (function(){
+    var splash = document.getElementById('loadingSplash');
+    function hideSplash(){
+      if(!splash) return;
+      splash.style.opacity = '0';
+      setTimeout(function(){ splash.style.display = 'none'; }, 450);
+    }
+
+    /* A line that appears only if the wait runs long. Most visits never see it.
+       It exists so a slow first request reads as "still working" rather than
+       "this is broken", which is what sends people reaching for refresh. */
+    var waitNote = null;
+    var waitTimer = setTimeout(function(){
+      if(!splash) return;
+      waitNote = document.createElement('div');
+      waitNote.textContent = 'just a moment…';
+      waitNote.style.cssText = 'position:absolute;left:0;right:0;bottom:22%;text-align:center;'
+        + 'font-size:14px;color:#7E9B85;opacity:0;transition:opacity .4s ease;';
+      splash.appendChild(waitNote);
+      void waitNote.offsetWidth;
+      waitNote.style.opacity = '1';
+    }, 4000);
+
+    function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    /* One attempt, with its own abort timer. Without the abort a stalled
+       request can hang far past any deadline and hold the whole boot open. */
+    async function statusOnce(ms){
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, ms) : null;
+      try {
+        const res = await fetch(APPS_SCRIPT_URL + '?t=' + Date.now(),
+          ctrl ? { method:'GET', cache:'no-store', signal: ctrl.signal }
+               : { method:'GET', cache:'no-store' });
+        return await res.json();
+      } finally {
+        if(timer) clearTimeout(timer);
+      }
+    }
+
+    /* Only a reply that actually read the sheet counts as an answer.
+       ok:false means the script reached us but couldn't tell — a cold start, a
+       timed-out spreadsheet read — and that is emphatically not the same as
+       "we're shut", so we ask again rather than hanging a CLOSED sign.
+
+       ok undefined means the script hasn't been updated yet. Those replies are
+       trusted on their `open` field alone, so this page keeps working against
+       the deployment that's live right now. */
+    function isAnswer(d){
+      if(!d) return false;
+      if(d.ok === true) return true;
+      if(d.ok === undefined && typeof d.open === 'boolean') return true;
+      return false;
+    }
+
+    // Generous first attempt, because the usual cause of a slow reply is simply
+    // a cold Apps Script container that is already on its way back.
+    var ATTEMPTS = [
+      { timeout: 6000, wait: 0 },
+      { timeout: 5000, wait: 400 },
+      { timeout: 5000, wait: 900 }
+    ];
+    var TOTAL_BUDGET = 13000;   // hard ceiling on how long the splash can hold
+
+    async function getStatus(){
+      var started = Date.now();
+      for (var i = 0; i < ATTEMPTS.length; i++){
+        if (ATTEMPTS[i].wait) await sleep(ATTEMPTS[i].wait);
+        var left = TOTAL_BUDGET - (Date.now() - started);
+        if (left <= 0) break;
+        try {
+          var data = await statusOnce(Math.min(ATTEMPTS[i].timeout, left));
+          if (isAnswer(data)) return data;
+        } catch (e) { /* aborted, offline, or not JSON: fall through and retry */ }
+      }
+      return null;   // never got a trustworthy answer
+    }
+
+    // Open/closed check + opening dates in ONE request. Nothing about the
+    // loyalty card happens here: the card is looked up only when someone
+    // actually types a handle, so this stays exactly as quick as it was.
+    (async function(){
+      // Clears any handle left on devices from before this was dropped, so
+      // nobody is stuck carrying a typo they can no longer see or reach.
+      try { localStorage.removeItem(HANDLE_KEY); } catch(e){}
+
+      var status = await getStatus();
+      clearTimeout(waitTimer);
+      var st = GM.normalizeStatus(status);
+      var me = st.outlets[OUTLET_ID];
+
+      // Still closed when we genuinely don't know — but now that verdict is
+      // reached only after every attempt has failed, not on one unlucky request.
+      var isOpen = !!(status && me.open);
+      if (isOpen) { hideClosed(); }
+      else { showClosed(false); }
+
+      // Closed here but open at the other outlet: say so, with a way there.
+      var otherId = GM.other(OUTLET_ID);
+      if (!isOpen && status && !GM.OUTLETS[otherId].comingSoon && st.outlets[otherId].open) {
+        var other = GM.OUTLETS[otherId];
+        document.getElementById('coOtherText').textContent = other.name + " is open right now!";
+        var link = document.getElementById('coOtherLink');
+        link.textContent = 'Order from ' + other.name;
+        link.href = GM.href('../' + other.path);
+        document.getElementById('coOther').hidden = false;
+      }
+
+      if (status) {
+        // grey out anything ticked in Item-Status (drinks and milks)
+        applySoldOut(me.soldOut, me.soldOutMilks);
+        schedule.render(me.dates);
+      }
+
+      // Ask who they are, every visit, but only when there's a menu behind the
+      // question. Opened *before* the splash lifts and with no entrance
+      // animation, so the blur is already in place as the splash clears —
+      // there's no moment where the menu is readable and then taken away.
+      if (isOpen) showHandlePrompt(true);
+
+      // Closed: keep the splash up while we move to the shared closed screen.
+      if (!window.__gmLeaving) hideSplash();
+    })();
+  })();
+  </script>
+
+  <script>
+  // ============= Star confetti =============
+  (function(){
+    var STAR_PATH = "M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z";
+    // [position css, fill, size, rotation]
+    var CONFETTI = [
+      ["top:3%;left:41%","#6FA5C9",10,-8],["top:4%;right:39%","#E8734A",11,12],
+      ["top:6%;left:15%","#E8734A",15,-15],["top:9%;right:16%","#6FA5C9",13,12],
+      ["top:17%;left:25%","#C3D46A",12,20],["top:15%;right:26%","#E58AB0",11,-8],
+      ["top:27%;left:6%","#6FA5C9",12,6],["top:24%;right:7%","#F0A04B",15,-18],
+      ["top:38%;left:23%","#E58AB0",12,14],["top:37%;right:22%","#6FA96B",13,-10],
+      ["top:50%;left:8%","#E58AB0",14,8],["top:48%;right:10%","#E8734A",18,16],
+      ["top:62%;left:20%","#6FA96B",12,-12],["top:60%;right:18%","#C3D46A",12,10],
+      ["top:74%;left:10%","#F0A04B",13,14],["top:72%;right:24%","#E58AB0",13,-16],
+      ["top:85%;left:26%","#6FA5C9",12,-10],["top:84%;right:14%","#F0A04B",14,18],
+      ["bottom:5%;left:44%","#E58AB0",12,-12],["bottom:6%;right:40%","#C3D46A",11,14]
+    ];
+    // sparser, balanced layout for narrow screens (top + bottom bands, slim side edges)
+    var CONFETTI_MOBILE = [
+      ["top:2%;left:8%","#E8734A",12,-12],["top:3%;right:10%","#6FA5C9",12,12],
+      ["top:4%;left:31%","#C3D46A",10,18],["top:5%;right:29%","#E58AB0",10,-8],
+      ["top:40%;left:3%","#6FA96B",11,8],["top:43%;right:3%","#F0A04B",11,-14],
+      ["top:60%;left:4%","#E58AB0",11,10],["top:58%;right:4%","#6FA5C9",11,-10],
+      ["bottom:4%;left:14%","#F0A04B",12,14],["bottom:5%;right:16%","#E8734A",12,-16],
+      ["bottom:7%;left:40%","#C3D46A",10,-10],["bottom:6%;right:38%","#E58AB0",10,16]
+    ];
+    var list = (window.matchMedia && window.matchMedia("(max-width:600px)").matches) ? CONFETTI_MOBILE : CONFETTI;
+    function paint(el){
+      if(!el) return;
+      el.innerHTML = list.map(function(c){
+        return '<svg style="' + c[0] + ';width:' + c[2] + 'px;height:' + c[2]
+          + 'px;transform:rotate(' + c[3] + 'deg)" viewBox="0 0 24 24" fill="' + c[1]
+          + '"><path d="' + STAR_PATH + '"/></svg>';
+      }).join("");
+    }
+    document.querySelectorAll('.bg-confetti, #closedOverlay .co-confetti').forEach(paint);
+  })();
+
+  </script>
+</body>
+</html>
